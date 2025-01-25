@@ -33,6 +33,7 @@ public class JwtTokenProvider {
 	private long refreshTokenExpiry;
 
 	private static final String AUTHORITIES_KEY = "auth";
+	private static final String BEARER_PREFIX = "Bearer ";
 
 	// secretKey를 Base64로 디코딩해 HMAC-SHA 키를 생성
 	public JwtTokenProvider(@Value("${jwt.secret}") String secretKey) {
@@ -158,5 +159,14 @@ public class JwtTokenProvider {
 			// 만료된 토큰의 클레임 반환
 			return Optional.of(e.getClaims());
 		}
+	}
+
+	// 요청에서 JWT 토큰을 추출
+	public String resolveToken(HttpServletRequest request) {
+		String bearerToken = request.getHeader("Authorization");
+		if (bearerToken != null && bearerToken.startsWith(BEARER_PREFIX)) {
+			return bearerToken.substring(BEARER_PREFIX.length()); // "Bearer " 부분을 제거하고 반환
+		}
+		return null;
 	}
 }
