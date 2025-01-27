@@ -1,5 +1,6 @@
 package com.YOGIITSU.config;
 
+import com.YOGIITSU.config.handler.LogoutSuccessHandler;
 import com.YOGIITSU.jwt.JwtAuthenticationFilter;
 import com.YOGIITSU.jwt.JwtTokenProvider;
 import java.util.Arrays;
@@ -30,7 +31,8 @@ public class SecurityConfig {
 		http
 			.csrf(csrf -> csrf.disable())  // CSRF 보호 비활성화
 			.authorizeHttpRequests(authz -> authz
-				.anyRequest().permitAll() // 모든 요청 허용
+				.requestMatchers("/logout").authenticated()  // 로그아웃 경로는 인증된 사용자만 접근 가능
+				.anyRequest().permitAll()  // 나머지 요청은 모두 허용
 			)
 			.addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
 				UsernamePasswordAuthenticationFilter.class) // JWT 인증 필터 추가
@@ -49,9 +51,21 @@ public class SecurityConfig {
 			)
 			.sessionManagement(session -> session
 				.sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Stateless 기반 세션 관리
+			)
+			// 로그아웃 경로 설정
+			.logout(logout -> logout
+				.logoutUrl("/logout") // 로그아웃 URL
+				.logoutSuccessHandler(logoutSuccessHandler()) // 커스텀 핸들러 등록
+				.permitAll() // 로그아웃 경로는 모두 허용
+
 			);
 
 		return http.build();
+	}
+
+	@Bean
+	public LogoutSuccessHandler logoutSuccessHandler() {
+		return new LogoutSuccessHandler(jwtTokenProvider);  // 커스텀 로그아웃 성공 핸들러 사용
 	}
 
 	@Bean
@@ -63,8 +77,11 @@ public class SecurityConfig {
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration configuration = new CorsConfiguration();
 		configuration.setAllowedOrigins(Arrays.asList("http://15.165.2.118")); // 허용할 서버 IP
-		configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE")); // 허용할 HTTP 메서드
-		configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With", "cookie")); // 허용할 요청 헤더
+		configuration.setAllowedMethods(
+			Arrays.asList("GET", "POST", "PUT", "DELETE")); // 허용할 HTTP 메서드
+		configuration.setAllowedHeaders(
+			Arrays.asList("Authorization", "Content-Type", "X-Requested-With",
+				"cookie")); // 허용할 요청 헤더
 		configuration.setExposedHeaders(Arrays.asList("Authorization", "verify")); // 노출할 응답 헤더
 		configuration.setAllowCredentials(true); // 자격 증명 허용
 

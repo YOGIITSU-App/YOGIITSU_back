@@ -1,19 +1,12 @@
 package com.YOGIITSU.jwt;
 
 import com.YOGIITSU.dto.TokenInfo;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletRequest;
 import java.security.Key;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,6 +33,7 @@ public class JwtTokenProvider {
 	private long refreshTokenExpiry;
 
 	private static final String AUTHORITIES_KEY = "auth";
+	private static final String BEARER_PREFIX = "Bearer ";
 
 	// secretKey를 Base64로 디코딩해 HMAC-SHA 키를 생성
 	public JwtTokenProvider(@Value("${jwt.secret}") String secretKey) {
@@ -103,9 +97,15 @@ public class JwtTokenProvider {
 		Claims claims = parseClaims(accessToken)
 			.orElseThrow(() -> new RuntimeException("권한 정보가 없는 토큰입니다."));
 
-		// 권한 정보를 SimpleGrantedAuthority 로 변환
+		// 권한 정보가 없으면 기본값으로 "ROLE_USER"를 설정
+		String authoritiesClaim = claims.get(AUTHORITIES_KEY, String.class);
+		if (authoritiesClaim == null || authoritiesClaim.isEmpty()) {
+			authoritiesClaim = "ROLE_USER";  // 기본 권한 설정
+		}
+
+		// 권한 정보를 SimpleGrantedAuthority로 변환
 		Collection<? extends GrantedAuthority> authorities =
-			Arrays.stream(claims.get(AUTHORITIES_KEY).toString().split(","))
+			Arrays.stream(authoritiesClaim.split(","))
 				.map(SimpleGrantedAuthority::new)
 				.collect(Collectors.toList());
 
@@ -159,5 +159,14 @@ public class JwtTokenProvider {
 			// 만료된 토큰의 클레임 반환
 			return Optional.of(e.getClaims());
 		}
+	}
+
+	// 요청에서 JWT 토큰을 추출
+	public String resolveToken(HttpServletRequest request) {
+		String bearerToken = request.getHeader("Authorization");
+		if (bearerToken != null && bearerToken.startsWith(BEARER_PREFIX)) {
+			return bearerToken.substring(BEARER_PREFIX.length()); // "Bearer " 부분을 제거하고 반환
+		}
+		return null;
 	}
 }
