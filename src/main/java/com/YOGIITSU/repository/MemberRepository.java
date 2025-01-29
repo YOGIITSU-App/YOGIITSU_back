@@ -7,4 +7,10 @@ import java.util.Optional;
 public interface MemberRepository extends JpaRepository<Member, Long> {
 
 	Optional<Member> findByMemberId(String memberId);
+
+	// MemberId를 기준으로 회원을 삭제하는 메서드 추가
+	void deleteByMemberId(String memberId);
+
+	// MemberId를 기준으로 회원 존재 여부를 확인하는 메서드 추가
+	boolean existsByMemberId(String memberId);
 }
