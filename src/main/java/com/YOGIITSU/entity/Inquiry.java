@@ -47,6 +47,11 @@ public class Inquiry {
         this.inquiryState = InquiryState.PROCESSING;
     }
 
+    // 문의 내용 수정을 위한 메서드
+    public void updateInquiryContent(String newContent) {
+        this.inquiryContent = newContent;
+    }
+
     public void updateResponse(String response) {
         // 관리자가 문의에 대한 답변 작성
         this.response = response;
