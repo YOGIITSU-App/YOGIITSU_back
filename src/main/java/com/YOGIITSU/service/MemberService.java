@@ -52,6 +52,19 @@ public class MemberService {
 	}
 
 	/**
+	 * 이메일로 아이디 찾기
+	 *
+	 * @param email 사용자의 이메일
+	 * @return 사용자 아이디
+	 */
+	public String findIdByEmail(String email) {
+		// 이메일로 사용자 조회
+		return memberRepository.findByEmail(email)
+			.map(Member::getMemberId)
+			.orElse(null); // 가입된 이메일이 없으면 null 반환
+	}
+
+	/**
 	 * 회원 탈퇴 처리 메서드
 	 *
 	 * @param memberId 사용자의 아이디
@@ -68,7 +81,5 @@ public class MemberService {
 
 		// 3. 로그 기록
 		logger.info("회원 탈퇴: {}", memberId);
-
 	}
-
 }
