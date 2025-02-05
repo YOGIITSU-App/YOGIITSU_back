@@ -2,6 +2,7 @@ package com.YOGIITSU.service;
 
 import com.YOGIITSU.dto.TokenInfo;
 import com.YOGIITSU.jwt.JwtTokenProvider;
+import com.YOGIITSU.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -9,6 +10,9 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.YOGIITSU.entity.Member;
 
 @Service
 @Transactional(readOnly = true)
@@ -17,6 +21,8 @@ public class MemberService {
 
 	private final AuthenticationManagerBuilder authenticationManagerBuilder;
 	private final JwtTokenProvider jwtTokenProvider;
+	private final MemberRepository memberRepository;
+	private final Logger logger = LoggerFactory.getLogger(MemberService.class);
 
 	/**
 	 * 로그인 처리 메서드
@@ -43,5 +49,37 @@ public class MemberService {
 			// 4. 인증 실패 시 예외 처리
 			throw new RuntimeException("아이디 또는 비밀번호가 잘못되었습니다", e);
 		}
+	}
+
+	/**
+	 * 이메일로 아이디 찾기
+	 *
+	 * @param email 사용자의 이메일
+	 * @return 사용자 아이디
+	 */
+	public String findIdByEmail(String email) {
+		// 이메일로 사용자 조회
+		return memberRepository.findByEmail(email)
+			.map(Member::getMemberId)
+			.orElse(null); // 가입된 이메일이 없으면 null 반환
+	}
+
+	/**
+	 * 회원 탈퇴 처리 메서드
+	 *
+	 * @param memberId 사용자의 아이디
+	 */
+	@Transactional
+	public void deleteMember(String memberId) {
+		// 1. 회원 정보 삭제
+		memberRepository.deleteByMemberId(memberId);
+
+		// 2. 회원 탈퇴 확인
+		if (memberRepository.existsByMemberId(memberId)) {
+			throw new RuntimeException("회원 탈퇴 실패: 회원 정보가 삭제되지 않았습니다.");
+		}
+
+		// 3. 로그 기록
+		logger.info("회원 탈퇴: {}", memberId);
 	}
 }
