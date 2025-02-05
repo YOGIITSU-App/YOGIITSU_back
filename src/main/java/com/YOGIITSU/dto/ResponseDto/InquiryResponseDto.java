@@ -1,4 +1,4 @@
-package com.YOGIITSU.dto;
+package com.YOGIITSU.dto.ResponseDto;
 
 import com.YOGIITSU.entity.Inquiry;
 import lombok.Getter;
