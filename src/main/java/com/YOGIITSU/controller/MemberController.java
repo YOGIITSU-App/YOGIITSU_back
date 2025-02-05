@@ -2,6 +2,7 @@ package com.YOGIITSU.controller;
 
 import com.YOGIITSU.dto.MemberLoginRequestDto;
 import com.YOGIITSU.dto.RequestDto.FindMemberIdRequestDto;
+import com.YOGIITSU.dto.RequestDto.PasswordCheckRequestDto;
 import com.YOGIITSU.dto.ResponseDto.FindMemberIdResponseDto;
 import com.YOGIITSU.dto.TokenInfo;
 import com.YOGIITSU.jwt.JwtTokenProvider;
@@ -59,9 +60,9 @@ public class MemberController {
 	 * @param request HTTP 요청 객체
 	 */
 	@DeleteMapping("/delete")
-	public ResponseEntity<String> deleteMember(HttpServletRequest request) {
+	public ResponseEntity<String> deleteMember(@RequestBody PasswordCheckRequestDto request, HttpServletRequest httpRequest) {
 		// 1. 요청에서 JWT 토큰 추출
-		String accessToken = jwtTokenProvider.resolveToken(request);
+		String accessToken = jwtTokenProvider.resolveToken(httpRequest);
 
 		// 2. 토큰이 없으면 에러 응답
 		if (accessToken == null) {
@@ -77,8 +78,7 @@ public class MemberController {
 		String memberId = jwtTokenProvider.getAuthentication(accessToken).getName();
 
 		// 5. 회원 탈퇴 처리
-		memberService.deleteMember(memberId);
-
+		memberService.deleteMember(memberId, request.getPassword());
 		// 6. 탈퇴 성공 메시지 반환
 		return ResponseEntity.ok(memberId + "님의 회원 탈퇴가 완료되었습니다.");
 	}
