@@ -1,0 +1,63 @@
+package com.YOGIITSU.config.handler;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+	// PasswordMismatchException 발생 시 호출
+	@ExceptionHandler(PasswordMismatchException.class)
+	public ResponseEntity<Map<String, String>> handlePasswordMismatchException(
+		PasswordMismatchException e) {
+		Map<String, String> errorResponse = new HashMap<>();
+		errorResponse.put("message", e.getMessage());
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+	}
+
+	// Token 관련 예외들 처리
+	@ExceptionHandler(MissingTokenException.class)
+	public ResponseEntity<Map<String, String>> handleMissingTokenException(
+		MissingTokenException e) {
+		Map<String, String> errorResponse = new HashMap<>();
+		errorResponse.put("message", e.getMessage());
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+	}
+
+	@ExceptionHandler(InvalidTokenException.class)
+	public ResponseEntity<Map<String, String>> handleInvalidTokenException(
+		InvalidTokenException e) {
+		Map<String, String> errorResponse = new HashMap<>();
+		errorResponse.put("message", e.getMessage());
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+	}
+
+	// 비밀번호 불일치 예외 클래스 정의
+	public static class PasswordMismatchException extends RuntimeException {
+
+		public PasswordMismatchException() {
+			super("비밀번호가 일치하지 않습니다.");
+		}
+	}
+
+	// 토큰이 없을 경우 예외 클래스 정의
+	public static class MissingTokenException extends RuntimeException {
+
+		public MissingTokenException() {
+			super("회원 탈퇴 실패: 토큰을 입력해 주세요.");
+		}
+	}
+
+	// 유효하지 않은 토큰일 경우 예외 클래스 정의
+	public static class InvalidTokenException extends RuntimeException {
+
+		public InvalidTokenException() {
+			super("회원 탈퇴 실패: 존재하지 않는 토큰입니다.");
+		}
+	}
+}

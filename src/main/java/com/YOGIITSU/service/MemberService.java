@@ -1,5 +1,6 @@
 package com.YOGIITSU.service;
 
+import com.YOGIITSU.config.handler.GlobalExceptionHandler.PasswordMismatchException;
 import com.YOGIITSU.dto.TokenInfo;
 import com.YOGIITSU.jwt.JwtTokenProvider;
 import com.YOGIITSU.repository.MemberRepository;
@@ -8,6 +9,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
@@ -22,6 +24,7 @@ public class MemberService {
 	private final AuthenticationManagerBuilder authenticationManagerBuilder;
 	private final JwtTokenProvider jwtTokenProvider;
 	private final MemberRepository memberRepository;
+	private final PasswordEncoder passwordEncoder;
 	private final Logger logger = LoggerFactory.getLogger(MemberService.class);
 
 	/**
@@ -70,16 +73,26 @@ public class MemberService {
 	 * @param memberId 사용자의 아이디
 	 */
 	@Transactional
-	public void deleteMember(String memberId) {
-		// 1. 회원 정보 삭제
-		memberRepository.deleteByMemberId(memberId);
+	public void deleteMember(String memberId, String rawPassword) {
+		// 1. 회원 조회
+		Member member = memberRepository.findByMemberId(memberId)
+			.orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
 
-		// 2. 회원 탈퇴 확인
+		// 2. 비밀번호 검증 (암호화된 비밀번호와 비교)
+		if (!passwordEncoder.matches(rawPassword, member.getPassword())) {
+			throw new PasswordMismatchException();
+		}
+
+		// 3. 회원 정보 삭제
+		memberRepository.delete(member);
+
+		// 4. 회원 삭제 후 존재 여부 확인
 		if (memberRepository.existsByMemberId(memberId)) {
 			throw new RuntimeException("회원 탈퇴 실패: 회원 정보가 삭제되지 않았습니다.");
 		}
 
-		// 3. 로그 기록
+		// 5. 로그 기록
 		logger.info("회원 탈퇴: {}", memberId);
 	}
+
 }
