@@ -2,7 +2,7 @@ package com.YOGIITSU.controller;
 
 import com.YOGIITSU.config.handler.GlobalExceptionHandler.InvalidTokenException;
 import com.YOGIITSU.config.handler.GlobalExceptionHandler.MissingTokenException;
-import com.YOGIITSU.dto.MemberLoginRequestDto;
+import com.YOGIITSU.dto.RequestDto.MemberLoginRequestDto;
 import com.YOGIITSU.dto.RequestDto.FindMemberIdRequestDto;
 import com.YOGIITSU.dto.RequestDto.PasswordCheckRequestDto;
 import com.YOGIITSU.dto.ResponseDto.FindMemberIdResponseDto;
