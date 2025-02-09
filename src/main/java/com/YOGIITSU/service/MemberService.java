@@ -1,7 +1,7 @@
 package com.YOGIITSU.service;
 
 import com.YOGIITSU.config.handler.GlobalExceptionHandler.PasswordMismatchException;
-import com.YOGIITSU.dto.TokenInfo;
+import com.YOGIITSU.dto.ResponseDto.TokenResponseDto;
 import com.YOGIITSU.jwt.JwtTokenProvider;
 import com.YOGIITSU.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +35,7 @@ public class MemberService {
 	 * @return TokenInfo JWT 토큰 정보
 	 */
 	@Transactional
-	public TokenInfo login(String memberId, String password) {
+	public TokenResponseDto login(String memberId, String password) {
 		// 1. 아이디와 비밀번호를 기반으로 Authentication 객체 생성
 		UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
 			memberId, password);

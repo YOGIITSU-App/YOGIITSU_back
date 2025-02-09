@@ -6,7 +6,7 @@ import com.YOGIITSU.dto.MemberLoginRequestDto;
 import com.YOGIITSU.dto.RequestDto.FindMemberIdRequestDto;
 import com.YOGIITSU.dto.RequestDto.PasswordCheckRequestDto;
 import com.YOGIITSU.dto.ResponseDto.FindMemberIdResponseDto;
-import com.YOGIITSU.dto.TokenInfo;
+import com.YOGIITSU.dto.ResponseDto.TokenResponseDto;
 import com.YOGIITSU.jwt.JwtTokenProvider;
 import com.YOGIITSU.service.MemberService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,7 +32,7 @@ public class MemberController {
 	private static final String MEMBER_DELETION_SUCCESS = "님의 회원 탈퇴가 완료되었습니다.";
 
 	@PostMapping("/login")
-	public TokenInfo login(@RequestBody MemberLoginRequestDto memberLoginRequestDto) {
+	public TokenResponseDto login(@RequestBody MemberLoginRequestDto memberLoginRequestDto) {
 		return memberService.login(
 			memberLoginRequestDto.getMemberId(),
 			memberLoginRequestDto.getPassword()
