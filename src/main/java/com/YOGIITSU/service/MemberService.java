@@ -1,10 +1,12 @@
 package com.YOGIITSU.service;
 
+import com.YOGIITSU.config.handler.GlobalExceptionHandler.AdminAccessDeniedException;
 import com.YOGIITSU.config.handler.GlobalExceptionHandler.PasswordMismatchException;
 import com.YOGIITSU.dto.ResponseDto.TokenResponseDto;
 import com.YOGIITSU.jwt.JwtTokenProvider;
 import com.YOGIITSU.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -15,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.YOGIITSU.entity.Member;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @Transactional(readOnly = true)
@@ -53,6 +56,35 @@ public class MemberService {
 			throw new RuntimeException("아이디 또는 비밀번호가 잘못되었습니다", e);
 		}
 	}
+
+	/**
+	 * 관리자 로그인 처리 메서드
+	 *
+	 * @param memberId 사용자의 아이디
+	 * @param password 사용자의 비밀번호
+	 * @return TokenInfo JWT 토큰 정보
+	 */
+	@Transactional
+	public TokenResponseDto adminLogin(String memberId, String password) {
+		// 1. 사용자가 존재하는지 확인
+		Member member = memberRepository.findByMemberId(memberId)
+			.orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "존재하지 않는 계정입니다."));
+
+		// 2. 관리자 계정인지 확인
+		if (!"ADMIN".equals(member.getRole())) {
+			throw new AdminAccessDeniedException();
+		}
+
+		// 3. 비밀번호 검증 후 토큰 발급
+		UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+			memberId, password);
+
+		Authentication authentication = authenticationManagerBuilder.getObject()
+			.authenticate(authenticationToken);
+
+		return jwtTokenProvider.generateToken(authentication);
+	}
+
 
 	/**
 	 * 이메일로 아이디 찾기
