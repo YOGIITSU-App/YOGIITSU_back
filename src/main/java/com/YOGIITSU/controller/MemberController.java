@@ -31,9 +31,29 @@ public class MemberController {
 	private static final String EMAIL_MATCH_FOUND = "이메일 정보와 일치하는 아이디가 있습니다.";
 	private static final String MEMBER_DELETION_SUCCESS = "님의 회원 탈퇴가 완료되었습니다.";
 
+	/**
+	 * 로그인 API
+	 *
+	 * @param memberLoginRequestDto 요청 데이터 (아이디, 비밀번호)
+	 * @return TokenInfo JWT 토큰 정보
+	 */
 	@PostMapping("/login")
 	public TokenResponseDto login(@RequestBody MemberLoginRequestDto memberLoginRequestDto) {
 		return memberService.login(
+			memberLoginRequestDto.getMemberId(),
+			memberLoginRequestDto.getPassword()
+		);
+	}
+
+	/**
+	 * 관리자 로그인 API
+	 *
+	 * @param memberLoginRequestDto 요청 데이터 (아이디, 비밀번호)
+	 * @return TokenInfo JWT 토큰 정보
+	 */
+	@PostMapping("/admin/login")
+	public TokenResponseDto adminLogin(@RequestBody MemberLoginRequestDto memberLoginRequestDto) {
+		return memberService.adminLogin(
 			memberLoginRequestDto.getMemberId(),
 			memberLoginRequestDto.getPassword()
 		);
