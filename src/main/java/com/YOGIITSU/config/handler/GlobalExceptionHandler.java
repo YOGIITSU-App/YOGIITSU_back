@@ -47,6 +47,14 @@ public class GlobalExceptionHandler {
 		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse); // 403 반환
 	}
 
+	@ExceptionHandler(MemberNotFoundException.class)
+	public ResponseEntity<Map<String, String>> handleMemberNotFoundException(
+		MemberNotFoundException e) {
+		Map<String, String> errorResponse = new HashMap<>();
+		errorResponse.put("message", e.getMessage());
+		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+	}
+
 	// 비밀번호 불일치 예외 클래스 정의
 	public static class PasswordMismatchException extends RuntimeException {
 
@@ -76,6 +84,12 @@ public class GlobalExceptionHandler {
 
 		public AdminAccessDeniedException() {
 			super("관리자 계정이 아닙니다.");
+		}
+	}
+	public static class MemberNotFoundException extends RuntimeException {
+
+		public MemberNotFoundException() {
+			super("존재하지 않는 계정입니다.");
 		}
 	}
 

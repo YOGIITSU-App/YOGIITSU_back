@@ -1,12 +1,12 @@
 package com.YOGIITSU.service;
 
 import com.YOGIITSU.config.handler.GlobalExceptionHandler.AdminAccessDeniedException;
+import com.YOGIITSU.config.handler.GlobalExceptionHandler.MemberNotFoundException;
 import com.YOGIITSU.config.handler.GlobalExceptionHandler.PasswordMismatchException;
 import com.YOGIITSU.dto.ResponseDto.TokenResponseDto;
 import com.YOGIITSU.jwt.JwtTokenProvider;
 import com.YOGIITSU.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.YOGIITSU.entity.Member;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @Transactional(readOnly = true)
@@ -68,7 +67,7 @@ public class MemberService {
 	public TokenResponseDto adminLogin(String memberId, String password) {
 		// 1. 사용자가 존재하는지 확인
 		Member member = memberRepository.findByMemberId(memberId)
-			.orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "존재하지 않는 계정입니다."));
+			.orElseThrow(MemberNotFoundException::new);
 
 		// 2. 관리자 계정인지 확인
 		if (!"ADMIN".equals(member.getRole())) {
