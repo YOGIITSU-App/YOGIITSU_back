@@ -29,12 +29,30 @@ public class GlobalExceptionHandler {
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
 	}
 
+	// InvalidTokenException 발생 시 호출
 	@ExceptionHandler(InvalidTokenException.class)
 	public ResponseEntity<Map<String, String>> handleInvalidTokenException(
 		InvalidTokenException e) {
 		Map<String, String> errorResponse = new HashMap<>();
 		errorResponse.put("message", e.getMessage());
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+	}
+
+	// AdminAccessDeniedException 발생 시 호출
+	@ExceptionHandler(AdminAccessDeniedException.class)
+	public ResponseEntity<Map<String, String>> handleAdminAccessDeniedException(
+		AdminAccessDeniedException e) {
+		Map<String, String> errorResponse = new HashMap<>();
+		errorResponse.put("message", e.getMessage());
+		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse); // 403 반환
+	}
+
+	@ExceptionHandler(MemberNotFoundException.class)
+	public ResponseEntity<Map<String, String>> handleMemberNotFoundException(
+		MemberNotFoundException e) {
+		Map<String, String> errorResponse = new HashMap<>();
+		errorResponse.put("message", e.getMessage());
+		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
 	}
 
 	// 비밀번호 불일치 예외 클래스 정의
@@ -60,4 +78,19 @@ public class GlobalExceptionHandler {
 			super("회원 탈퇴 실패: 존재하지 않는 토큰입니다.");
 		}
 	}
+
+	// 관리자 권한이 없을 경우 예외 클래스 정의
+	public static class AdminAccessDeniedException extends RuntimeException {
+
+		public AdminAccessDeniedException() {
+			super("관리자 계정이 아닙니다.");
+		}
+	}
+	public static class MemberNotFoundException extends RuntimeException {
+
+		public MemberNotFoundException() {
+			super("존재하지 않는 계정입니다.");
+		}
+	}
+
 }
