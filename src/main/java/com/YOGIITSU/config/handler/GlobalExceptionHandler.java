@@ -67,7 +67,7 @@ public class GlobalExceptionHandler {
 	public static class MissingTokenException extends RuntimeException {
 
 		public MissingTokenException() {
-			super("회원 탈퇴 실패: 토큰을 입력해 주세요.");
+			super("토큰을 입력해 주세요.");
 		}
 	}
 
@@ -75,7 +75,7 @@ public class GlobalExceptionHandler {
 	public static class InvalidTokenException extends RuntimeException {
 
 		public InvalidTokenException() {
-			super("회원 탈퇴 실패: 존재하지 않는 토큰입니다.");
+			super("존재하지 않는 토큰입니다.");
 		}
 	}
 
