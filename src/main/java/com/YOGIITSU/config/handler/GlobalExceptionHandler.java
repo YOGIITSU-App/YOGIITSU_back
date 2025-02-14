@@ -47,12 +47,22 @@ public class GlobalExceptionHandler {
 		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse); // 403 반환
 	}
 
+	// MemberNotFoundException 발생 시 호출
 	@ExceptionHandler(MemberNotFoundException.class)
 	public ResponseEntity<Map<String, String>> handleMemberNotFoundException(
 		MemberNotFoundException e) {
 		Map<String, String> errorResponse = new HashMap<>();
 		errorResponse.put("message", e.getMessage());
 		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+	}
+
+	// PasswordNotEqualsException 발생 시 호출
+	@ExceptionHandler(PasswordNotEqualsException.class)
+	public ResponseEntity<Map<String, String>> handlePasswordNotEqualsException(
+		PasswordNotEqualsException e) {
+		Map<String, String> errorResponse = new HashMap<>();
+		errorResponse.put("message", e.getMessage());
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
 	}
 
 	// 비밀번호 불일치 예외 클래스 정의
@@ -90,6 +100,13 @@ public class GlobalExceptionHandler {
 
 		public MemberNotFoundException() {
 			super("존재하지 않는 계정입니다.");
+		}
+	}
+
+	public static class PasswordNotEqualsException extends RuntimeException {
+
+		public PasswordNotEqualsException() {
+			super("새 비밀번호와 확인 비밀번호가 일치하지 않습니다.");
 		}
 	}
 
