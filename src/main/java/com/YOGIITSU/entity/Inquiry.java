@@ -22,6 +22,9 @@ public class Inquiry {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;  // Member 엔티티의 PK(id) 참조 (FK)
 
+    @Column(name = "inquiry_title", nullable = false)
+    private String inquiryTitle;
+
     @Column(name = "inquiry_content", columnDefinition = "TEXT", nullable = false)
     private String inquiryContent;  // 문의 내용
 
@@ -47,17 +50,19 @@ public class Inquiry {
         this.inquiryState = InquiryState.PROCESSING;
     }
 
-    // 문의 내용 수정을 위한 메서드
-    public void updateInquiryContent(String newContent) {
+    // 문의 제목 및 내용 수정을 위한 메서드
+    public void updateInquiry(String newContent, String newTitle) {
+        this.inquiryTitle = newTitle;
         this.inquiryContent = newContent;
     }
 
+    // 관리자가 답변 등록 시 호출 메서드
     public void updateResponse(String response) {
-        // 관리자가 문의에 대한 답변 작성
         this.response = response;
         this.responseAt = LocalDateTime.now();  // 답변 날짜 함께 갱신
     }
 
+    // 문의 상태 업데이트
     public void updateInquiryState(InquiryState newState) {
         this.inquiryState = newState;  // 문의 상태 변경
     }
