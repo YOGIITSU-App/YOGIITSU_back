@@ -3,6 +3,7 @@ package com.YOGIITSU.service;
 import com.YOGIITSU.config.handler.GlobalExceptionHandler.AdminAccessDeniedException;
 import com.YOGIITSU.config.handler.GlobalExceptionHandler.MemberNotFoundException;
 import com.YOGIITSU.config.handler.GlobalExceptionHandler.PasswordMismatchException;
+import com.YOGIITSU.config.handler.GlobalExceptionHandler.PasswordNotEqualsException;
 import com.YOGIITSU.dto.ResponseDto.TokenResponseDto;
 import com.YOGIITSU.jwt.JwtTokenProvider;
 import com.YOGIITSU.repository.MemberRepository;
@@ -126,4 +127,30 @@ public class MemberService {
 		logger.info("회원 탈퇴: {}", memberId);
 	}
 
+	/**
+	 * 비밀번호 변경 메서드
+	 *
+	 * @param memberId        사용자 아이디
+	 * @param newPassword     새로운 비밀번호
+	 * @param confirmPassword 새로운 비밀번호 확인
+	 */
+	@Transactional
+	public void changePassword(String memberId, String newPassword, String confirmPassword) {
+
+		// 1. 비밀번호 일치 확인
+		if (!newPassword.equals(confirmPassword)) {
+			throw new PasswordNotEqualsException();
+		}
+
+		// 2. 회원 조회
+		Member member = memberRepository.findByMemberId(memberId)
+			.orElseThrow(MemberNotFoundException::new);
+
+		// 3. 비밀번호 암호화 후 변경
+		String encodedPassword = passwordEncoder.encode(newPassword);
+		member.changePassword(encodedPassword);
+
+		// 4. 저장
+		memberRepository.save(member);
+	}
 }
