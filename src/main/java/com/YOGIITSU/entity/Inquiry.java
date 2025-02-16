@@ -52,7 +52,7 @@ public class Inquiry {
 
     // 문의 제목 및 내용 수정을 위한 메서드
     public void updateInquiry(String newContent, String newTitle) {
-        this.inquiryTitle = newTitle;
+        this.inquiryTitle = (newTitle != null) ? newTitle : this.inquiryTitle;
         this.inquiryContent = newContent;
     }
 
