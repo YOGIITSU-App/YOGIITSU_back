@@ -1,13 +1,15 @@
 package com.YOGIITSU.dto.ResponseDto;
 
 import com.YOGIITSU.entity.Inquiry;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
 
 @Getter
+@AllArgsConstructor
 public class InquiryResponseDto {
-    // 문의 정보를 클라이언트에 반환할 때 사용하는 dto
+    // 사용자에게 반환할 데이터 담는 dto
     private Long inquiryId;
     private String inquiryTitle;
     private String inquiryContent;
