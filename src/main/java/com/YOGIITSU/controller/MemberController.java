@@ -2,6 +2,7 @@ package com.YOGIITSU.controller;
 
 import com.YOGIITSU.config.handler.GlobalExceptionHandler.InvalidTokenException;
 import com.YOGIITSU.config.handler.GlobalExceptionHandler.MissingTokenException;
+import com.YOGIITSU.dto.RequestDto.ChangePasswordRequestDto;
 import com.YOGIITSU.dto.RequestDto.MemberLoginRequestDto;
 import com.YOGIITSU.dto.RequestDto.FindMemberIdRequestDto;
 import com.YOGIITSU.dto.RequestDto.PasswordCheckRequestDto;
@@ -13,6 +14,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -111,5 +113,35 @@ public class MemberController {
 		Map<String, String> response = new HashMap<>();
 		response.put("message", memberId + MEMBER_DELETION_SUCCESS);
 		return ResponseEntity.ok(response);
+	}
+
+	/**
+	 * 비밀번호 변경 API
+	 *
+	 * @param requestDto  새로운 비밀번호와 확인 비밀번호
+	 * @param httpRequest HTTP 요청 객체
+	 * @return 비밀번호 변경 결과
+	 */
+
+	@PostMapping("/change-password")
+	public ResponseEntity<Map<String, String>> changePassword(
+		@RequestBody ChangePasswordRequestDto requestDto, HttpServletRequest httpRequest) {
+
+		// 1. JWT 토큰 추출 및 유효성 검사
+		String accessToken = jwtTokenProvider.resolveToken(httpRequest);
+		if (accessToken == null || !jwtTokenProvider.validateToken(accessToken)) {
+			throw new InvalidTokenException();
+		}
+
+		// 2. 현재 인증된 사용자 가져오기
+		Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
+		String memberId = authentication.getName();
+
+		// 3. 비밀번호 변경 처리
+		memberService.changePassword(memberId, requestDto.getNewPassword(),
+			requestDto.getConfirmPassword());
+
+		// 4. 성공 메시지 반환
+		return ResponseEntity.ok(Map.of("message", "비밀번호가 성공적으로 변경되었습니다."));
 	}
 }
