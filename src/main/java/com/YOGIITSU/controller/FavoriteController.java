@@ -49,4 +49,35 @@ public class FavoriteController {
 
 		return ResponseEntity.ok(Map.of("message", "즐겨찾기에 추가되었습니다."));
 	}
-}
+
+	/**
+	 * 즐겨찾기 삭제
+	 *
+	 * @param request    HTTP 요청 객체
+	 * @param buildingId 즐겨찾기에서 삭제할 건물 ID
+	 * @return ResponseEntity<String> 응답 객체
+	 */
+	@DeleteMapping("/{buildingId}")
+	public ResponseEntity<Map<String, String>> removeFavorite(HttpServletRequest request,
+		@PathVariable Long buildingId) {
+		// 1. 요청에서 JWT 토큰 추출
+		String accessToken = jwtTokenProvider.resolveToken(request);
+
+		// 2. 토큰이 없으면 예외 발생
+		if (accessToken == null) {
+			throw new MissingTokenException();
+		}
+
+		// 3. 토큰이 유효한지 확인, 유효하지 않으면 예외 발생
+		if (!jwtTokenProvider.validateToken(accessToken)) {
+			throw new InvalidTokenException();
+		}
+
+		// 4. 유효한 토큰이라면 사용자 ID 추출
+		String memberId = jwtTokenProvider.getAuthentication(accessToken).getName();
+
+		// 5. 즐겨찾기 삭제
+		favoriteService.removeFavorite(memberId, buildingId);
+
+		return ResponseEntity.ok(Map.of("message", "즐겨찾기에서 삭제되었습니다."));
+	}
