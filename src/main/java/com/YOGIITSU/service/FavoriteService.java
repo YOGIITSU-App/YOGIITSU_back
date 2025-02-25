@@ -42,4 +42,23 @@ public class FavoriteService {
 			.build();
 		favoriteRepository.save(favorite);
 	}
-}
+
+	/**
+	 * 즐겨찾기 삭제
+	 *
+	 * @param memberId   사용자 ID
+	 * @param buildingId 건물 ID
+	 */
+	@Transactional
+	public void removeFavorite(String memberId, Long buildingId) {
+		Member member = memberRepository.findByMemberId(memberId)
+			.orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
+		Building building = buildingRepository.findById(buildingId)
+			.orElseThrow(() -> new EntityNotFoundException("건물을 찾을 수 없습니다."));
+
+		if (!favoriteRepository.existsByMemberAndBuilding(member, building)) {
+			throw new IllegalArgumentException("즐겨찾기에 없는 건물입니다.");
+		}
+
+		favoriteRepository.deleteByMemberAndBuilding(member, building);
+	}
