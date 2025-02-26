@@ -7,6 +7,7 @@ import com.YOGIITSU.repository.FavoriteRepository;
 import com.YOGIITSU.repository.MemberRepository;
 import com.YOGIITSU.repository.BuildingRepository;
 import jakarta.persistence.EntityNotFoundException;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,3 +63,17 @@ public class FavoriteService {
 
 		favoriteRepository.deleteByMemberAndBuilding(member, building);
 	}
+
+	/**
+	 * 즐겨찾기 목록 조회
+	 *
+	 * @param memberId 사용자 ID
+	 * @return 즐겨찾기 목록
+	 */
+	public List<Favorite> getFavorites(String memberId) {
+		Member member = memberRepository.findByMemberId(memberId)
+			.orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
+
+		return favoriteRepository.findByMember(member);
+	}
+}
