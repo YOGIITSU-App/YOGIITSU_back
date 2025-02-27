@@ -1,4 +1,4 @@
-package com.YOGIITSU.dto;
+package com.YOGIITSU.dto.ResponseDto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,7 +7,7 @@ import lombok.Data;
 @Builder
 @Data
 @AllArgsConstructor
-public class TokenInfo {
+public class TokenResponseDto {
 
 	private String grantType;
 	private String accessToken;
