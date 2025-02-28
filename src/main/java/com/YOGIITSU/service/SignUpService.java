@@ -8,66 +8,93 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
-public class SignUpService { // SignUpService는 회원가입 관련 비즈니스 로직을 처리하는 서비스 클래스
+public class SignUpService {
 
-    private final MemberRepository memberRepository; // 회원 데이터 저장소
-    private final PasswordEncoder passwordEncoder; // 비밀번호 암호화를 위한 인코더
+    private final MemberRepository memberRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public void register(MemberSignUpRequestDto memberSignUpRequestDto) {
-        // 1. ID 중복 체크
+    public Map<String, String> register(MemberSignUpRequestDto memberSignUpRequestDto) {
+        Map<String, String> response = new HashMap<>();
+
+        // 1. 아이디 중복 체크
         if (memberRepository.findByMemberId(memberSignUpRequestDto.getMemberId()).isPresent()) {
-            throw new IllegalArgumentException("아이디가 이미 존재합니다."); // ID 중복 시 예외 발생
+            response.put("message", "아이디가 이미 존재합니다.");
+            return response;
         }
 
-        // 2. 이메일 중복 체크 및 유효성 검사
+        // 2. 이메일 중복 체크
         if (memberRepository.findByEmail(memberSignUpRequestDto.getEmail()).isPresent()) {
-            throw new IllegalArgumentException("이메일이 이미 존재합니다."); // 이메일 중복 시 예외 발생
+            response.put("message", "해당 이메일로 가입한 내역이 있습니다.");
+            return response;
         }
+
+        // 이메일 도메인 검사
         if (!memberSignUpRequestDto.getEmail().endsWith("@suwon.ac.kr")) {
-            throw new IllegalArgumentException("이메일은 무조건 @suwon.ac.kr로 끝나야 합니다."); // 이메일 도메인 유효성 검사
+            response.put("message", "이메일은 무조건 @suwon.ac.kr로 끝나야 합니다.");
+            return response;
         }
 
-        // 3. 비밀번호 유효성 검사
-        validatePassword(memberSignUpRequestDto.getPassword());
+        // 3. 이름 중복 체크
+        if (memberRepository.findByUserName(memberSignUpRequestDto.getUserName()).isPresent()) {
+            response.put("message", "해당 이름으로 가입한 내역이 있습니다.");
+            return response;
+        }
 
-        // 4. 비밀번호 암호화
+        // 4. 이름 길이 검사 (최소 2글자 이상)
+        if (memberSignUpRequestDto.getUserName().length() < 2) {
+            response.put("message", "이름은 최소 2글자 이상이어야 합니다.");
+            return response;
+        }
+
+        // 5. 비밀번호 유효성 검사
+        try {
+            validatePassword(memberSignUpRequestDto.getPassword());
+        } catch (IllegalArgumentException e) {
+            response.put("message", e.getMessage());
+            return response;
+        }
+
+        // 6. 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(memberSignUpRequestDto.getPassword());
 
-        // 5. Member 객체 생성
+        // 7. Member 객체 생성
         Member member = Member.builder()
-            .memberId(memberSignUpRequestDto.getMemberId()) // 회원 ID 설정
-            .password(encodedPassword) // 암호화된 비밀번호 설정
-            .email(memberSignUpRequestDto.getEmail()) // 이메일 설정
-            .userName(memberSignUpRequestDto.getUserName()) // 사용자 이름 설정
-            .role("USER") // 기본 역할을 USER로 설정
-            .joinAt(java.time.LocalDateTime.now()) // 가입 시간 설정
+            .memberId(memberSignUpRequestDto.getMemberId())
+            .password(encodedPassword)
+            .email(memberSignUpRequestDto.getEmail())
+            .userName(memberSignUpRequestDto.getUserName())
+            .role("USER")
+            .joinAt(java.time.LocalDateTime.now())
             .build();
 
-        // 6. 데이터 저장
-        memberRepository.save(member); // 생성된 Member 객체를 데이터베이스에 저장
+        // 8. 데이터 저장
+        memberRepository.save(member);
+
+        // 9. 성공 응답 반환
+        response.put("message", "회원가입이 성공적으로 완료되었습니다.");
+        return response;
     }
 
     // 비밀번호 유효성 검사 메서드
     private void validatePassword(String password) {
-        if (password.length() < 8) { // 비밀번호 길이가 8자 미만이면
-            throw new IllegalArgumentException("비밀번호는 최소 8글자여야 합니다."); // 메세지 출력
+        if (password.length() < 8) {
+            throw new IllegalArgumentException("비밀번호는 최소 8글자여야 합니다.");
         }
-        if (!Pattern.compile("[A-Z]").matcher(password).find()) { // 대문자가 1개 이상 들어가 있지 않으면
-            throw new IllegalArgumentException("비밀번호는 한 개 이상의 대문자를 포함해야 합니다."); // 메세지 출력
+        if (!Pattern.compile("^[a-z0-9!@#$%^&*(),.?\":{}|<>]+$").matcher(password).find()) {
+            throw new IllegalArgumentException("비밀번호는 소문자로 이루어져야 합니다.");
         }
-        if (!Pattern.compile("[a-z]").matcher(password).find()) { // 소문자가 1개 이상 들어가 있지 않으면
-            throw new IllegalArgumentException("비밀번호는 한 개 이상의 소문자를 포함해야 합니다."); // 메세지 출력
+        if (!Pattern.compile("[0-9]").matcher(password).find()) {
+            throw new IllegalArgumentException("비밀번호는 숫자를 포함해야 합니다.");
         }
-        if (!Pattern.compile("[0-9]").matcher(password).find()) { // 숫자가 1개 이상 들어가 있지 않으면
-            throw new IllegalArgumentException("비밀번호는 한 개 이상의 숫자를 포함해야 합니다."); // 메세지 출력
-        }
-        if (!Pattern.compile("[!@#$%^&*(),.?\":{}|<>]").matcher(password).find()) { // 특수문자가 1개 이상 들어가 있지 않으면
-            throw new IllegalArgumentException("비밀번호는 한 개 이상의 특수문자를 포함해야 합니다."); // 메세지 출력
+        if (!Pattern.compile("[!@#$%^&*(),.?\":{}|<>]").matcher(password).find()) {
+            throw new IllegalArgumentException("비밀번호는 특수문자를 포함해야 합니다.");
         }
     }
 }
