@@ -1,6 +1,6 @@
 package com.YOGIITSU.service;
 
-import com.YOGIITSU.dto.MemberSignUpRequestDto;
+import com.YOGIITSU.dto.RequestDto.MemberSignUpRequestDto;
 import com.YOGIITSU.entity.Member;
 import com.YOGIITSU.repository.MemberRepository;
 import jakarta.transaction.Transactional;

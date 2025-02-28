@@ -1,6 +1,6 @@
 package com.YOGIITSU.controller;
 
-import com.YOGIITSU.dto.MemberSignUpRequestDto;
+import com.YOGIITSU.dto.RequestDto.MemberSignUpRequestDto;
 import com.YOGIITSU.service.SignUpService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
