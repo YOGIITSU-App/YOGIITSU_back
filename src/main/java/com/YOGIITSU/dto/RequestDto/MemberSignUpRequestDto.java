@@ -1,4 +1,4 @@
-package com.YOGIITSU.dto;
+package com.YOGIITSU.dto.RequestDto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
