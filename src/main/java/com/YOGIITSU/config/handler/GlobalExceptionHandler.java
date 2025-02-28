@@ -55,6 +55,17 @@ public class GlobalExceptionHandler {
 		return buildErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
 	}
 
+	// 즐겨찾기 관련 예외 처리 추가
+	@ExceptionHandler(EntityNotFoundException.class)
+	public ResponseEntity<Map<String, String>> handleEntityNotFoundException(EntityNotFoundException e) {
+		return buildErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND);
+	}
+
+	// 잘못된 인자값이 들어왔을 경우 예외 처리
+	@ExceptionHandler(IllegalArgumentException.class)
+	public ResponseEntity<Map<String, String>> handleIllegalArgumentException(IllegalArgumentException e) {
+		return buildErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
+	}
 
 	public static class PasswordMismatchException extends RuntimeException {
 		public PasswordMismatchException() {
