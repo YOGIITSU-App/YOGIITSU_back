@@ -87,8 +87,8 @@ public class SignUpService {
         if (password.length() < 8) {
             throw new IllegalArgumentException("비밀번호는 최소 8글자여야 합니다.");
         }
-        if (!Pattern.compile("^[a-z0-9!@#$%^&*(),.?\":{}|<>]+$").matcher(password).find()) {
-            throw new IllegalArgumentException("비밀번호는 소문자로 이루어져야 합니다.");
+        if (!Pattern.compile("^[a-zA-Z0-9!@#$%^&*(),.?\":{}|<>]+$").matcher(password).find()) {
+            throw new IllegalArgumentException("비밀번호는 대소문자로 이루어져야 합니다.");
         }
         if (!Pattern.compile("[0-9]").matcher(password).find()) {
             throw new IllegalArgumentException("비밀번호는 숫자를 포함해야 합니다.");
