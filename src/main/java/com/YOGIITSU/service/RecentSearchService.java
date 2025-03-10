@@ -43,3 +43,16 @@ public class RecentSearchService {
 			.build();
 		recentSearchRepository.save(search);
 	}
+
+	// 최근 검색어 조회
+	@Transactional(readOnly = true)
+	public List<RecentSearchResponseDto> getRecentSearches(String memberId) {
+		Member member = memberRepository.findByMemberId(memberId)
+			.orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
+
+		return recentSearchRepository.findByMemberOrderBySearchedAtDesc(member)
+			.stream()
+			.map(RecentSearchResponseDto::new)
+			.toList();
+	}
+}
