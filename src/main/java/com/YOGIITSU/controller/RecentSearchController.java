@@ -53,3 +53,29 @@ public class RecentSearchController {
 		response.put("message", "검색어가 저장되었습니다.");
 		return ResponseEntity.ok(response);
 	}
+
+	/**
+	 * 최근 검색어 조회 API
+	 *
+	 * @return 최근 검색어 목록
+	 */
+	@GetMapping("/recent")
+	public ResponseEntity<List<RecentSearchResponseDto>> getRecentSearches(
+		HttpServletRequest httpRequest) {
+
+		// 1. JWT 토큰 검증
+		String accessToken = jwtTokenProvider.resolveToken(httpRequest);
+		if (accessToken == null) {
+			throw new MissingTokenException();
+		}
+		if (!jwtTokenProvider.validateToken(accessToken)) {
+			throw new InvalidTokenException();
+		}
+
+		// 2. 사용자 ID 추출
+		String memberId = jwtTokenProvider.getAuthentication(accessToken).getName();
+
+		// 3. 최근 검색어 조회 후 반환
+		return ResponseEntity.ok(recentSearchService.getRecentSearches(memberId));
+	}
+}
