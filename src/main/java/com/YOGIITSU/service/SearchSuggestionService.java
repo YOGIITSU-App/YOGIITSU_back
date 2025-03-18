@@ -1,0 +1,81 @@
+package com.YOGIITSU.service;
+
+import com.YOGIITSU.dto.ResponseDto.SearchSuggestionResponseDto;
+import com.YOGIITSU.entity.Building;
+import com.YOGIITSU.entity.Favorite;
+import com.YOGIITSU.entity.Member;
+import com.YOGIITSU.repository.BuildingRepository;
+import com.YOGIITSU.repository.FavoriteRepository;
+import com.YOGIITSU.repository.MemberRepository;
+import jakarta.persistence.EntityNotFoundException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+@Service
+@RequiredArgsConstructor
+public class SearchSuggestionService {
+
+	private final BuildingRepository buildingRepository;
+	private final FavoriteRepository favoriteRepository;
+	private final MemberRepository memberRepository;
+
+	public List<SearchSuggestionResponseDto> getSearchSuggestions(String query, String memberId) {
+		// 1. 사용자 정보 조회
+		Member member = findMemberById(memberId);
+
+		// 2. 사용자의 즐겨찾기된 건물 목록 가져오기 (즐겨찾기된 건물 중 검색어 포함된 것)
+		List<Building> bookmarkedBuildings = findBookmarkedBuildings(member, query);
+
+		// 3. DB에서 검색어가 포함된 건물 리스트 가져오기
+		List<Building> searchResults = findBuildings(query);
+
+		// 4. 즐겨찾기된 건물 리스트 + 일반 검색 결과 리스트 합치기
+		return mergeResults(bookmarkedBuildings, searchResults);
+	}
+
+	private Member findMemberById(String memberId) {
+		return memberRepository.findByMemberId(memberId)
+			.orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
+	}
+
+	private List<Building> findBookmarkedBuildings(Member member, String query) {
+		return favoriteRepository.findByMember(member).stream()
+			.map(Favorite::getBuilding)
+			.filter(building -> building.getName().contains(query)) // 즐겨찾기 중 검색어 포함된 것 필터링
+			.toList();
+	}
+
+	private List<Building> findBuildings(String query) {
+		return buildingRepository.findTop6ByNameContainingOrderByNameAsc(query);
+	}
+
+	private List<SearchSuggestionResponseDto> mergeResults(List<Building> bookmarkedBuildings,
+		List<Building> searchResults) {
+		Set<Long> bookmarkedBuildingIds = bookmarkedBuildings.stream()
+			.map(Building::getId)
+			.collect(Collectors.toSet());
+
+		List<SearchSuggestionResponseDto> finalResults = new ArrayList<>();
+
+		// 즐겨찾기된 건물 먼저 추가
+		for (Building building : bookmarkedBuildings) {
+			finalResults.add(new SearchSuggestionResponseDto(building.getName(), true));
+		}
+
+		// 일반 검색 결과에서 중복되지 않는 건물 추가
+		for (Building building : searchResults) {
+			if (!bookmarkedBuildingIds.contains(building.getId())) {
+				finalResults.add(new SearchSuggestionResponseDto(building.getName(), false));
+			}
+		}
+
+		// 최대 6개만 반환
+		return finalResults.stream()
+			.limit(6)
+			.collect(Collectors.toList());
+	}
+}
