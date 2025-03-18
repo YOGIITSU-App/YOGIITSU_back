@@ -2,15 +2,15 @@ package com.YOGIITSU.service;
 
 import com.YOGIITSU.dto.ResponseDto.SearchSuggestionResponseDto;
 import com.YOGIITSU.entity.Building;
+import com.YOGIITSU.entity.BuildingAlias;
 import com.YOGIITSU.entity.Favorite;
 import com.YOGIITSU.entity.Member;
+import com.YOGIITSU.repository.BuildingAliasRepository;
 import com.YOGIITSU.repository.BuildingRepository;
 import com.YOGIITSU.repository.FavoriteRepository;
 import com.YOGIITSU.repository.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 public class SearchSuggestionService {
 
 	private final BuildingRepository buildingRepository;
+	private final BuildingAliasRepository buildingAliasRepository;
 	private final FavoriteRepository favoriteRepository;
 	private final MemberRepository memberRepository;
 
@@ -31,7 +32,7 @@ public class SearchSuggestionService {
 		List<Building> bookmarkedBuildings = findBookmarkedBuildings(member, query);
 
 		// 3. DB에서 검색어가 포함된 건물 리스트 가져오기
-		List<Building> searchResults = findBuildings(query);
+		List<Building> searchResults = findBuildingsWithAliases(query);
 
 		// 4. 즐겨찾기된 건물 리스트 + 일반 검색 결과 리스트 합치기
 		return mergeResults(bookmarkedBuildings, searchResults);
@@ -49,8 +50,25 @@ public class SearchSuggestionService {
 			.toList();
 	}
 
-	private List<Building> findBuildings(String query) {
-		return buildingRepository.findTop6ByNameContainingOrderByNameAsc(query);
+	private List<Building> findBuildingsWithAliases(String query) {
+		// 1. 공식 명칭 기반 검색
+		List<Building> buildings = buildingRepository.findTop6ByNameContainingOrderByNameAsc(query);
+
+		// 2. 별칭 기반 검색
+		List<BuildingAlias> aliases = buildingAliasRepository.findByAliasContaining(query);
+		List<Building> aliasBuildings = aliases.stream()
+			.map(BuildingAlias::getBuilding)
+			.distinct()
+			.toList();
+
+		// 3. 기존 목록에 없는 별칭 기반 건물 추가
+		Set<Long> existingIds = buildings.stream().map(Building::getId).collect(Collectors.toSet());
+		for (Building aliasBuilding : aliasBuildings) {
+			if (!existingIds.contains(aliasBuilding.getId())) {
+				buildings.add(aliasBuilding);
+			}
+		}
+		return buildings;
 	}
 
 	private List<SearchSuggestionResponseDto> mergeResults(List<Building> bookmarkedBuildings,
