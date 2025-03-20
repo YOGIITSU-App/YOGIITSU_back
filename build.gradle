@@ -1,7 +1,7 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.4.1'
-	id 'io.spring.dependency-management' version '1.1.7'
+	id 'org.springframework.boot' version '3.3.1'
+	id 'io.spring.dependency-management' version '1.1.5'
 }
 
 group = 'com.YOGIITSU'
@@ -32,6 +32,7 @@ dependencies {
 	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
 	implementation 'com.mysql:mysql-connector-j'
 	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.2'
 
 	//JWT 토큰 라이브러리
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
