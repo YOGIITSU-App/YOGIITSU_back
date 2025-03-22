@@ -59,4 +59,10 @@ public class Member implements UserDetails {
 	public String getPassword() {
 		return password; // 비밀번호 반환
 	}
+
+	// 비밀번호 변경 메서드
+	public void changePassword(String newPassword) {
+		this.password = newPassword;
+	}
+
 }

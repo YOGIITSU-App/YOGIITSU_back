@@ -1,6 +1,10 @@
 package com.YOGIITSU.service;
 
-import com.YOGIITSU.dto.TokenInfo;
+import com.YOGIITSU.config.handler.GlobalExceptionHandler.AdminAccessDeniedException;
+import com.YOGIITSU.config.handler.GlobalExceptionHandler.MemberNotFoundException;
+import com.YOGIITSU.config.handler.GlobalExceptionHandler.PasswordMismatchException;
+import com.YOGIITSU.config.handler.GlobalExceptionHandler.PasswordNotEqualsException;
+import com.YOGIITSU.dto.ResponseDto.TokenResponseDto;
 import com.YOGIITSU.jwt.JwtTokenProvider;
 import com.YOGIITSU.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +12,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
@@ -22,6 +27,7 @@ public class MemberService {
 	private final AuthenticationManagerBuilder authenticationManagerBuilder;
 	private final JwtTokenProvider jwtTokenProvider;
 	private final MemberRepository memberRepository;
+	private final PasswordEncoder passwordEncoder;
 	private final Logger logger = LoggerFactory.getLogger(MemberService.class);
 
 	/**
@@ -32,7 +38,7 @@ public class MemberService {
 	 * @return TokenInfo JWT 토큰 정보
 	 */
 	@Transactional
-	public TokenInfo login(String memberId, String password) {
+	public TokenResponseDto login(String memberId, String password) {
 		// 1. 아이디와 비밀번호를 기반으로 Authentication 객체 생성
 		UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
 			memberId, password);
@@ -50,6 +56,35 @@ public class MemberService {
 			throw new RuntimeException("아이디 또는 비밀번호가 잘못되었습니다", e);
 		}
 	}
+
+	/**
+	 * 관리자 로그인 처리 메서드
+	 *
+	 * @param memberId 사용자의 아이디
+	 * @param password 사용자의 비밀번호
+	 * @return TokenInfo JWT 토큰 정보
+	 */
+	@Transactional
+	public TokenResponseDto adminLogin(String memberId, String password) {
+		// 1. 사용자가 존재하는지 확인
+		Member member = memberRepository.findByMemberId(memberId)
+			.orElseThrow(MemberNotFoundException::new);
+
+		// 2. 관리자 계정인지 확인
+		if (!"ADMIN".equals(member.getRole())) {
+			throw new AdminAccessDeniedException();
+		}
+
+		// 3. 비밀번호 검증 후 토큰 발급
+		UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+			memberId, password);
+
+		Authentication authentication = authenticationManagerBuilder.getObject()
+			.authenticate(authenticationToken);
+
+		return jwtTokenProvider.generateToken(authentication);
+	}
+
 
 	/**
 	 * 이메일로 아이디 찾기
@@ -70,16 +105,52 @@ public class MemberService {
 	 * @param memberId 사용자의 아이디
 	 */
 	@Transactional
-	public void deleteMember(String memberId) {
-		// 1. 회원 정보 삭제
-		memberRepository.deleteByMemberId(memberId);
+	public void deleteMember(String memberId, String rawPassword) {
+		// 1. 회원 조회
+		Member member = memberRepository.findByMemberId(memberId)
+			.orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
 
-		// 2. 회원 탈퇴 확인
+		// 2. 비밀번호 검증 (암호화된 비밀번호와 비교)
+		if (!passwordEncoder.matches(rawPassword, member.getPassword())) {
+			throw new PasswordMismatchException();
+		}
+
+		// 3. 회원 정보 삭제
+		memberRepository.delete(member);
+
+		// 4. 회원 삭제 후 존재 여부 확인
 		if (memberRepository.existsByMemberId(memberId)) {
 			throw new RuntimeException("회원 탈퇴 실패: 회원 정보가 삭제되지 않았습니다.");
 		}
 
-		// 3. 로그 기록
+		// 5. 로그 기록
 		logger.info("회원 탈퇴: {}", memberId);
+	}
+
+	/**
+	 * 비밀번호 변경 메서드
+	 *
+	 * @param memberId        사용자 아이디
+	 * @param newPassword     새로운 비밀번호
+	 * @param confirmPassword 새로운 비밀번호 확인
+	 */
+	@Transactional
+	public void changePassword(String memberId, String newPassword, String confirmPassword) {
+
+		// 1. 비밀번호 일치 확인
+		if (!newPassword.equals(confirmPassword)) {
+			throw new PasswordNotEqualsException();
+		}
+
+		// 2. 회원 조회
+		Member member = memberRepository.findByMemberId(memberId)
+			.orElseThrow(MemberNotFoundException::new);
+
+		// 3. 비밀번호 암호화 후 변경
+		String encodedPassword = passwordEncoder.encode(newPassword);
+		member.changePassword(encodedPassword);
+
+		// 4. 저장
+		memberRepository.save(member);
 	}
 }

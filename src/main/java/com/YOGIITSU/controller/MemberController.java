@@ -1,16 +1,24 @@
 package com.YOGIITSU.controller;
 
-import com.YOGIITSU.dto.MemberLoginRequestDto;
+import com.YOGIITSU.config.handler.GlobalExceptionHandler.InvalidTokenException;
+import com.YOGIITSU.config.handler.GlobalExceptionHandler.MissingTokenException;
+import com.YOGIITSU.dto.RequestDto.ChangePasswordRequestDto;
+import com.YOGIITSU.dto.RequestDto.MemberLoginRequestDto;
 import com.YOGIITSU.dto.RequestDto.FindMemberIdRequestDto;
+import com.YOGIITSU.dto.RequestDto.PasswordCheckRequestDto;
 import com.YOGIITSU.dto.ResponseDto.FindMemberIdResponseDto;
-import com.YOGIITSU.dto.TokenInfo;
+import com.YOGIITSU.dto.ResponseDto.TokenResponseDto;
 import com.YOGIITSU.jwt.JwtTokenProvider;
 import com.YOGIITSU.service.MemberService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -21,12 +29,33 @@ public class MemberController {
 	private final MemberService memberService;
 	private final JwtTokenProvider jwtTokenProvider;
 
-	private static final String INVALID_TOKEN_MESSAGE = "회원 탈퇴 실패: 존재하지 않는 토큰입니다.";
-	private static final String MISSING_TOKEN_MESSAGE = "회원 탈퇴 실패: 토큰을 입력해 주세요.";
+	private static final String NO_EMAIL_FOUND = "가입 이력이 없는 이메일입니다.";
+	private static final String EMAIL_MATCH_FOUND = "이메일 정보와 일치하는 아이디가 있습니다.";
+	private static final String MEMBER_DELETION_SUCCESS = "님의 회원 탈퇴가 완료되었습니다.";
 
+	/**
+	 * 로그인 API
+	 *
+	 * @param memberLoginRequestDto 요청 데이터 (아이디, 비밀번호)
+	 * @return TokenInfo JWT 토큰 정보
+	 */
 	@PostMapping("/login")
-	public TokenInfo login(@RequestBody MemberLoginRequestDto memberLoginRequestDto) {
+	public TokenResponseDto login(@RequestBody MemberLoginRequestDto memberLoginRequestDto) {
 		return memberService.login(
+			memberLoginRequestDto.getMemberId(),
+			memberLoginRequestDto.getPassword()
+		);
+	}
+
+	/**
+	 * 관리자 로그인 API
+	 *
+	 * @param memberLoginRequestDto 요청 데이터 (아이디, 비밀번호)
+	 * @return TokenInfo JWT 토큰 정보
+	 */
+	@PostMapping("/admin/login")
+	public TokenResponseDto adminLogin(@RequestBody MemberLoginRequestDto memberLoginRequestDto) {
+		return memberService.adminLogin(
 			memberLoginRequestDto.getMemberId(),
 			memberLoginRequestDto.getPassword()
 		);
@@ -47,7 +76,7 @@ public class MemberController {
 		FindMemberIdResponseDto response = FindMemberIdResponseDto.builder()
 			.status(memberId != null ? "success" : "error")
 			.id(memberId)
-			.message(memberId == null ? "가입 이력이 없는 이메일입니다." : "이메일 정보와 일치하는 아이디가 있습니다.")
+			.message(memberId == null ? NO_EMAIL_FOUND : EMAIL_MATCH_FOUND)
 			.build();
 
 		return ResponseEntity.ok(response);
@@ -59,27 +88,60 @@ public class MemberController {
 	 * @param request HTTP 요청 객체
 	 */
 	@DeleteMapping("/delete")
-	public ResponseEntity<String> deleteMember(HttpServletRequest request) {
+	public ResponseEntity<Map<String, String>> deleteMember(
+		@RequestBody PasswordCheckRequestDto request, HttpServletRequest httpRequest) {
 		// 1. 요청에서 JWT 토큰 추출
-		String accessToken = jwtTokenProvider.resolveToken(request);
+		String accessToken = jwtTokenProvider.resolveToken(httpRequest);
 
-		// 2. 토큰이 없으면 에러 응답
+		// 2. 토큰이 없으면 예외 발생
 		if (accessToken == null) {
-			return ResponseEntity.badRequest().body(MISSING_TOKEN_MESSAGE);
+			throw new MissingTokenException();
 		}
 
-		// 3. 토큰이 유효한지 확인
+		// 3. 토큰이 유효한지 확인, 유효하지 않으면 예외 발생
 		if (!jwtTokenProvider.validateToken(accessToken)) {
-			return ResponseEntity.badRequest().body(INVALID_TOKEN_MESSAGE);
+			throw new InvalidTokenException();
 		}
 
 		// 4. 유효한 토큰이라면 사용자 ID 추출
 		String memberId = jwtTokenProvider.getAuthentication(accessToken).getName();
 
 		// 5. 회원 탈퇴 처리
-		memberService.deleteMember(memberId);
+		memberService.deleteMember(memberId, request.getPassword());
 
 		// 6. 탈퇴 성공 메시지 반환
-		return ResponseEntity.ok(memberId + "님의 회원 탈퇴가 완료되었습니다.");
+		Map<String, String> response = new HashMap<>();
+		response.put("message", memberId + MEMBER_DELETION_SUCCESS);
+		return ResponseEntity.ok(response);
+	}
+
+	/**
+	 * 비밀번호 변경 API
+	 *
+	 * @param requestDto  새로운 비밀번호와 확인 비밀번호
+	 * @param httpRequest HTTP 요청 객체
+	 * @return 비밀번호 변경 결과
+	 */
+
+	@PostMapping("/change-password")
+	public ResponseEntity<Map<String, String>> changePassword(
+		@RequestBody ChangePasswordRequestDto requestDto, HttpServletRequest httpRequest) {
+
+		// 1. JWT 토큰 추출 및 유효성 검사
+		String accessToken = jwtTokenProvider.resolveToken(httpRequest);
+		if (accessToken == null || !jwtTokenProvider.validateToken(accessToken)) {
+			throw new InvalidTokenException();
+		}
+
+		// 2. 현재 인증된 사용자 가져오기
+		Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
+		String memberId = authentication.getName();
+
+		// 3. 비밀번호 변경 처리
+		memberService.changePassword(memberId, requestDto.getNewPassword(),
+			requestDto.getConfirmPassword());
+
+		// 4. 성공 메시지 반환
+		return ResponseEntity.ok(Map.of("message", "비밀번호가 성공적으로 변경되었습니다."));
 	}
 }

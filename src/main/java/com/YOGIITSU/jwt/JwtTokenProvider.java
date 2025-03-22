@@ -1,6 +1,6 @@
 package com.YOGIITSU.jwt;
 
-import com.YOGIITSU.dto.TokenInfo;
+import com.YOGIITSU.dto.ResponseDto.TokenResponseDto;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -47,7 +47,7 @@ public class JwtTokenProvider {
 	 * @param authentication 인증 정보를 담고 있는 객체
 	 * @return 생성된 Access Token과 Refresh Token 정보를 담고 있는 TokenInfo 객체
 	 */
-	public TokenInfo generateToken(Authentication authentication) {
+	public TokenResponseDto generateToken(Authentication authentication) {
 		// 유저의 권한 정보를 ","로 구분된 문자열로 변환
 		String authorities = authentication.getAuthorities().stream()
 			.map(GrantedAuthority::getAuthority)
@@ -62,7 +62,7 @@ public class JwtTokenProvider {
 		String refreshToken = createRefreshToken(now);
 
 		// TokenInfo 객체를 반환
-		return TokenInfo.builder()
+		return TokenResponseDto.builder()
 			.grantType("Bearer") // 인증 타입 (JWT 기본값)
 			.accessToken(accessToken)
 			.refreshToken(refreshToken)

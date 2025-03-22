@@ -15,22 +15,17 @@ import org.springframework.stereotype.Service;
 public class CustomUserDetailsService implements UserDetailsService {
 
 	private final MemberRepository memberRepository;
-	private final PasswordEncoder passwordEncoder;
 
 	// 사용자 이름(username)을 기반으로 UserDetails 객체를 반환하는 메서드
 	@Override
-	public UserDetails loadUserByUsername(String memberId) throws UsernameNotFoundException {
-		// MemberId를 기준으로 회원을 조회하고, 없으면 예외를 던짐
-		return memberRepository.findByMemberId(memberId) // MemberId를 통해 회원 검색
-			.map(this::createUserDetails) // 존재한다면 UserDetails 객체로 변환
-			.orElseThrow(() -> new UsernameNotFoundException("해당하는 유저를 찾을 수 없습니다."));
-	}
+	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+		return memberRepository.findByMemberId(username)
+			.map(member -> User.builder()
+				.username(member.getMemberId())
+				.password(member.getPassword()) // 암호화된 패스워드 사용
+				.roles(member.getRole())
+				.build())
+			.orElseThrow(() -> new UsernameNotFoundException("해당하는 유저를 찾을 수 없습니다: " + username));
 
-	// Member 엔티티를 기반으로 UserDetails 객체를 생성하는 메서드
-	private UserDetails createUserDetails(Member member) {
-		return User.builder()
-			.username(member.getUsername())
-			.password(passwordEncoder.encode(member.getPassword()))
-			.build();
 	}
 }
