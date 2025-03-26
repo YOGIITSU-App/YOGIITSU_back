@@ -36,26 +36,15 @@ public class EmailService {
 		String email = emailMessage.getEmail();
 
 		try {
-			// 가장 최근 인증 메시지를 가져오기 (중복 방지용)
-			EmailMessage existing = emailMessageRepository
-				.findFirstByEmailOrderByExpiresAtDesc(email)
-				.orElse(null);
+			// 항상 새로 저장되도록
+			EmailMessage newMessage = EmailMessage.builder()
+				.email(email)
+				.code(authNum)
+				.isApproved(false)
+				.expiresAt(LocalDateTime.now().plusMinutes(5)) // 5분 유효
+				.build();
 
-			if (existing != null) {
-				// 기존 데이터가 있으면 인증코드 업데이트
-				existing.updateCode(authNum);
-				emailMessageRepository.save(existing);
-				emailMessage = existing;
-			} else {
-				// 없으면 새로 생성
-				emailMessage = EmailMessage.builder()
-					.email(email)
-					.code(authNum)
-					.isApproved(false)
-					.expiresAt(LocalDateTime.now().plusMinutes(5)) // 5분 후 만료
-					.build();
-				emailMessageRepository.save(emailMessage);
-			}
+			emailMessageRepository.save(newMessage);
 
 			// 이메일 전송
 			MimeMessageHelper mimeMessageHelper = createMimeMessage(emailMessage, authNum, type);
