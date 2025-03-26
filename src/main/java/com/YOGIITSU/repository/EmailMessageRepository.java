@@ -3,7 +3,6 @@ package com.YOGIITSU.repository;
 import com.YOGIITSU.entity.EmailMessage;
 import java.time.LocalDateTime;
 import java.util.Optional;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -16,10 +15,8 @@ public interface EmailMessageRepository extends JpaRepository<EmailMessage, Long
 
 	Optional<EmailMessage> findByEmailAndCode(String email, String code);
 
-	Optional<EmailMessage> findFirstByEmailOrderByExpiresAtDesc(String email);
-
 	@Modifying
 	@Transactional
-	@Query("DELETE FROM EmailMessage e WHERE e.expiresAt IS NOT NULL AND e.expiresAt < :now AND e.isApproved = false")
-	int deleteByExpiresAtBeforeAndIsApprovedFalse(@Param("now") LocalDateTime now); //5분 만료된 코드 삭제
+	@Query("DELETE FROM EmailMessage e WHERE e.expiresAt < :now")
+	int deleteAllExpired(@Param("now") LocalDateTime now); //5분 만료된 코드 삭제
 }
