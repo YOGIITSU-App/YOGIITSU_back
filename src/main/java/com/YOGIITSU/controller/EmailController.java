@@ -4,7 +4,6 @@ import com.YOGIITSU.dto.RequestDto.EmailPostRequestDto;
 import com.YOGIITSU.dto.ResponseDto.EmailPostResponseDto;
 import com.YOGIITSU.entity.EmailMessage;
 import com.YOGIITSU.jwt.EmailVerificationJwtProvider;
-import com.YOGIITSU.repository.EmailMessageRepository;
 import com.YOGIITSU.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +16,6 @@ public class EmailController {
 
 	private final EmailService emailService;
 	private final EmailVerificationJwtProvider emailJwtProvider;
-	private final EmailMessageRepository emailMessageRepository;
 
 	/**
 	 * 회원가입 이메일 인증 코드 전송
@@ -33,8 +31,6 @@ public class EmailController {
 			.code("") // 인증 코드 생성 로직에서 설정됨
 			.isApproved(false) // 초기 승인 상태
 			.build();
-
-		emailMessageRepository.save(emailMessage); //db 저장
 
 		// 인증 코드 생성 및 이메일 발송
 		String code = emailService.sendMail(emailMessage, "email");
