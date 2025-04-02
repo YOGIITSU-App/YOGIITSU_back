@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
+import org.springframework.mail.MailException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -88,6 +88,20 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<Map<String, String>> handleIllegalArgumentException(
 		IllegalArgumentException e) {
 		return buildErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
+	}
+
+	// 이메일 전송 실패 예외 처리
+	@ExceptionHandler(MailException.class)
+	public ResponseEntity<Map<String, String>> handleMailException(MailException e) {
+		return buildErrorResponse("이메일 전송 중 오류가 발생했습니다: " + e.getMessage(),
+			HttpStatus.INTERNAL_SERVER_ERROR);
+	}
+
+	// 기타 예외 (MimeMessage 생성 오류 포함) 처리
+	@ExceptionHandler(RuntimeException.class)
+	public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException e) {
+		return buildErrorResponse("서버 내부 오류 발생: " + e.getMessage(),
+			HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
 	public static class PasswordMismatchException extends RuntimeException {
