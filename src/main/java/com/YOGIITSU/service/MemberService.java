@@ -5,6 +5,8 @@ import com.YOGIITSU.config.handler.GlobalExceptionHandler.MemberNotFoundExceptio
 import com.YOGIITSU.config.handler.GlobalExceptionHandler.PasswordMismatchException;
 import com.YOGIITSU.config.handler.GlobalExceptionHandler.PasswordNotEqualsException;
 import com.YOGIITSU.dto.ResponseDto.TokenResponseDto;
+import com.YOGIITSU.dto.ResponseDto.UserResponseDto;
+import com.YOGIITSU.entity.Member;
 import com.YOGIITSU.jwt.JwtTokenProvider;
 import com.YOGIITSU.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.YOGIITSU.entity.Member;
 
 @Service
 @Transactional(readOnly = true)
@@ -40,16 +41,35 @@ public class MemberService {
 	@Transactional
 	public TokenResponseDto login(String memberId, String password) {
 		// 1. 아이디와 비밀번호를 기반으로 Authentication 객체 생성
-		UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-			memberId, password);
+		UsernamePasswordAuthenticationToken authenticationToken =
+			new UsernamePasswordAuthenticationToken(memberId, password);
 
 		try {
 			// 2. 실제 검증 (사용자 비밀번호 체크)이 이루어지는 부분
 			Authentication authentication = authenticationManagerBuilder.getObject()
 				.authenticate(authenticationToken);
 
-			// 3. 인증 정보를 기반으로 JWT 토큰 생성
-			return jwtTokenProvider.generateToken(authentication);
+			// 3. 토큰 생성
+			TokenResponseDto tokenInfo = jwtTokenProvider.generateToken(authentication);
+
+			// 4. 사용자 정보 조회
+			Member member = memberRepository.findByMemberId(memberId)
+				.orElseThrow(MemberNotFoundException::new);
+
+			// 5. 사용자 정보 DTO 생성
+			UserResponseDto userDto = UserResponseDto.builder()
+				.id(member.getMemberId())
+				.username(member.getUsername())
+				.email(member.getEmail())
+				.build();
+
+			// 6. 사용자 정보 포함해서 반환
+			return TokenResponseDto.builder()
+				.grantType("Bearer")
+				.accessToken(tokenInfo.getAccessToken())
+				.refreshToken(tokenInfo.getRefreshToken())
+				.user(userDto)
+				.build();
 
 		} catch (BadCredentialsException e) {
 			// 4. 인증 실패 시 예외 처리
@@ -76,13 +96,29 @@ public class MemberService {
 		}
 
 		// 3. 비밀번호 검증 후 토큰 발급
-		UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-			memberId, password);
+		UsernamePasswordAuthenticationToken authenticationToken =
+			new UsernamePasswordAuthenticationToken(memberId, password);
 
 		Authentication authentication = authenticationManagerBuilder.getObject()
 			.authenticate(authenticationToken);
 
-		return jwtTokenProvider.generateToken(authentication);
+		// 4. 토큰 발급
+		TokenResponseDto tokenInfo = jwtTokenProvider.generateToken(authentication);
+
+		// 5. 관리자 정보 포함 DTO 생성
+		UserResponseDto userDto = UserResponseDto.builder()
+			.id(member.getMemberId())
+			.username(member.getUsername())
+			.email(member.getEmail())
+			.build();
+
+		// 6. 전체 반환
+		return TokenResponseDto.builder()
+			.grantType("Bearer")
+			.accessToken(tokenInfo.getAccessToken())
+			.refreshToken(tokenInfo.getRefreshToken())
+			.user(userDto)
+			.build();
 	}
 
 
