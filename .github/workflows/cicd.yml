@@ -1,0 +1,30 @@
+name: cicd
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup SSH & Deploy
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: |
+          echo "Setting up SSH"
+          mkdir -p ~/.ssh
+          ssh-keyscan -H 15.165.2.118 >> ~/.ssh/known_hosts
+
+          echo "Connecting to EC2 and deploying"
+          ssh ubuntu@15.165.2.118 << EOF
+            cd ~/YOGIITSU
+            git pull origin develop
+            ./deploy.sh
+          EOF
