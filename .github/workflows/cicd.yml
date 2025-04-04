@@ -19,10 +19,10 @@ jobs:
           GH_PAT: ${{ secrets.GH_PAT }}
           PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
         run: |
-          echo "$PRIVATE_KEY" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
           echo "Setting up SSH"
           mkdir -p ~/.ssh
+          echo "$PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H 15.165.2.118 >> ~/.ssh/known_hosts
 
           echo "Connecting to EC2 and deploying"
