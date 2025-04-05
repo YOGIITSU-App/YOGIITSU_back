@@ -123,7 +123,7 @@ public class MemberController {
 	 * @return 비밀번호 변경 결과
 	 */
 
-	@PostMapping("/change-password")
+	@PatchMapping("/change-password")
 	public ResponseEntity<Map<String, String>> changePassword(
 		@RequestBody ChangePasswordRequestDto requestDto, HttpServletRequest httpRequest) {
 
