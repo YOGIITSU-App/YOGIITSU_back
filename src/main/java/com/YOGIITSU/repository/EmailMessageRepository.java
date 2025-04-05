@@ -19,4 +19,7 @@ public interface EmailMessageRepository extends JpaRepository<EmailMessage, Long
 	@Transactional
 	@Query("DELETE FROM EmailMessage e WHERE e.expiresAt < :now")
 	int deleteAllExpired(@Param("now") LocalDateTime now); //5분 만료된 코드 삭제
+
+	Optional<EmailMessage> findByEmail(String email);
+
 }
