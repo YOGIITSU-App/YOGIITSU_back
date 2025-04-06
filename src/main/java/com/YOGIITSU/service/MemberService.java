@@ -1,13 +1,17 @@
 package com.YOGIITSU.service;
 
 import com.YOGIITSU.config.handler.GlobalExceptionHandler.AdminAccessDeniedException;
+import com.YOGIITSU.config.handler.GlobalExceptionHandler.EmailVerificationNotApprovedException;
 import com.YOGIITSU.config.handler.GlobalExceptionHandler.MemberNotFoundException;
 import com.YOGIITSU.config.handler.GlobalExceptionHandler.PasswordMismatchException;
 import com.YOGIITSU.config.handler.GlobalExceptionHandler.PasswordNotEqualsException;
+import com.YOGIITSU.dto.RequestDto.PasswordResetRequestDto;
 import com.YOGIITSU.dto.ResponseDto.TokenResponseDto;
 import com.YOGIITSU.dto.ResponseDto.UserResponseDto;
+import com.YOGIITSU.entity.EmailMessage;
 import com.YOGIITSU.entity.Member;
 import com.YOGIITSU.jwt.JwtTokenProvider;
+import com.YOGIITSU.repository.EmailMessageRepository;
 import com.YOGIITSU.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -29,6 +33,7 @@ public class MemberService {
 	private final JwtTokenProvider jwtTokenProvider;
 	private final MemberRepository memberRepository;
 	private final PasswordEncoder passwordEncoder;
+	private final EmailMessageRepository emailMessageRepository;
 	private final Logger logger = LoggerFactory.getLogger(MemberService.class);
 
 	/**
@@ -188,5 +193,40 @@ public class MemberService {
 
 		// 4. 저장
 		memberRepository.save(member);
+	}
+
+	/**
+	 * 비밀번호 재설정 메서드 (이메일 인증 후)
+	 *
+	 * @param requestDto 비밀번호 재설정 요청 DTO
+	 */
+	@Transactional
+	public void resetPasswordAfterEmailVerification(PasswordResetRequestDto requestDto) {
+
+		// 1. 이메일로 인증 요청 내역 조회 (없으면 예외 발생)
+		EmailMessage emailMessage = emailMessageRepository.findByEmail(requestDto.getEmail())
+			.orElseThrow(EmailVerificationNotApprovedException::new);
+
+		// 2. 이메일 인증이 완료되지 않은 경우 예외 발생
+		if (emailMessage.getIsApproved() == null || !emailMessage.getIsApproved()) {
+			throw new EmailVerificationNotApprovedException();
+		}
+
+		// 3. 새 비밀번호와 비밀번호 확인이 일치하지 않으면 예외 발생
+		if (!requestDto.getNewPassword().equals(requestDto.getConfirmPassword())) {
+			throw new PasswordMismatchException();
+		}
+
+		// 4. 이메일로 사용자 조회 (없으면 예외 발생)
+		Member member = memberRepository.findByEmail(requestDto.getEmail())
+			.orElseThrow(MemberNotFoundException::new);
+
+		// 5. 비밀번호 암호화 후 변경
+		member.changePassword(passwordEncoder.encode(requestDto.getNewPassword()));
+		memberRepository.save(member);
+
+		// 6. 인증 상태 초기화 (다시 사용하지 못하게)
+		emailMessage.setIsApproved(false);
+		emailMessageRepository.save(emailMessage);
 	}
 }
