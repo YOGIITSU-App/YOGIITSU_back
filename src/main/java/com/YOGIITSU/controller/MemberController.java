@@ -6,6 +6,7 @@ import com.YOGIITSU.dto.RequestDto.ChangePasswordRequestDto;
 import com.YOGIITSU.dto.RequestDto.MemberLoginRequestDto;
 import com.YOGIITSU.dto.RequestDto.FindMemberIdRequestDto;
 import com.YOGIITSU.dto.RequestDto.PasswordCheckRequestDto;
+import com.YOGIITSU.dto.RequestDto.PasswordResetRequestDto;
 import com.YOGIITSU.dto.ResponseDto.FindMemberIdResponseDto;
 import com.YOGIITSU.dto.ResponseDto.TokenResponseDto;
 import com.YOGIITSU.jwt.JwtTokenProvider;
@@ -142,6 +143,22 @@ public class MemberController {
 			requestDto.getConfirmPassword());
 
 		// 4. 성공 메시지 반환
+		return ResponseEntity.ok(Map.of("message", "비밀번호가 성공적으로 변경되었습니다."));
+	}
+
+	/**
+	 * 비밀번호 찾기 (재설정) - 로그인되지 않은 상태
+	 * 이메일 인증 완료 여부를 기반으로 비밀번호 재설정 허용
+	 *
+	 * @param requestDto 요청 데이터 (이메일, 새 비밀번호, 확인 비밀번호)
+	 * @return 비밀번호 재설정 결과
+	 */
+	@PostMapping("/find-password")
+	public ResponseEntity<Map<String, String>> resetPassword(
+		@RequestBody PasswordResetRequestDto requestDto) {
+
+		memberService.resetPasswordAfterEmailVerification(requestDto);
+
 		return ResponseEntity.ok(Map.of("message", "비밀번호가 성공적으로 변경되었습니다."));
 	}
 }
