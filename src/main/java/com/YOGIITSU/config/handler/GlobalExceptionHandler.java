@@ -63,6 +63,13 @@ public class GlobalExceptionHandler {
 		return buildErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
 	}
 
+	// 이메일 인증이 승인되지 않은 경우 예외 처리
+	@ExceptionHandler(EmailVerificationNotApprovedException.class)
+	public ResponseEntity<Map<String, String>> handleNotApproved(EmailVerificationNotApprovedException e) {
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+			.body(Map.of("message", e.getMessage()));
+	}
+
 	// 즐겨찾기 관련 예외 처리 추가
 	@ExceptionHandler(EntityNotFoundException.class)
 	public ResponseEntity<Map<String, String>> handleEntityNotFoundException(
@@ -143,6 +150,12 @@ public class GlobalExceptionHandler {
 
 		public PasswordNotEqualsException() {
 			super("새 비밀번호와 확인 비밀번호가 일치하지 않습니다.");
+		}
+	}
+
+	public static class EmailVerificationNotApprovedException extends RuntimeException {
+		public EmailVerificationNotApprovedException() {
+			super("이메일 인증이 완료되지 않았습니다.");
 		}
 	}
 }
