@@ -1,10 +1,27 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
-</head>
+<html xmlns:th="http://www.thymeleaf.org">
+
 <body>
-$END$
+<div style="margin: 50px auto; padding: 20px; text-align: center;">
+  <h1>안녕하세요!</h1>
+  <h2>수원대학교 캠퍼스 어플 <b>요기있수</b>입니다.</h2>
+  <p>이메일 인증을 완료해주세요.</p>
+  <br>
+  <p>아래 인증 코드를 이메일 변경 화면에서 <b>5분 안에</b> 입력해주세요.</p>
+  <br>
+
+  <div style="
+      display: inline-block;
+      border: 2px solid #333;
+      border-radius: 10px;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+    ">
+    <h3 style="color: blue; margin: 0;">인증 코드</h3>
+    <p style="font-size: 150%; font-weight: bold;" th:text="${code}"></p>
+  </div>
+  <br/>
+</div>
 </body>
 </html>
