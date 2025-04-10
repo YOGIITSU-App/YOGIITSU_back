@@ -6,15 +6,19 @@ import com.YOGIITSU.dto.RequestDto.SearchKeywordRequestDto;
 import com.YOGIITSU.dto.ResponseDto.RecentSearchResponseDto;
 import com.YOGIITSU.service.RecentSearchService;
 import com.YOGIITSU.jwt.JwtTokenProvider;
-import java.util.HashMap;
-import java.util.Map;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.servlet.http.HttpServletRequest;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+@Tag(name = "검색어 API", description = "최근 검색어 저장 및 조회 기능을 제공합니다.")
 @RestController
 @RequestMapping("/search")
 @RequiredArgsConstructor
@@ -29,6 +33,10 @@ public class RecentSearchController {
 	 * @param request 요청 데이터 (검색어)
 	 * @return message 응답 메시지
 	 */
+	@Operation(
+		summary = "검색어 저장",
+		description = "로그인한 사용자의 검색어를 최근 검색어 목록에 저장합니다."
+	)
 	@PostMapping("/save")
 	public ResponseEntity<Map<String, String>> saveSearchKeyword(
 		@RequestBody SearchKeywordRequestDto request, HttpServletRequest httpRequest) {
@@ -59,6 +67,10 @@ public class RecentSearchController {
 	 *
 	 * @return 최근 검색어 목록
 	 */
+	@Operation(
+		summary = "최근 검색어 조회",
+		description = "로그인한 사용자의 최근 검색어 목록을 조회합니다."
+	)
 	@GetMapping("/recent")
 	public ResponseEntity<List<RecentSearchResponseDto>> getRecentSearches(
 		HttpServletRequest httpRequest) {
