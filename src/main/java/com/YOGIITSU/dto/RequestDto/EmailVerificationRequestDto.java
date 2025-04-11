@@ -8,7 +8,5 @@ import lombok.*;
 @NoArgsConstructor
 public class EmailVerificationRequestDto {
 
-	private String email;
-	private String token;
-	private String code;
+    private String code;
 }
