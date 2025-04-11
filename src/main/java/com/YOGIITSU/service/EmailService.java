@@ -35,6 +35,11 @@ public class EmailService {
 		String authNum = createCode(); // 인증 코드 생성
 		String email = emailMessage.getEmail();
 
+		// 이메일 도메인 검사 추가
+		if (!isAllowedEmailDomain(email)) {
+			throw new IllegalArgumentException("suwon.ac.kr, naver.com, gmail.com 도메인만 인증할 수 있습니다.");
+		}
+
 		try {
 			// 항상 새로 저장되도록
 			EmailMessage newMessage = EmailMessage.builder()
@@ -59,6 +64,12 @@ public class EmailService {
 		}
 	}
 
+	//도메인 검사 메서드 추가
+	private boolean isAllowedEmailDomain(String email) {
+		return email.endsWith("@suwon.ac.kr")
+			|| email.endsWith("@naver.com")
+			|| email.endsWith("@gmail.com");
+	}
 
 	/**
 	 * MimeMessage 생성 메서드 (Spring Mail API)
@@ -86,7 +97,7 @@ public class EmailService {
 	private String createCode() {
 		Random random = new Random();
 		StringBuilder key = new StringBuilder();
-		for (int i = 0; i < 8; i++) {
+		for (int i = 0; i < 6; i++) {
 			key.append((char) (random.nextInt(26) + 65)); // A~Z (대문자)
 		}
 		return key.toString();
