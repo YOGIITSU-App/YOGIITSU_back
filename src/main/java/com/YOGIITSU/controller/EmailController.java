@@ -5,6 +5,7 @@ import com.YOGIITSU.dto.ResponseDto.EmailPostResponseDto;
 import com.YOGIITSU.entity.EmailMessage;
 import com.YOGIITSU.jwt.EmailVerificationJwtProvider;
 import com.YOGIITSU.service.EmailService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +25,7 @@ public class EmailController {
 	 * @return ResponseEntity<EmailResponseDto>
 	 */
 	@PostMapping("/email")
-	public ResponseEntity<EmailPostResponseDto> sendJoinMail(@RequestBody EmailPostRequestDto emailPostRequestDto) {
+	public ResponseEntity<EmailPostResponseDto> sendJoinMail(@RequestBody @Valid EmailPostRequestDto emailPostRequestDto) {
 		// EmailMessage 객체 생성
 		EmailMessage emailMessage = EmailMessage.builder()
 			.email(emailPostRequestDto.getEmail()) // 수신자 이메일
