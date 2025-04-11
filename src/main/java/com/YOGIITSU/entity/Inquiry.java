@@ -28,6 +28,9 @@ public class Inquiry {
     @Column(name = "inquiry_content", columnDefinition = "TEXT", nullable = false)
     private String inquiryContent;  // 문의 내용
 
+    @Column(name = "inquiry_password", nullable = false, length = 20)
+    private String inquiryPassword;  // 문의 비밀번호
+
     @Column(name = "inquiry_at", nullable = false, updatable = false)
     private LocalDateTime inquiryAt;  // 문의 등록일
 
@@ -40,9 +43,6 @@ public class Inquiry {
     @Enumerated(EnumType.STRING)
     @Column(name = "inquiry_state", length = 50, nullable = false)
     private InquiryState inquiryState;  // 문의 상태 (진행 중 / 답변 완료)
-
-    @Column(name = "password_hash", length = 255, nullable = false)
-    private String passwordHash;  // 비밀번호 해시 저장
 
     @PrePersist
     protected void onCreate() {
