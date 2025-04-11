@@ -43,25 +43,10 @@ public class MemberController {
 	 * @param memberLoginRequestDto 요청 데이터 (아이디, 비밀번호)
 	 * @return TokenInfo JWT 토큰 정보
 	 */
-	@Operation(summary = "회원 로그인", description = "아이디와 비밀번호를 이용해 로그인합니다.")
+	@Operation(summary = "로그인", description = "아이디와 비밀번호를 이용해 로그인합니다.")
 	@PostMapping("/login")
 	public TokenResponseDto login(@RequestBody MemberLoginRequestDto memberLoginRequestDto) {
 		return memberService.login(
-			memberLoginRequestDto.getMemberId(),
-			memberLoginRequestDto.getPassword()
-		);
-	}
-
-	/**
-	 * 관리자 로그인 API
-	 *
-	 * @param memberLoginRequestDto 요청 데이터 (아이디, 비밀번호)
-	 * @return TokenInfo JWT 토큰 정보
-	 */
-	@Operation(summary = "관리자 로그인", description = "관리자 권한을 가진 계정으로 로그인합니다.")
-	@PostMapping("/admin/login")
-	public TokenResponseDto adminLogin(@RequestBody MemberLoginRequestDto memberLoginRequestDto) {
-		return memberService.adminLogin(
 			memberLoginRequestDto.getMemberId(),
 			memberLoginRequestDto.getPassword()
 		);
