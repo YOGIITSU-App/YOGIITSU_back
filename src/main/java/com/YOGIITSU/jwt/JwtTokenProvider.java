@@ -1,6 +1,7 @@
 package com.YOGIITSU.jwt;
 
 import com.YOGIITSU.dto.ResponseDto.TokenResponseDto;
+import com.YOGIITSU.dto.ResponseDto.UserResponseDto;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -66,6 +67,7 @@ public class JwtTokenProvider {
 			.grantType("Bearer") // 인증 타입 (JWT 기본값)
 			.accessToken(accessToken)
 			.refreshToken(refreshToken)
+			.user(UserResponseDto.builder().build())
 			.build();
 	}
 

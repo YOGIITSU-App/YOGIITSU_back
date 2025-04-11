@@ -31,8 +31,19 @@ public class SecurityConfig {
 		http
 			.csrf(csrf -> csrf.disable())  // CSRF 보호 비활성화
 			.authorizeHttpRequests(authz -> authz
-				.requestMatchers("/logout").authenticated()  // 로그아웃 경로는 인증된 사용자만 접근 가능
-				.anyRequest().permitAll()  // 나머지 요청은 모두 허용
+				// Swagger 경로 허용
+				.requestMatchers(
+					"/swagger-ui/**",
+					"/v3/api-docs/**",
+					"/swagger-resources/**",
+					"/webjars/**"
+				).permitAll()
+
+				// 로그아웃은 인증된 사용자만 가능
+				.requestMatchers("/logout").authenticated()
+
+				// 나머지 요청은 모두 허용
+				.anyRequest().permitAll()
 			)
 			.addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
 				UsernamePasswordAuthenticationFilter.class) // JWT 인증 필터 추가
