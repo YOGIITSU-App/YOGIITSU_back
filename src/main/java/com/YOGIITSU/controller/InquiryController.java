@@ -2,8 +2,8 @@ package com.YOGIITSU.controller;
 
 import com.YOGIITSU.config.handler.GlobalExceptionHandler.InvalidTokenException;
 import com.YOGIITSU.config.handler.GlobalExceptionHandler.MissingTokenException;
+import com.YOGIITSU.dto.RequestDto.InquiryPasswordDto;
 import com.YOGIITSU.dto.RequestDto.InquiryRequestDto;
-import com.YOGIITSU.dto.RequestDto.PasswordCheckRequestDto;
 import com.YOGIITSU.dto.ResponseDto.InquiryListResponseDto;
 import com.YOGIITSU.dto.ResponseDto.InquiryResponseDto;
 import com.YOGIITSU.entity.Member;
@@ -14,7 +14,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -59,7 +58,7 @@ public class InquiryController {
     @PostMapping("/{inquiryId}/check")
     public ResponseEntity<InquiryResponseDto> getInquiry(
         @PathVariable Long inquiryId,
-        @RequestBody PasswordCheckRequestDto passwordDto,
+        @RequestBody InquiryPasswordDto passwordDto,
         HttpServletRequest request) {
 
         // JWT 토큰에서 memberId 추출
