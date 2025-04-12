@@ -5,13 +5,13 @@ import lombok.Getter;
 
 @Getter
 public class InquiryListResponseDto {
-    private final Long inquiryId;
     private final String inquiryTitle;
     private final String authorName;
+    private final String inquiryState;
 
     public InquiryListResponseDto(Inquiry inquiry) {
-        this.inquiryId = inquiry.getInquiryId();
         this.inquiryTitle = inquiry.getInquiryTitle();
         this.authorName = inquiry.getMember().getUsername();
+        this.inquiryState = inquiry.getInquiryState().name();  // "PROCESSING", "COMPLETED"
     }
 }
