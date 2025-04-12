@@ -1,8 +1,8 @@
 package com.YOGIITSU.service;
 
 import com.YOGIITSU.config.handler.GlobalExceptionHandler;
+import com.YOGIITSU.dto.RequestDto.InquiryPasswordDto;
 import com.YOGIITSU.dto.RequestDto.InquiryRequestDto;
-import com.YOGIITSU.dto.RequestDto.PasswordCheckRequestDto;
 import com.YOGIITSU.dto.ResponseDto.InquiryListResponseDto;
 import com.YOGIITSU.dto.ResponseDto.InquiryResponseDto;
 import com.YOGIITSU.entity.Inquiry;
@@ -48,20 +48,12 @@ public class InquiryService {
         // 2. 회원 조회
         Member member = findMember(memberId);
 
-        // 3. 비밀번호 검증
-        if (!passwordEncoder.matches(requestDto.getPassword(), member.getPassword())) {
-            throw new IllegalArgumentException("비밀번호가 틀렸습니다.");
-        }
-
-        // 4. 문의 객체 생성
-        String encryptedInquiryPassword = passwordEncoder.encode(requestDto.getPassword());
-
         Inquiry inquiry = Inquiry.builder()
             .member(member)
             .inquiryTitle(requestDto.getInquiryTitle())
             .inquiryContent(requestDto.getInquiryContent())
             .inquiryState(InquiryState.PROCESSING)  // 기본 상태: PROCESSING(답변대기)
-            .passwordHash(encryptedInquiryPassword)
+            .inquiryPassword(requestDto.getInquiryPassword())
             .build();
 
         // 5. 생성된 문의 DB에 저장 & 반환
@@ -91,14 +83,12 @@ public class InquiryService {
      * @return InquiryResponseDto 개인 문의 정보
      */
     @Transactional(readOnly = true)
-    public InquiryResponseDto getInquiry(Long inquiryId, Long memberId, PasswordCheckRequestDto requestDto) {
+    public InquiryResponseDto getInquiry(Long inquiryId, Long memberId, InquiryPasswordDto requestDto) {
         Inquiry inquiry = findInquiry(inquiryId);
-
-        // 1. 회원 조회
-        Member member = findMember(memberId);
+        validateOwnership(inquiry, memberId);
 
         // 2. 비밀번호 검증
-        if (!passwordEncoder.matches(requestDto.getPassword(), member.getPassword())) {
+        if (!inquiry.getInquiryPassword().equals(requestDto.getInquiryPassword())) {
             throw new IllegalArgumentException("비밀번호가 틀렸습니다.");
         }
 
