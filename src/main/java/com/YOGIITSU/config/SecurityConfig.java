@@ -36,7 +36,8 @@ public class SecurityConfig {
 					"/swagger-ui/**",
 					"/v3/api-docs/**",
 					"/swagger-resources/**",
-					"/webjars/**"
+					"/webjars/**",
+					"/members/find-password"
 				).permitAll()
 
 				// 로그아웃은 인증된 사용자만 가능
