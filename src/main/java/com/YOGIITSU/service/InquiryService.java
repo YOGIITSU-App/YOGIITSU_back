@@ -1,7 +1,6 @@
 package com.YOGIITSU.service;
 
 import com.YOGIITSU.config.handler.GlobalExceptionHandler;
-import com.YOGIITSU.dto.RequestDto.InquiryPasswordDto;
 import com.YOGIITSU.dto.RequestDto.InquiryRequestDto;
 import com.YOGIITSU.dto.ResponseDto.InquiryListResponseDto;
 import com.YOGIITSU.dto.ResponseDto.InquiryResponseDto;
@@ -14,7 +13,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +23,6 @@ public class InquiryService {
 
     private final InquiryRepository inquiryRepository;
     private final MemberRepository memberRepository;
-    private final PasswordEncoder passwordEncoder;
 
     /**
      * Create: 문의 등록
@@ -53,7 +50,6 @@ public class InquiryService {
             .inquiryTitle(requestDto.getInquiryTitle())
             .inquiryContent(requestDto.getInquiryContent())
             .inquiryState(InquiryState.PROCESSING)  // 기본 상태: PROCESSING(답변대기)
-            .inquiryPassword(requestDto.getInquiryPassword())
             .build();
 
         // 5. 생성된 문의 DB에 저장 & 반환
@@ -83,14 +79,9 @@ public class InquiryService {
      * @return InquiryResponseDto 개인 문의 정보
      */
     @Transactional(readOnly = true)
-    public InquiryResponseDto getInquiry(Long inquiryId, Long memberId, InquiryPasswordDto requestDto) {
+    public InquiryResponseDto getInquiry(Long inquiryId, Long memberId) {
         Inquiry inquiry = findInquiry(inquiryId);
         validateOwnership(inquiry, memberId);
-
-        // 2. 비밀번호 검증
-        if (!inquiry.getInquiryPassword().equals(requestDto.getInquiryPassword())) {
-            throw new IllegalArgumentException("비밀번호가 틀렸습니다.");
-        }
 
         // 3. 문의 정보 반환
         return new InquiryResponseDto(inquiry);

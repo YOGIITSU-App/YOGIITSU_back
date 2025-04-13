@@ -2,7 +2,6 @@ package com.YOGIITSU.controller;
 
 import com.YOGIITSU.config.handler.GlobalExceptionHandler.InvalidTokenException;
 import com.YOGIITSU.config.handler.GlobalExceptionHandler.MissingTokenException;
-import com.YOGIITSU.dto.RequestDto.InquiryPasswordDto;
 import com.YOGIITSU.dto.RequestDto.InquiryRequestDto;
 import com.YOGIITSU.dto.ResponseDto.InquiryListResponseDto;
 import com.YOGIITSU.dto.ResponseDto.InquiryResponseDto;
@@ -55,18 +54,16 @@ public class InquiryController {
     /**
      * Read: 나의 문의 확인 (비밀번호 검증 후 내용 조회)
      */
-    @PostMapping("/{inquiryId}/check")
+    @GetMapping("/{inquiryId}")
     public ResponseEntity<InquiryResponseDto> getInquiry(
         @PathVariable Long inquiryId,
-        @RequestBody InquiryPasswordDto passwordDto,
         HttpServletRequest request) {
 
         // JWT 토큰에서 memberId 추출
         Long memberId = extractMemberIdFromToken(request);
 
         // 문의 단건 조회
-        InquiryResponseDto response = inquiryService.getInquiry(inquiryId, memberId,
-            passwordDto);
+        InquiryResponseDto response = inquiryService.getInquiry(inquiryId, memberId);
         return ResponseEntity.ok(response);
     }
 

@@ -28,9 +28,6 @@ public class Inquiry {
     @Column(name = "inquiry_content", columnDefinition = "TEXT", nullable = false)
     private String inquiryContent;  // 문의 내용
 
-    @Column(name = "inquiry_password", nullable = false, length = 20)
-    private String inquiryPassword;  // 문의 비밀번호
-
     @Column(name = "inquiry_at", nullable = false, updatable = false)
     private LocalDateTime inquiryAt;  // 문의 등록일
 
