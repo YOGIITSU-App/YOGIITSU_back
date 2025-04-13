@@ -24,21 +24,21 @@ public class SignUpService {
     @Transactional
     public void register(MemberSignUpRequestDto dto) {
 
-        // 1. 이메일 인증 확인
+        // 1. 이메일 중복 체크
+        if (memberRepository.findByEmail(dto.getEmail()).isPresent()) {
+            throw new IllegalArgumentException("해당 이메일로 가입한 내역이 있습니다.");
+        }
+
+        // 2. 이메일 인증 확인
         Optional<EmailMessage> verifiedEmail = emailMessageRepository.findByEmailAndIsApprovedTrue(
             dto.getEmail());
         if (verifiedEmail.isEmpty()) {
             throw new IllegalArgumentException("이메일 인증이 완료되지 않았습니다.");
         }
 
-        // 2. 아이디 중복 체크
+        // 3. 아이디 중복 체크
         if (memberRepository.findByMemberId(dto.getMemberId()).isPresent()) {
             throw new IllegalArgumentException("아이디가 이미 존재합니다.");
-        }
-
-        // 3. 이메일 중복 체크
-        if (memberRepository.findByEmail(dto.getEmail()).isPresent()) {
-            throw new IllegalArgumentException("해당 이메일로 가입한 내역이 있습니다.");
         }
 
         // 4. 이메일 도메인 검사
