@@ -7,6 +7,9 @@ import com.YOGIITSU.dto.ResponseDto.FavoriteListResponseDto;
 import com.YOGIITSU.entity.Favorite;
 import com.YOGIITSU.service.FavoriteService;
 import com.YOGIITSU.jwt.JwtTokenProvider;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpServletRequest;
 
+@Tag(name = "즐겨찾기 API", description = "건물 즐겨찾기 추가, 삭제, 조회 기능을 제공합니다.")
 @RestController
 @RequestMapping("/favorites")
 @RequiredArgsConstructor
@@ -30,8 +34,11 @@ public class FavoriteController {
 	 * @param buildingId 즐겨찾기에 추가할 건물 ID
 	 * @return ResponseEntity<String> 응답 객체
 	 */
+	@Operation(summary = "즐겨찾기 추가", description = "건물을 즐겨찾기에 추가합니다. (JWT 필요)")
 	@PostMapping("/{buildingId}")
-	public ResponseEntity<Map<String, String>> addFavorite(HttpServletRequest request,
+	public ResponseEntity<Map<String, String>> addFavorite(
+		@Parameter(hidden = true) HttpServletRequest request,
+		@Parameter(description = "즐겨찾기에 추가할 건물 ID", required = true)
 		@PathVariable Long buildingId) {
 		// 1. 요청에서 JWT 토큰 추출
 		String accessToken = jwtTokenProvider.resolveToken(request);
@@ -62,6 +69,7 @@ public class FavoriteController {
 	 * @param buildingId 즐겨찾기에서 삭제할 건물 ID
 	 * @return ResponseEntity<String> 응답 객체
 	 */
+	@Operation(summary = "즐겨찾기 삭제", description = "즐겨찾기에서 건물을 삭제합니다. (JWT 필요)")
 	@DeleteMapping("/{buildingId}")
 	public ResponseEntity<Map<String, String>> removeFavorite(HttpServletRequest request,
 		@PathVariable Long buildingId) {
@@ -93,6 +101,7 @@ public class FavoriteController {
 	 * @param request HTTP 요청 객체
 	 * @return ResponseEntity<FavoriteListResponseDto> 응답 객체
 	 */
+	@Operation(summary = "즐겨찾기 목록 조회", description = "로그인한 사용자가 즐겨찾기한 건물 목록을 반환합니다. (JWT 필요)")
 	@GetMapping
 	@Transactional(readOnly = true)
 	public ResponseEntity<FavoriteListResponseDto> getFavorites(HttpServletRequest request) {

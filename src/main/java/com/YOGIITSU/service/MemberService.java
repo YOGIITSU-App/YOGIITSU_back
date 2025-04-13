@@ -41,7 +41,7 @@ public class MemberService {
 	 *
 	 * @param memberId 사용자의 아이디
 	 * @param password 사용자의 비밀번호
-	 * @return TokenInfo JWT 토큰 정보
+	 * @return TokenResponse JWT 토큰 정보
 	 */
 	@Transactional
 	public TokenResponseDto login(String memberId, String password) {
@@ -66,6 +66,7 @@ public class MemberService {
 				.id(member.getMemberId())
 				.username(member.getUsername())
 				.email(member.getEmail())
+				.role(member.getRole()) // role 추가
 				.build();
 
 			// 6. 사용자 정보 포함해서 반환
@@ -81,51 +82,6 @@ public class MemberService {
 			throw new RuntimeException("아이디 또는 비밀번호가 잘못되었습니다", e);
 		}
 	}
-
-	/**
-	 * 관리자 로그인 처리 메서드
-	 *
-	 * @param memberId 사용자의 아이디
-	 * @param password 사용자의 비밀번호
-	 * @return TokenInfo JWT 토큰 정보
-	 */
-	@Transactional
-	public TokenResponseDto adminLogin(String memberId, String password) {
-		// 1. 사용자가 존재하는지 확인
-		Member member = memberRepository.findByMemberId(memberId)
-			.orElseThrow(MemberNotFoundException::new);
-
-		// 2. 관리자 계정인지 확인
-		if (!"ADMIN".equals(member.getRole())) {
-			throw new AdminAccessDeniedException();
-		}
-
-		// 3. 비밀번호 검증 후 토큰 발급
-		UsernamePasswordAuthenticationToken authenticationToken =
-			new UsernamePasswordAuthenticationToken(memberId, password);
-
-		Authentication authentication = authenticationManagerBuilder.getObject()
-			.authenticate(authenticationToken);
-
-		// 4. 토큰 발급
-		TokenResponseDto tokenInfo = jwtTokenProvider.generateToken(authentication);
-
-		// 5. 관리자 정보 포함 DTO 생성
-		UserResponseDto userDto = UserResponseDto.builder()
-			.id(member.getMemberId())
-			.username(member.getUsername())
-			.email(member.getEmail())
-			.build();
-
-		// 6. 전체 반환
-		return TokenResponseDto.builder()
-			.grantType("Bearer")
-			.accessToken(tokenInfo.getAccessToken())
-			.refreshToken(tokenInfo.getRefreshToken())
-			.user(userDto)
-			.build();
-	}
-
 
 	/**
 	 * 이메일로 아이디 찾기

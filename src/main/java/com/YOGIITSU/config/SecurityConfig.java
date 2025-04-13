@@ -36,7 +36,8 @@ public class SecurityConfig {
 					"/swagger-ui/**",
 					"/v3/api-docs/**",
 					"/swagger-resources/**",
-					"/webjars/**"
+					"/webjars/**",
+					"/members/find-password"
 				).permitAll()
 
 				// 로그아웃은 인증된 사용자만 가능
@@ -89,7 +90,7 @@ public class SecurityConfig {
 		CorsConfiguration configuration = new CorsConfiguration();
 		configuration.setAllowedOrigins(Arrays.asList("http://15.165.2.118")); // 허용할 서버 IP
 		configuration.setAllowedMethods(
-			Arrays.asList("GET", "POST", "PUT", "DELETE")); // 허용할 HTTP 메서드
+			Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH")); // 허용할 HTTP 메서드
 		configuration.setAllowedHeaders(
 			Arrays.asList("Authorization", "Content-Type", "X-Requested-With",
 				"cookie")); // 허용할 요청 헤더

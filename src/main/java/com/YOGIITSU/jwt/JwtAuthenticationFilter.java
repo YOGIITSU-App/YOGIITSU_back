@@ -27,7 +27,18 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 	 * @param chain    FilterChain 객체로 다음 필터로 요청 전달
 	 */
 	@Override
-	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+		throws IOException, ServletException {
+
+		HttpServletRequest httpRequest = (HttpServletRequest) request;
+		String path = httpRequest.getRequestURI();
+
+		// 토큰 없이도 접근 가능한 URL은 필터 제외
+		if (path.equals("/members/find-password")) {
+			chain.doFilter(request, response);
+			return;
+		}
+
 		// 1. Request Header 에서 JWT 토큰 추출
 		String token = resolveToken((HttpServletRequest) request);
 		// 2. validateToken 으로 토큰 유효성 검사
