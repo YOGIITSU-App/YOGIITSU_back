@@ -7,6 +7,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface InquiryRepository extends JpaRepository<Inquiry, Long> {
-    List<Inquiry> findByMemberId(Long memberId);  // 특정 회원 문의 조회
-    Optional<Inquiry> findByInquiryId(Long inquiryId);  // 특정 문의 1개 조회
+    List<Inquiry> findAllByOrderByInquiryAtDesc();  // 문의 리스트 최신순 정렬
+
 }

@@ -65,7 +65,7 @@ public class InquiryService {
      */
     @Transactional(readOnly = true)
     public List<InquiryListResponseDto> getAllInquiries() {
-        return inquiryRepository.findAll().stream()
+        return inquiryRepository.findAllByOrderByInquiryAtDesc().stream()
             .map(InquiryListResponseDto::new)
             .collect(Collectors.toList());
     }
