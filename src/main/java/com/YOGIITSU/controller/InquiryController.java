@@ -9,6 +9,7 @@ import com.YOGIITSU.entity.Member;
 import com.YOGIITSU.jwt.JwtTokenProvider;
 import com.YOGIITSU.repository.MemberRepository;
 import com.YOGIITSU.service.InquiryService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @Slf4j
+@Tag(name = "문의 API", description = "문의 등록, 조회, 수정, 삭제 기능 제공")
 @RestController
 @RequestMapping("/inquiries")
 @RequiredArgsConstructor
