@@ -6,6 +6,7 @@ import com.YOGIITSU.entity.Member;
 import com.YOGIITSU.repository.EmailMessageRepository;
 import com.YOGIITSU.repository.MemberRepository;
 import jakarta.transaction.Transactional;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,8 @@ public class SignUpService {
     private final MemberRepository memberRepository;
     private final EmailMessageRepository emailMessageRepository;
     private final PasswordEncoder passwordEncoder;
+    private static final List<String> ALLOWED_DOMAINS = List.of("@suwon.ac.kr", "@gmail.com",
+        "@naver.com");
 
     @Transactional
     public void register(MemberSignUpRequestDto dto) {
@@ -42,8 +45,12 @@ public class SignUpService {
         }
 
         // 4. 이메일 도메인 검사
-        if (!dto.getEmail().endsWith("@suwon.ac.kr")) {
-            throw new IllegalArgumentException("이메일은 무조건 @suwon.ac.kr로 끝나야 합니다.");
+        boolean isValidDomain = ALLOWED_DOMAINS.stream()
+            .anyMatch(dto.getEmail()::endsWith);
+
+        if (!isValidDomain) {
+            throw new IllegalArgumentException(
+                "이메일은 suwon.ac.kr, gmail.com, naver.com 도메인만 허용됩니다.");
         }
 
         // 5. 이름 중복 체크
