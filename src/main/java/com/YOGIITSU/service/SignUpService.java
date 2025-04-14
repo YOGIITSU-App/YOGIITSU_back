@@ -77,16 +77,19 @@ public class SignUpService {
 
     private void validatePassword(String password) {
         if (password.length() < 8) {
-            throw new IllegalArgumentException("비밀번호는 최소 8글자여야 합니다.");
+            throw new IllegalArgumentException("비밀번호는 최소 8자 이상이어야 합니다.");
         }
-        if (!Pattern.compile("^[a-z0-9!@#$%^&*(),.?\":{}|<>]+$").matcher(password).find()) {
-            throw new IllegalArgumentException("비밀번호는 소문자로 이루어져야 합니다.");
+        if (!Pattern.compile("[A-Z]").matcher(password).find()) {
+            throw new IllegalArgumentException("비밀번호에는 대문자가 최소 1자 이상 포함되어야 합니다.");
+        }
+        if (!Pattern.compile("[a-z]").matcher(password).find()) {
+            throw new IllegalArgumentException("비밀번호에는 소문자가 최소 1자 이상 포함되어야 합니다.");
         }
         if (!Pattern.compile("[0-9]").matcher(password).find()) {
-            throw new IllegalArgumentException("비밀번호는 숫자를 포함해야 합니다.");
+            throw new IllegalArgumentException("비밀번호에는 숫자가 최소 1자 이상 포함되어야 합니다.");
         }
         if (!Pattern.compile("[!@#$%^&*(),.?\":{}|<>]").matcher(password).find()) {
-            throw new IllegalArgumentException("비밀번호는 특수문자를 포함해야 합니다.");
+            throw new IllegalArgumentException("비밀번호에는 특수문자가 최소 1자 이상 포함되어야 합니다.");
         }
     }
 }
