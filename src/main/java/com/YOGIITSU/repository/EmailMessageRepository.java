@@ -13,10 +13,15 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 public interface EmailMessageRepository extends JpaRepository<EmailMessage, Long> {
 
-	Optional<EmailMessage> findByEmailAndCode(String email, String code);
+    Optional<EmailMessage> findByEmailAndCode(String email, String code);
 
-	@Modifying
-	@Transactional
-	@Query("DELETE FROM EmailMessage e WHERE e.expiresAt < :now")
-	int deleteAllExpired(@Param("now") LocalDateTime now); //5분 만료된 코드 삭제
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM EmailMessage e WHERE e.expiresAt < :now")
+    int deleteAllExpired(@Param("now") LocalDateTime now); //5분 만료된 코드 삭제
+
+    Optional<EmailMessage> findByEmail(String email);
+
+    Optional<EmailMessage> findByEmailAndIsApprovedTrue(String email);
+
 }
