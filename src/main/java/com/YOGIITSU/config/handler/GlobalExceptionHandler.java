@@ -42,6 +42,13 @@ public class GlobalExceptionHandler {
 		return buildErrorResponse(e.getMessage(), HttpStatus.FORBIDDEN);
 	}
 
+	// 로그인 실패 (잘못된 아이디/비밀번호)
+	@ExceptionHandler(InvalidLoginException.class)
+	public ResponseEntity<Map<String, String>> handleInvalidLoginException(
+		InvalidLoginException e) {
+		return buildErrorResponse(e.getMessage(), HttpStatus.UNAUTHORIZED);
+	}
+
 	// 사용자를 찾을 수 없을 경우 예외 클래스 정의
 	@ExceptionHandler(MemberNotFoundException.class)
 	public ResponseEntity<Map<String, String>> handleMemberNotFoundException(
@@ -65,7 +72,8 @@ public class GlobalExceptionHandler {
 
 	// 이메일 인증이 승인되지 않은 경우 예외 처리
 	@ExceptionHandler(EmailVerificationNotApprovedException.class)
-	public ResponseEntity<Map<String, String>> handleNotApproved(EmailVerificationNotApprovedException e) {
+	public ResponseEntity<Map<String, String>> handleNotApproved(
+		EmailVerificationNotApprovedException e) {
 		return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
 			.body(Map.of("message", e.getMessage()));
 	}
@@ -154,8 +162,16 @@ public class GlobalExceptionHandler {
 	}
 
 	public static class EmailVerificationNotApprovedException extends RuntimeException {
+
 		public EmailVerificationNotApprovedException() {
 			super("이메일 인증이 완료되지 않았습니다.");
+		}
+	}
+
+	public static class InvalidLoginException extends RuntimeException {
+
+		public InvalidLoginException() {
+			super("아이디 또는 비밀번호가 잘못되었습니다.");
 		}
 	}
 }

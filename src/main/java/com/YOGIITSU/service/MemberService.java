@@ -1,7 +1,7 @@
 package com.YOGIITSU.service;
 
-import com.YOGIITSU.config.handler.GlobalExceptionHandler.AdminAccessDeniedException;
 import com.YOGIITSU.config.handler.GlobalExceptionHandler.EmailVerificationNotApprovedException;
+import com.YOGIITSU.config.handler.GlobalExceptionHandler.InvalidLoginException;
 import com.YOGIITSU.config.handler.GlobalExceptionHandler.MemberNotFoundException;
 import com.YOGIITSU.config.handler.GlobalExceptionHandler.PasswordMismatchException;
 import com.YOGIITSU.config.handler.GlobalExceptionHandler.PasswordNotEqualsException;
@@ -79,7 +79,7 @@ public class MemberService {
 
 		} catch (BadCredentialsException e) {
 			// 4. 인증 실패 시 예외 처리
-			throw new RuntimeException("아이디 또는 비밀번호가 잘못되었습니다", e);
+			throw new InvalidLoginException();
 		}
 	}
 
