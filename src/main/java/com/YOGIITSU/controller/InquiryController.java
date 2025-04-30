@@ -18,6 +18,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * InquiryController
+ * - 문의 관련 API 제공
+ * - 등록, 전체 조회, 단건 조회, 수정, 삭제 기능 포함
+ */
 @Slf4j
 @Tag(name = "문의 API", description = "문의 등록, 조회, 수정, 삭제 기능 제공")
 @RestController
@@ -30,7 +35,8 @@ public class InquiryController {
     private final MemberRepository memberRepository;
 
     /**
-     * Create: 문의 등록
+     * 문의 등록 API
+     * - 인증된 사용자가 문의 등록
      */
     @PostMapping
     public ResponseEntity<InquiryResponseDto> createInquiry(
@@ -46,7 +52,8 @@ public class InquiryController {
     }
 
     /**
-     * Read: 모든 문의 리스트 조회 (비밀번호 없이 제목, 상태, 작성자만 반환)
+     * 전체 문의 리스트 조회 API
+     * - 로그인 한 모든 사용자가 확인 가능
      */
     @GetMapping
     public ResponseEntity<List<InquiryListResponseDto>> getAllInquiries() {
@@ -54,7 +61,8 @@ public class InquiryController {
     }
 
     /**
-     * Read: 나의 문의 확인 (비밀번호 검증 후 내용 조회)
+     * 나의 문의 조회 API
+     * - 인증된 사용자만 본인의 문의를 확인 가능
      */
     @GetMapping("/{inquiryId}")
     public ResponseEntity<InquiryResponseDto> getInquiry(
@@ -70,7 +78,8 @@ public class InquiryController {
     }
 
     /**
-     * Update: 문의 수정
+     * 문의 수정 API
+     * - 본인의 문의이며, 답변 대기 상태인 경우에만 수정 가능
      */
     @PutMapping("/{inquiryId}")
     public ResponseEntity<InquiryResponseDto> updateInquiry(
@@ -87,7 +96,8 @@ public class InquiryController {
     }
 
     /**
-     * Delete: 문의 삭제
+     * 문의 삭제 API
+     * - 본인의 문의이며, 답변 대기 상태인 경우에만 삭제 가능
      */
     @DeleteMapping("/{inquiryId}")
     public ResponseEntity<Void> deleteInquiry(
@@ -103,7 +113,7 @@ public class InquiryController {
     }
 
     /**
-     * JWT 토큰에서 memberId 추출하는 메서드
+     * JWT 토큰에서 memberId 추출
      */
     private Long extractMemberIdFromToken(HttpServletRequest request) {
         String token = jwtTokenProvider.resolveToken(request);

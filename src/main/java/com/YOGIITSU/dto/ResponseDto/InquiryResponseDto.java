@@ -6,10 +6,14 @@ import lombok.Getter;
 
 import java.time.LocalDateTime;
 
+/**
+ * 문의 상세 응답 DTO
+ * - 제목, 내용, 답변, 작성일, 답변일 등 전체 정보 포함
+ */
 @Getter
 @AllArgsConstructor
 public class InquiryResponseDto {
-    // 사용자에게 반환할 데이터 담는 dto
+
     private Long inquiryId;
     private String inquiryTitle;
     private String inquiryContent;
@@ -18,7 +22,6 @@ public class InquiryResponseDto {
     private LocalDateTime responseAt;
 
     public InquiryResponseDto(Inquiry inquiry) {
-        // Inquiry 엔티티 기반으로 필요한 필드만 dto로 변환
         this.inquiryId = inquiry.getInquiryId();
         this.inquiryTitle = inquiry.getInquiryTitle();
         this.inquiryContent = inquiry.getInquiryContent();

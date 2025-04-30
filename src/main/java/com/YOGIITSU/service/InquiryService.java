@@ -16,6 +16,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * InquiryService
+ * - 문의 등록, 조회, 수정, 삭제에 대한 비즈니스 로직 처리
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -26,6 +30,8 @@ public class InquiryService {
 
     /**
      * Create: 문의 등록
+     * - 제목과 내용이 비어 있는지 검증
+     * - 상태를 '답변 대기'로 설정한 후 저장
      *
      * @param requestDto 문의 요청 데이터
      * @param memberId   문의 작성한 회원 ID
@@ -58,8 +64,9 @@ public class InquiryService {
     }
 
     /**
-     * Read-list: 모든 문의 내역 리스트 조회
-     * - 비밀번호 없이 조회 가능
+     * Read-list: 문의 전체 리스트 조회
+     * - 최신순으로 정렬
+     * - 제목, 상태, 작성자, 작성일만 포함된 DTO 리스트 반환
      *
      * @return InquiryListResponseDto 문의 리스트
      */
@@ -72,7 +79,8 @@ public class InquiryService {
 
     /**
      * Read-my: 개인 문의 조회
-     * - 비밀번호가 일치해야 조회 가능
+     * - 본인 문의만 조회 가능
+     * - 전체 내용 포함한 DTO 반환
      *
      * @param inquiryId  문의 ID
      * @param memberId  사용자 ID
@@ -89,7 +97,8 @@ public class InquiryService {
 
     /**
      * Update: 문의 수정
-     * - 관리자 답변 후 수정 불가
+     * - 본인의 문의이고, 답변 대기 상태인 경우에만 수정 가능
+     * - null 값이 아닌 필드만 수정
      *
      * @param inquiryId  문의 ID
      * @param memberId  사용자 ID
@@ -124,6 +133,7 @@ public class InquiryService {
 
     /**
      * Delete: 문의 삭제
+     * - 본인 문의이고, 답변 대기 상태인 경우에만 삭제 가능
      *
      * @param inquiryId  문의 ID
      * @param memberId  사용자 ID
@@ -146,7 +156,7 @@ public class InquiryService {
     }
 
     /**
-     * 특정 ID의 회원 조회
+     * 특정 ID의 회원 조회 (예외 처리 포함)
      *
      * @param memberId  사용자 ID
      * @return
@@ -157,7 +167,7 @@ public class InquiryService {
     }
 
     /**
-     * 특정 ID의 문의 조회
+     * 특정 ID의 문의 조회 (예외 처리 포함)
      *
      * @param inquiryId  문의 ID
      * @return
