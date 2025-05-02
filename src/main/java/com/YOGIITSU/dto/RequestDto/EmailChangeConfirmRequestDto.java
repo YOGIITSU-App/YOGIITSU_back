@@ -10,7 +10,5 @@ import lombok.NoArgsConstructor;
 public class EmailChangeConfirmRequestDto {
 
     private String newEmail;
-    private String token;
     private String code;
 }
-
