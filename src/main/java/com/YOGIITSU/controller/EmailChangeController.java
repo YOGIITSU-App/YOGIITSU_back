@@ -3,23 +3,24 @@ package com.YOGIITSU.controller;
 import com.YOGIITSU.dto.RequestDto.EmailChangeConfirmRequestDto;
 import com.YOGIITSU.dto.ResponseDto.EmailVerificationResponseDto;
 import com.YOGIITSU.service.EmailChangeService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/change-email")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "JWT")
 public class EmailChangeController {
 
     private final EmailChangeService emailChangeService;
 
     @PostMapping
+    @Operation(summary = "이메일 변경 API", description = "로그인 토큰(Authorization) 필요. 새 이메일 + 인증코드로 이메일 변경합니다.")
     public ResponseEntity<EmailVerificationResponseDto> confirmEmailChange(
         Authentication authentication,
         @RequestBody EmailChangeConfirmRequestDto dto) {
@@ -28,7 +29,7 @@ public class EmailChangeController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
                 EmailVerificationResponseDto.builder()
                     .status("error")
-                    .message("인증 실패: 유효하지 않은 토큰입니다.")
+                    .message("인증 실패: 유효하지 않은 로그인 토큰입니다.")
                     .build()
             );
         }
@@ -53,5 +54,4 @@ public class EmailChangeController {
             );
         }
     }
-
 }
