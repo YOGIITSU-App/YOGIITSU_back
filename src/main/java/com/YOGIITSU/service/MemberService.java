@@ -63,8 +63,9 @@ public class MemberService {
 
 			// 5. 사용자 정보 DTO 생성
 			UserResponseDto userDto = UserResponseDto.builder()
-				.username(member.getUsername())
 				.id(member.getId())
+				.username(member.getUserName())
+				.memberId(member.getMemberId())
 				.email(member.getEmail())
 				.role(member.getRole()) // role 추가
 				.build();
