@@ -11,6 +11,7 @@ import com.YOGIITSU.repository.MemberRepository;
 import com.YOGIITSU.service.InquiryService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -40,7 +41,7 @@ public class InquiryController {
      */
     @PostMapping
     public ResponseEntity<InquiryResponseDto> createInquiry(
-        @RequestBody InquiryRequestDto requestDto,
+        @RequestBody @Valid InquiryRequestDto requestDto,
         HttpServletRequest request) {
 
         // JWT 토큰에서 memberId 추출
@@ -84,7 +85,7 @@ public class InquiryController {
     @PutMapping("/{inquiryId}")
     public ResponseEntity<InquiryResponseDto> updateInquiry(
         @PathVariable Long inquiryId,
-        @RequestBody InquiryRequestDto requestDto,
+        @RequestBody @Valid InquiryRequestDto requestDto,
         HttpServletRequest request) {
 
         // JWT 토큰에서 memberId 추출

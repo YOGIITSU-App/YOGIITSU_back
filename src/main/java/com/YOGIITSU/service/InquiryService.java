@@ -40,15 +40,7 @@ public class InquiryService {
     @Transactional
     public InquiryResponseDto createInquiry(InquiryRequestDto requestDto, Long memberId) {
 
-        // 1. 제목과 내용이 비어 있는지 확인. 비어 있으면 안내 메시지
-        if (requestDto.getInquiryTitle() == null || requestDto.getInquiryTitle().trim().isEmpty()) {
-            throw new IllegalArgumentException("문의 제목을 입력해주세요.");
-        }
-        if (requestDto.getInquiryContent() == null || requestDto.getInquiryContent().trim().isEmpty()) {
-            throw new IllegalArgumentException("문의 내용을 입력해주세요.");
-        }
-
-        // 2. 회원 조회
+        // 1. 회원 조회
         Member member = findMember(memberId);
 
         Inquiry inquiry = Inquiry.builder()
@@ -58,7 +50,7 @@ public class InquiryService {
             .inquiryState(InquiryState.PROCESSING)  // 기본 상태: PROCESSING(답변대기)
             .build();
 
-        // 5. 생성된 문의 DB에 저장 & 반환
+        // 2. 생성된 문의 DB에 저장 & 반환
         Inquiry savedInquiry = inquiryRepository.save(inquiry);
         return new InquiryResponseDto(savedInquiry);
     }
@@ -91,7 +83,7 @@ public class InquiryService {
         Inquiry inquiry = findInquiry(inquiryId);
         validateOwnership(inquiry, memberId);
 
-        // 3. 문의 정보 반환
+        // 문의 정보 반환
         return new InquiryResponseDto(inquiry);
     }
 

@@ -1,5 +1,6 @@
 package com.YOGIITSU.dto.RequestDto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -11,7 +12,10 @@ import lombok.Getter;
 @AllArgsConstructor
 public class InquiryRequestDto {
 
+    @NotBlank(message = "문의 제목을 입력해주세요.")
     private String inquiryTitle;  // 문의 제목
+
+    @NotBlank(message = "문의 내용을 입력해주세요.")
     private String inquiryContent;  // 문의 내용
 
 }
