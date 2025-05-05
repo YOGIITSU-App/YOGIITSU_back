@@ -1,6 +1,7 @@
 package com.YOGIITSU.util;
 
 import com.YOGIITSU.jwt.JwtTokenProvider;
+import com.YOGIITSU.config.handler.GlobalExceptionHandler.MissingTokenException;
 import com.YOGIITSU.config.handler.GlobalExceptionHandler.InvalidTokenException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +26,7 @@ public class JwtUtil {
 
 		// 2. 토큰이 없으면 예외 발생
 		if (accessToken == null) {
-			throw new InvalidTokenException();
+			throw new MissingTokenException();
 		}
 
 		// 3. 토큰이 유효한지 확인, 유효하지 않으면 예외 발생
