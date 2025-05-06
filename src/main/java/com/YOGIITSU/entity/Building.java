@@ -1,6 +1,9 @@
 package com.YOGIITSU.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -30,4 +33,7 @@ public class Building {
 	@Column(name = "image_url")
 	private String imageUrl;
 
+	@OneToMany(mappedBy = "building", cascade = CascadeType.ALL, orphanRemoval = true)
+	@JsonManagedReference
+	private Set<BuildingFacility> buildingFacilities = new HashSet<>();
 }
