@@ -36,4 +36,8 @@ public class Building {
 	@OneToMany(mappedBy = "building", cascade = CascadeType.ALL, orphanRemoval = true)
 	@JsonManagedReference
 	private Set<BuildingFacility> buildingFacilities = new HashSet<>();
+
+	@OneToMany(mappedBy = "building", cascade = CascadeType.ALL, orphanRemoval = true)
+	@JsonManagedReference
+	private Set<BuildingFloorImage> buildingFloorImages = new HashSet<>();
 }
