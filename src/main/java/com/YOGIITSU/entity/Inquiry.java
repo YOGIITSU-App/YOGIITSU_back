@@ -58,9 +58,9 @@ public class Inquiry {
     /**
      * 제목과 내용을 수정
      */
-    public void updateInquiry(String newContent, String newTitle) {
+    public void updateInquiry(String newTitle, String newContent) {
         this.inquiryTitle = (newTitle != null) ? newTitle : this.inquiryTitle;
-        this.inquiryContent = newContent;
+        this.inquiryContent = (newContent != null) ? newContent : this.inquiryContent;
     }
 
     /**

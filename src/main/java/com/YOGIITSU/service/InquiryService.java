@@ -107,17 +107,12 @@ public class InquiryService {
         validateOwnership(inquiry, memberId);
 
         // 3. 관리자 답변이 있는 경우 수정 불가
-        if (inquiry.getResponse() != null) {
+        if (inquiry.getInquiryState() == InquiryState.COMPLETED) {
             throw new IllegalArgumentException("답변 완료된 문의는 수정할 수 없습니다.");
         }
 
         // 4. 문의 업데이트
-        String updateTitle = (requestDto.getInquiryTitle() != null) ? requestDto.getInquiryTitle()
-            : inquiry.getInquiryTitle();
-        String updateContent = (requestDto.getInquiryContent() != null) ? requestDto.getInquiryContent()
-            : inquiry.getInquiryContent();
-
-        inquiry.updateInquiry(updateTitle, updateContent);
+        inquiry.updateInquiry(requestDto.getInquiryTitle(), requestDto.getInquiryContent());
 
         // 5. 수정된 문의 정보 반환
         return new InquiryResponseDto(inquiry);
