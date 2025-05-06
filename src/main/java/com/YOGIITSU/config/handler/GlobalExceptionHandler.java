@@ -129,14 +129,14 @@ public class GlobalExceptionHandler {
 	public static class MissingTokenException extends RuntimeException {
 
 		public MissingTokenException() {
-			super("토큰을 입력해 주세요.");
+			super("요청에 토큰이 포함되어 있지 않습니다.");
 		}
 	}
 
 	public static class InvalidTokenException extends RuntimeException {
 
 		public InvalidTokenException() {
-			super("존재하지 않는 토큰입니다.");
+			super("유효하지 않은 토큰입니다.");
 		}
 	}
 
