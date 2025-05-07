@@ -1,5 +1,6 @@
 package com.YOGIITSU.config.handler;
 
+import com.YOGIITSU.exception.building.BuildingNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -117,6 +118,13 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException e) {
 		return buildErrorResponse("서버 내부 오류 발생: " + e.getMessage(),
 			HttpStatus.INTERNAL_SERVER_ERROR);
+	}
+
+	// 건물 ID로 건물을 찾을 수 없는 경우 예외 처리
+	@ExceptionHandler(BuildingNotFoundException.class)
+	public ResponseEntity<Map<String, String>> handleBuildingNotFoundException(
+		BuildingNotFoundException e) {
+		return buildErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND);
 	}
 
 	public static class PasswordMismatchException extends RuntimeException {
