@@ -5,6 +5,7 @@ import com.YOGIITSU.jwt.JwtAuthenticationFilter;
 import com.YOGIITSU.jwt.JwtTokenProvider;
 import java.util.Arrays;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -24,6 +25,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
 	private final JwtTokenProvider jwtTokenProvider;
+	@Value("${cors.allowed-origin}")
+	private String allowedOrigin;
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -88,7 +91,7 @@ public class SecurityConfig {
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration configuration = new CorsConfiguration();
-		configuration.setAllowedOrigins(Arrays.asList("http://15.165.2.118")); // 허용할 서버 IP
+		configuration.setAllowedOrigins(Arrays.asList(allowedOrigin)); // 허용할 서버 IP
 		configuration.setAllowedMethods(
 			Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH")); // 허용할 HTTP 메서드
 		configuration.setAllowedHeaders(

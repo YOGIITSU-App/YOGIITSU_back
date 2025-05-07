@@ -1,5 +1,6 @@
 package com.YOGIITSU.jwt;
 
+import com.YOGIITSU.config.handler.GlobalExceptionHandler.InvalidTokenException;
 import com.YOGIITSU.dto.ResponseDto.TokenResponseDto;
 import com.YOGIITSU.dto.ResponseDto.UserResponseDto;
 import io.jsonwebtoken.*;
@@ -14,8 +15,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
@@ -56,28 +55,48 @@ public class JwtTokenProvider {
 
 		long now = (new Date()).getTime(); // 현재 시간
 
-		// Access Token 생성
-		String accessToken = createAccessToken(authentication.getName(), authorities, now);
+		// CustomUserDetails 객체를 통해 유저 정보를 가져옴
+		CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
-		// Refresh Token 생성
+		// AccessToken 생성
+		String accessToken = createAccessToken(
+			userDetails, // userDetails 전체 넘김
+			authorities,
+			now
+		);
+
+		// RefreshToken 생성
 		String refreshToken = createRefreshToken(now);
 
-		// TokenInfo 객체를 반환
+		// UserResponseDto 생성
+		UserResponseDto userResponseDto = UserResponseDto.builder()
+			.id(userDetails.getId())                          // id
+			.memberId(userDetails.getMemberId())              // memberId
+			.username(userDetails.getUserName())              // username
+			.email(userDetails.getEmail())                    // email
+			.role(userDetails.getRole())                      // role
+			.build();
+
 		return TokenResponseDto.builder()
 			.grantType("Bearer") // 인증 타입 (JWT 기본값)
 			.accessToken(accessToken)
 			.refreshToken(refreshToken)
-			.user(UserResponseDto.builder().build())
+			.user(userResponseDto)
 			.build();
 	}
 
-	private String createAccessToken(String subject, String authorities, long now) {
-		Date accessTokenExpiresIn = new Date(now + accessTokenExpiry);
+	private String createAccessToken(CustomUserDetails userDetails, String authorities, long now) {
+		Date expiry = new Date(now + accessTokenExpiry);
+
 		return Jwts.builder()
-			.setSubject(subject) // 토큰 소유자 (유저 ID 등)
-			.claim(AUTHORITIES_KEY, authorities) // 권한 정보 추가
-			.setExpiration(accessTokenExpiresIn) // 만료 시간 설정
-			.signWith(key, SignatureAlgorithm.HS256) // 서명 생성
+			.subject(String.valueOf(userDetails.getId()))
+			.claim("memberId", userDetails.getMemberId())
+			.claim("username", userDetails.getUserName())
+			.claim("email", userDetails.getEmail())
+			.claim("role", userDetails.getRole())
+			.claim(AUTHORITIES_KEY, authorities)
+			.expiration(expiry)
+			.signWith(key, SignatureAlgorithm.HS256)
 			.compact();
 	}
 
@@ -111,9 +130,18 @@ public class JwtTokenProvider {
 				.map(SimpleGrantedAuthority::new)
 				.collect(Collectors.toList());
 
-		// UserDetails 객체를 생성하여 Authentication 객체 반환
-		UserDetails principal = new User(claims.getSubject(), "", authorities);
-		return new UsernamePasswordAuthenticationToken(principal, "", authorities);
+		//CustomUserDetails로 직접 복구
+		CustomUserDetails userDetails = new CustomUserDetails(
+			Long.parseLong(claims.getSubject()),                 // id
+			claims.get("memberId", String.class),             // memberId
+			claims.get("username", String.class),             // username
+			claims.get("email", String.class),                // email
+			"",                                                  // password는 빈 값
+			claims.get("role", String.class),                 // role
+			authorities
+		);
+
+		return new UsernamePasswordAuthenticationToken(userDetails, "", authorities);
 	}
 
 	/**
@@ -170,5 +198,17 @@ public class JwtTokenProvider {
 			return bearerToken.substring(BEARER_PREFIX.length()); // "Bearer " 부분을 제거하고 반환
 		}
 		return null;
+	}
+
+	// Access Token에서 사용자 ID를 추출
+	public Long getMemberId(String accessToken) {
+		Claims claims = parseClaims(accessToken)
+			.orElseThrow(() -> new InvalidTokenException());
+
+		try {
+			return Long.valueOf(claims.getSubject());
+		} catch (NumberFormatException e) {
+			throw new InvalidTokenException();
+		}
 	}
 }
