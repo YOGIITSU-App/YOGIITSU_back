@@ -44,6 +44,14 @@ public class InquiryService {
         // 1. 회원 조회
         Member member = findMember(memberId);
 
+        // 2. 입력값 유효성 검사
+        if (requestDto.getInquiryTitle() == null || requestDto.getInquiryTitle().isEmpty()) {
+            throw new IllegalArgumentException("문의 제목을 입력해주세요.");
+        }
+        if (requestDto.getInquiryContent() == null || requestDto.getInquiryContent().isEmpty()) {
+            throw new IllegalArgumentException("문의 내용을 입력해주세요.");
+        }
+
         Inquiry inquiry = Inquiry.builder()
             .member(member)
             .inquiryTitle(requestDto.getInquiryTitle())
@@ -75,7 +83,7 @@ public class InquiryService {
      * - 본인 문의만 조회 가능
      * - 전체 내용 포함한 DTO 반환
      *
-     * @param inquiryId  문의 ID
+     * @param inquiryId 문의 ID
      * @param memberId  사용자 ID
      * @return InquiryResponseDto 개인 문의 정보
      */
@@ -94,8 +102,8 @@ public class InquiryService {
      * - null 값이 아닌 필드만 수정
      *
      * @param inquiryId  문의 ID
-     * @param memberId  사용자 ID
-     * @param requestDto  수정할 문의 내용 DTO
+     * @param memberId   사용자 ID
+     * @param requestDto 수정할 문의 내용 DTO
      * @return InquiryResponseDto 수정된 문의 정보
      */
     @Transactional
@@ -123,7 +131,7 @@ public class InquiryService {
      * Delete: 문의 삭제
      * - 본인 문의이고, 답변 대기 상태인 경우에만 삭제 가능
      *
-     * @param inquiryId  문의 ID
+     * @param inquiryId 문의 ID
      * @param memberId  사용자 ID
      */
     @Transactional
@@ -146,7 +154,7 @@ public class InquiryService {
     /**
      * 특정 ID의 회원 조회 (예외 처리 포함)
      *
-     * @param memberId  사용자 ID
+     * @param memberId 사용자 ID
      * @return
      */
     private Member findMember(Long memberId) {
@@ -157,7 +165,7 @@ public class InquiryService {
     /**
      * 특정 ID의 문의 조회 (예외 처리 포함)
      *
-     * @param inquiryId  문의 ID
+     * @param inquiryId 문의 ID
      * @return Inquiry 조회된 문의 객체
      */
     private Inquiry findInquiry(Long inquiryId) {
