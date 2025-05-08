@@ -57,7 +57,22 @@ public class InquiryController {
      * - 로그인 한 모든 사용자가 확인 가능
      */
     @GetMapping
-    public ResponseEntity<List<InquiryListResponseDto>> getAllInquiries() {
+    public ResponseEntity<List<InquiryListResponseDto>> getAllInquiries(
+        HttpServletRequest request) {
+        // 1. 요청에서 JWT 토큰 추출
+        String token = jwtTokenProvider.resolveToken(request);
+
+        // 2. 토큰 없으면 401 에러
+        if (token == null) {
+            throw new MissingTokenException(); // custom 예외: "토큰 없음"
+        }
+
+        // 3. 토큰이 유효하지 않으면 401 에러
+        if (!jwtTokenProvider.validateToken(token)) {
+            throw new InvalidTokenException(); // custom 예외: "유효하지 않은 토큰"
+        }
+
+        // 토큰 유효하면 전체 문의 리스트 반환
         return ResponseEntity.ok(inquiryService.getAllInquiries());
     }
 
