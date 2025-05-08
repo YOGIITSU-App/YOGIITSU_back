@@ -18,15 +18,17 @@ jobs:
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
           PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
+          EC2_IP: ${{ secrets.EC2_IP }}
         run: |
           echo "Setting up SSH"
           mkdir -p ~/.ssh
           echo "$PRIVATE_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H 43.200.10.184 >> ~/.ssh/known_hosts
+          ssh-keyscan -H $EC2_IP >> ~/.ssh/known_hosts
 
           echo "Connecting to EC2 and deploying"
-          ssh ubuntu@43.200.10.184 << EOF
+          ssh ubuntu@$EC2_IP << EOF
+            export CORS_ALLOWED_ORIGIN=${{ secrets.CORS_ALLOWED_ORIGIN }}
             cd ~/YOGIITSU
             git pull origin develop
             ./deploy.sh
