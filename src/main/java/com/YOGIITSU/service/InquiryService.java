@@ -9,6 +9,7 @@ import com.YOGIITSU.entity.InquiryState;
 import com.YOGIITSU.entity.Member;
 import com.YOGIITSU.repository.InquiryRepository;
 import com.YOGIITSU.repository.MemberRepository;
+import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -157,11 +158,11 @@ public class InquiryService {
      * 특정 ID의 문의 조회 (예외 처리 포함)
      *
      * @param inquiryId  문의 ID
-     * @return
+     * @return Inquiry 조회된 문의 객체
      */
     private Inquiry findInquiry(Long inquiryId) {
         return inquiryRepository.findById(inquiryId)
-            .orElseThrow(() -> new IllegalArgumentException("해당 문의는 존재하지 않습니다."));
+            .orElseThrow(() -> new EntityNotFoundException("해당 문의는 존재하지 않습니다."));
     }
 
     /**
