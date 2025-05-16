@@ -3,6 +3,7 @@ package com.YOGIITSU.controller;
 import com.YOGIITSU.dto.RequestDto.EmailPostRequestDto;
 import com.YOGIITSU.dto.ResponseDto.EmailPostResponseDto;
 import com.YOGIITSU.entity.EmailMessage;
+import com.YOGIITSU.entity.EmailPurpose;
 import com.YOGIITSU.jwt.EmailVerificationJwtProvider;
 import com.YOGIITSU.service.EmailService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,6 +34,7 @@ public class EmailController {
     public ResponseEntity<EmailPostResponseDto> sendJoinMail(
         @RequestBody @Valid EmailPostRequestDto emailPostRequestDto) {
         String email = emailPostRequestDto.getEmail();
+        EmailPurpose purpose = emailPostRequestDto.getPurpose();
 
         // 1. 인증 코드 생성
         String code = emailService.generateVerificationCode();
@@ -43,6 +45,7 @@ public class EmailController {
             .code(code)
             .isApproved(false)
             .expiresAt(LocalDateTime.now().plusMinutes(5))
+            .purpose(purpose) // 목적 포함
             .build();
 
         // 3. DB에 저장
