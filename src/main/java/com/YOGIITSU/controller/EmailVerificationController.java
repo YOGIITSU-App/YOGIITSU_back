@@ -3,8 +3,10 @@ package com.YOGIITSU.controller;
 import com.YOGIITSU.dto.RequestDto.EmailVerificationRequestDto;
 import com.YOGIITSU.dto.ResponseDto.EmailVerificationResponseDto;
 import com.YOGIITSU.entity.EmailMessage;
+import com.YOGIITSU.entity.EmailPurpose;
 import com.YOGIITSU.jwt.EmailVerificationJwtProvider;
 import com.YOGIITSU.repository.EmailMessageRepository;
+import com.YOGIITSU.service.EmailService;
 import io.jsonwebtoken.Claims;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -14,6 +16,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
+
 
 @Tag(name = "이메일 인증 코드 검증 API", description = "인증 코드 검증 기능 제공합니다.")
 @RestController
@@ -23,6 +27,7 @@ public class EmailVerificationController {
 
     private final EmailVerificationJwtProvider emailJwtProvider;
     private final EmailMessageRepository emailMessageRepository;
+    private final EmailService emailService;
 
     @Operation(
         summary = "이메일 인증 코드 검증",
@@ -31,7 +36,7 @@ public class EmailVerificationController {
     @PostMapping("/verify")
     public ResponseEntity<EmailVerificationResponseDto> verifyCode(
         @RequestHeader("X-Email-Verification-Token") String token,
-        @RequestBody EmailVerificationRequestDto requestDto) {
+        @RequestBody EmailVerificationRequestDto requestDto, Authentication authentication) {
 
         try {
             // 1. JWT 토큰에서 이메일과 인증 코드 가져오기
@@ -75,6 +80,12 @@ public class EmailVerificationController {
             // 4. 인증 성공 → 승인 처리
             emailMessage.setIsApproved(true);
             emailMessageRepository.save(emailMessage);
+
+            // 목적이 EMAIL_CHANGE인 경우 Authorization 필요(로그인 토큰 입력 위해서)
+            if (emailMessage.getPurpose() == EmailPurpose.EMAIL_CHANGE) {
+                emailService.verifyAndMaybeChangeEmail(tokenEmail, tokenCode, token,
+                    authentication);
+            }
 
             // 5. 응답 → 메시지 하나로 통일
             return ResponseEntity.ok(EmailVerificationResponseDto.builder()
