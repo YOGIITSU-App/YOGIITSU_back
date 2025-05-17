@@ -17,4 +17,7 @@ public interface FavoriteRepository extends JpaRepository<Favorite, Long> {
 
 	// 사용자 ID와 건물 ID로 즐겨찾기 삭제
 	void deleteByMemberAndBuilding(Member member, Building building);
+
+	// 사용자 ID와 건물 ID로 즐겨찾기 존재 여부 확인
+	boolean existsByMemberIdAndBuildingId(Long memberId, Long buildingId);
 }
