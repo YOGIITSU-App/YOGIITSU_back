@@ -3,6 +3,7 @@ package com.YOGIITSU.service;
 import com.YOGIITSU.dto.ResponseDto.SearchSuggestionResponseDto;
 import com.YOGIITSU.entity.Building;
 import com.YOGIITSU.entity.BuildingAlias;
+import com.YOGIITSU.entity.BuildingTag;
 import com.YOGIITSU.entity.Favorite;
 import com.YOGIITSU.entity.Member;
 import com.YOGIITSU.repository.BuildingAliasRepository;
@@ -14,9 +15,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class SearchSuggestionService {
 
 	private final BuildingRepository buildingRepository;
@@ -81,19 +84,33 @@ public class SearchSuggestionService {
 
 		// 즐겨찾기된 건물 먼저 추가
 		for (Building building : bookmarkedBuildings) {
-			finalResults.add(new SearchSuggestionResponseDto(building.getName(), true));
+			finalResults.add(new SearchSuggestionResponseDto(
+				building.getId(),
+				building.getName(),
+				true,
+				building.getBuildingTags().stream()
+					.map(BuildingTag::getName)
+					.collect(Collectors.toList())
+			));
 		}
 
 		// 일반 검색 결과에서 중복되지 않는 건물 추가
 		for (Building building : searchResults) {
 			if (!bookmarkedBuildingIds.contains(building.getId())) {
-				finalResults.add(new SearchSuggestionResponseDto(building.getName(), false));
+				finalResults.add(new SearchSuggestionResponseDto(
+					building.getId(),
+					building.getName(),
+					false,
+					building.getBuildingTags().stream()
+						.map(BuildingTag::getName)
+						.collect(Collectors.toList())
+				));
 			}
 		}
 
-		// 최대 6개만 반환
 		return finalResults.stream()
 			.limit(6)
 			.collect(Collectors.toList());
 	}
+
 }
