@@ -42,6 +42,8 @@ public class BuildingConverter {
 				.map(BuildingTag::getName)
 				.collect(Collectors.toList()))
 			.imageUrl(building.getImageUrl())
+			.latitude(building.getLatitude())
+			.longitude(building.getLongitude())
 			.facilities(building.getBuildingFacilities().stream()
 				.map(facility -> FacilityResponseDto.builder()
 					.name(facility.getName())
