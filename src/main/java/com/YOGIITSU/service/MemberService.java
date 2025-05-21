@@ -165,7 +165,7 @@ public class MemberService {
 			.orElseThrow(EmailVerificationNotApprovedException::new);
 
 		// 2. 이메일 인증이 완료되지 않은 경우 예외 발생
-		if (emailMessage.getIsApproved() == null || !emailMessage.getIsApproved()) {
+		if (!emailMessage.isApproved()) {
 			throw new EmailVerificationNotApprovedException();
 		}
 
