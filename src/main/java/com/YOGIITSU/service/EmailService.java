@@ -4,6 +4,7 @@ import com.YOGIITSU.entity.EmailMessage;
 import com.YOGIITSU.jwt.EmailVerificationJwtProvider;
 import com.YOGIITSU.repository.EmailMessageRepository;
 import com.YOGIITSU.repository.MemberRepository;
+import java.util.Locale;
 import java.util.Random;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -72,10 +73,11 @@ public class EmailService {
     }
 
     // 허용된 이메일 도메인인지 확인
-    private boolean isAllowedEmailDomain(String email) {
-        return email.endsWith("@suwon.ac.kr")
-            || email.endsWith("@naver.com")
-            || email.endsWith("@gmail.com");
+    private boolean isAllowedEmailDomain(String email){
+        String normalized = email.trim().toLowerCase(Locale.ROOT);
+        return normalized.endsWith("@suwon.ac.kr")
+            || normalized.endsWith("@naver.com")
+            || normalized.endsWith("@gmail.com");
     }
 
     // MimeMessage 생성
@@ -132,6 +134,10 @@ public class EmailService {
         if (message.getPurpose() == EmailPurpose.EMAIL_CHANGE) {
             if (auth == null || !auth.isAuthenticated()) {
                 throw new IllegalArgumentException("이메일 변경은 로그인된 사용자만 가능합니다.");
+            }
+
+            if (memberRepository.existsByEmail(email)) {
+                throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
             }
 
             String memberId = auth.getName();
