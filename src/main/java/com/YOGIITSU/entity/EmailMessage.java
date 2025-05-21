@@ -24,7 +24,7 @@ public class EmailMessage {
     private String code;
 
     @Column(name = "is_approved", nullable = false, columnDefinition = "TINYINT(1)")
-    private Boolean isApproved;
+    private boolean isApproved;
 
     @Column(name = "expires_at", nullable = false)
     private LocalDateTime expiresAt;
