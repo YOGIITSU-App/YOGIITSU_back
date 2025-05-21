@@ -28,12 +28,36 @@ public class BuildingController {
 	 */
 	@Operation(
 		summary = "건물 상세 조회",
-		description = "건물 ID를 기반으로 상세 정보를 조회합니다.\n\n" +
-			"각 건물에 대한 사용자의 즐겨찾기 여부를 포함한 결과를 반환합니다."
+		description = """
+			건물 ID를 기반으로 상세 정보를 조회합니다. <br>
+			각 건물에 대한 사용자의 즐겨찾기 여부를 포함한 결과를 반환합니다. <br><br>
+
+			사용 가능한 건물 ID 목록:<br>
+			1: 인문사회융합대학<br>
+			2: 체육관<br>
+			3: 미래혁신관<br>
+			4: 혁신공과대학<br>
+			5: 공학관<br>
+			6: ACE 교육관<br>
+			7: 디자인앤아트대학<br>
+			8: 조형관<br>
+			9: 음악테크놀로지대학<br>
+			10: 지능형SW융합대학<br>
+			11: 라이프케어사이언스대학<br>
+			12: 사회관<br>
+			13: 문화예술융합대학<br>
+			14: 경영공학대학
+			"""
 	)
+
 	@GetMapping("/{id}")
 	public BuildingDetailResponseDto getBuildingDetail(
-		@Parameter(description = "조회할 건물의 ID", example = "10")
+		@Parameter(
+			description = "조회할 건물의 ID<br><br>" +
+				"예시:<br>10 → 지능형SW융합대학<br>14 → 경영공학대학",
+			example = "10"
+		)
+
 		@PathVariable Long id,
 
 		@Parameter(hidden = true)

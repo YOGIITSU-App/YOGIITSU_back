@@ -9,6 +9,7 @@ import com.YOGIITSU.entity.Member;
 import com.YOGIITSU.jwt.JwtTokenProvider;
 import com.YOGIITSU.repository.MemberRepository;
 import com.YOGIITSU.service.InquiryService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -39,6 +40,7 @@ public class InquiryController {
      * 문의 등록 API
      * - 인증된 사용자가 문의 등록
      */
+    @Operation(summary = "문의 등록")
     @PostMapping
     public ResponseEntity<InquiryResponseDto> createInquiry(
         @RequestBody @Valid InquiryRequestDto requestDto,
@@ -56,6 +58,7 @@ public class InquiryController {
      * 전체 문의 리스트 조회 API
      * - 로그인 한 모든 사용자가 확인 가능
      */
+    @Operation(summary = "전체 문의 목록 조회")
     @GetMapping
     public ResponseEntity<List<InquiryListResponseDto>> getAllInquiries(
         HttpServletRequest request) {
@@ -80,6 +83,7 @@ public class InquiryController {
      * 나의 문의 조회 API
      * - 인증된 사용자만 본인의 문의를 확인 가능
      */
+    @Operation(summary = "나의 문의 조회")
     @GetMapping("/{inquiryId}")
     public ResponseEntity<InquiryResponseDto> getInquiry(
         @PathVariable Long inquiryId,
@@ -97,6 +101,7 @@ public class InquiryController {
      * 문의 수정 API
      * - 본인의 문의이며, 답변 대기 상태인 경우에만 수정 가능
      */
+    @Operation(summary = "문의 수정")
     @PutMapping("/{inquiryId}")
     public ResponseEntity<InquiryResponseDto> updateInquiry(
         @PathVariable Long inquiryId,
@@ -115,6 +120,7 @@ public class InquiryController {
      * 문의 삭제 API
      * - 본인의 문의이며, 답변 대기 상태인 경우에만 삭제 가능
      */
+    @Operation(summary = "문의 삭제")
     @DeleteMapping("/{inquiryId}")
     public ResponseEntity<Void> deleteInquiry(
         @PathVariable Long inquiryId,

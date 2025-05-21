@@ -17,4 +17,8 @@ public class BuildingInfoResponseDto {
 	private String imageUrl;
 
 	private List<FacilityResponseDto> facilities;
+
+	private Double latitude;
+
+	private Double longitude;
 }
