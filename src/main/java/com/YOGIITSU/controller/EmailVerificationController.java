@@ -87,12 +87,17 @@ public class EmailVerificationController {
                     authentication);
             }
 
-            // 5. 응답 → 메시지 하나로 통일
+            // 5. 응답 → 목적에 따라 메시지 분기
+            String successMessage = (emailMessage.getPurpose() == EmailPurpose.EMAIL_CHANGE)
+                ? "이메일이 변경되었습니다. 보안을 위해 다시 로그인해주세요."
+                : "이메일 인증이 완료되었습니다.";
+
             return ResponseEntity.ok(EmailVerificationResponseDto.builder()
                 .status("success")
-                .message("이메일 인증이 완료되었습니다.")
+                .message(successMessage)
                 .email(tokenEmail)
                 .build());
+
 
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
