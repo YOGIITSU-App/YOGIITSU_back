@@ -33,13 +33,6 @@ public class EmailMessage {
     @Column(nullable = false)
     private EmailPurpose purpose;
 
-    // 인증 코드 갱신 메서드
-    public void updateCode(String code) {
-        this.code = code;
-        this.isApproved = false;
-        this.expiresAt = LocalDateTime.now().plusMinutes(5); // 5분 후 만료 시간 갱신
-    }
-
     // 인증 성공 시 승인 처리
     public void setIsApproved(Boolean isApproved) {
         this.isApproved = isApproved;
