@@ -7,13 +7,15 @@ import com.YOGIITSU.config.handler.GlobalExceptionHandler.PasswordMismatchExcept
 import com.YOGIITSU.config.handler.GlobalExceptionHandler.PasswordNotEqualsException;
 import com.YOGIITSU.dto.RequestDto.PasswordResetRequestDto;
 import com.YOGIITSU.dto.ResponseDto.TokenResponseDto;
-import com.YOGIITSU.dto.ResponseDto.UserResponseDto;
 import com.YOGIITSU.entity.EmailMessage;
 import com.YOGIITSU.entity.Member;
 import com.YOGIITSU.jwt.JwtTokenProvider;
 import com.YOGIITSU.repository.EmailMessageRepository;
 import com.YOGIITSU.repository.MemberRepository;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -41,45 +43,29 @@ public class MemberService {
 	 *
 	 * @param memberId 사용자의 아이디
 	 * @param password 사용자의 비밀번호
-	 * @return TokenResponse JWT 토큰 정보
+	 * @return accessToken은 Authorization 헤더로, refreshToken은 X-Refresh-Token 헤더로 내려보냄
 	 */
 	@Transactional
-	public TokenResponseDto login(String memberId, String password) {
-		// 1. 아이디와 비밀번호를 기반으로 Authentication 객체 생성
-		UsernamePasswordAuthenticationToken authenticationToken =
-			new UsernamePasswordAuthenticationToken(memberId, password);
-
+	public ResponseEntity<Map<String, String>> login(String memberId, String password) {
 		try {
-			// 2. 실제 검증 (사용자 비밀번호 체크)이 이루어지는 부분
+			// 1. 아이디와 비밀번호로 Authentication 객체 생성
 			Authentication authentication = authenticationManagerBuilder.getObject()
-				.authenticate(authenticationToken);
+				.authenticate(new UsernamePasswordAuthenticationToken(memberId, password));
 
-			// 3. 토큰 생성
+			// 2. 인증된 정보를 바탕으로 JWT 토큰 생성
 			TokenResponseDto tokenInfo = jwtTokenProvider.generateToken(authentication);
 
-			// 4. 사용자 정보 조회
-			Member member = memberRepository.findByMemberId(memberId)
-				.orElseThrow(MemberNotFoundException::new);
+			// 3. 생성된 토큰을 헤더에 담아 반환
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Authorization", "Bearer " + tokenInfo.getAccessToken());   // AccessToken → Authorization 헤더
+			headers.set("X-Refresh-Token", tokenInfo.getRefreshToken());           // RefreshToken → X-Refresh-Token 헤더
 
-			// 5. 사용자 정보 DTO 생성
-			UserResponseDto userDto = UserResponseDto.builder()
-				.id(member.getId())
-				.username(member.getUserName())
-				.memberId(member.getMemberId())
-				.email(member.getEmail())
-				.role(member.getRole()) // role 추가
-				.build();
-
-			// 6. 사용자 정보 포함해서 반환
-			return TokenResponseDto.builder()
-				.grantType("Bearer")
-				.accessToken(tokenInfo.getAccessToken())
-				.refreshToken(tokenInfo.getRefreshToken())
-				.user(userDto)
-				.build();
+			return ResponseEntity.ok()
+				.headers(headers)
+				.body(Map.of("message", "로그인 성공"));
 
 		} catch (BadCredentialsException e) {
-			// 4. 인증 실패 시 예외 처리
+			// 4. 인증 실패 시 커스텀 예외 던짐
 			throw new InvalidLoginException();
 		}
 	}
