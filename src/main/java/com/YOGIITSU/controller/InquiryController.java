@@ -46,12 +46,12 @@ public class InquiryController {
      */
     @Operation(summary = "문의 등록")
     @PostMapping
-    public ResponseEntity<Void> createInquiry(
+    public ResponseEntity<String> createInquiry(
         @RequestBody InquiryRequestDto requestDto,
         @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         inquiryService.createInquiry(requestDto, userDetails.getId());
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        return ResponseEntity.status(HttpStatus.CREATED).body("등록이 완료되었습니다.");
     }
 
     /**
