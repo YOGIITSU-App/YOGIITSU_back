@@ -121,14 +121,8 @@ public class InquiryController {
      */
     private Long extractMemberIdFromToken(HttpServletRequest request) {
 
+        validateToken(request);
         String token = jwtTokenProvider.resolveToken(request);
-
-        if (token == null) {
-            throw new MissingTokenException();
-        }
-        if (!jwtTokenProvider.validateToken(token)) {
-            throw new InvalidTokenException();
-        }
 
         String memberId = jwtTokenProvider.getAuthentication(token).getName();
         Member member = memberRepository.findByMemberId(memberId)
@@ -137,6 +131,9 @@ public class InquiryController {
         return member.getId();
     }
 
+    /**
+     * JWT 토큰 유효성 검사
+     */
     private void validateToken(HttpServletRequest request) {
 
         String token = jwtTokenProvider.resolveToken(request);
