@@ -14,7 +14,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class InquiryResponseDto {
 
-    private Long inquiryId;
     private String inquiryTitle;
     private String inquiryContent;
     private LocalDateTime inquiryAt;
@@ -26,12 +25,12 @@ public class InquiryResponseDto {
     private LocalDateTime responseAt;
 
     public InquiryResponseDto(Inquiry inquiry) {
-        this.inquiryId = inquiry.getInquiryId();
+
         this.inquiryTitle = inquiry.getInquiryTitle();
         this.inquiryContent = inquiry.getInquiryContent();
+        this.inquiryAt = inquiry.getInquiryAt();
         this.authorId = inquiry.getMember().getId();
         this.authorName = inquiry.getMember().getUserName();
-        this.inquiryAt = inquiry.getInquiryAt();
         this.response = inquiry.getResponse();
         this.responseAt = inquiry.getResponseAt();
     }
