@@ -22,7 +22,7 @@ public class InquiryListResponseDto {
         this.inquiryId = inquiry.getInquiryId();
         this.inquiryTitle = inquiry.getInquiryTitle();
         this.authorId = inquiry.getMember().getId();
-        this.authorName = inquiry.getMember().getUsername();
+        this.authorName = inquiry.getMember().getUserName();
         this.inquiryState = inquiry.getInquiryState().name();  // "PROCESSING", "COMPLETED"
         this.inquiryAt = inquiry.getInquiryAt();
     }
