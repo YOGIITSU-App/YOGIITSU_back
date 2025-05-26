@@ -11,13 +11,17 @@ import lombok.Getter;
 @Getter
 public class InquiryListResponseDto {
 
+    private final Long inquiryId;
     private final String inquiryTitle;
+    private final Long authorId;
     private final String authorName;
     private final String inquiryState;
     private final LocalDateTime inquiryAt;
 
     public InquiryListResponseDto(Inquiry inquiry) {
+        this.inquiryId = inquiry.getInquiryId();
         this.inquiryTitle = inquiry.getInquiryTitle();
+        this.authorId = inquiry.getMember().getId();
         this.authorName = inquiry.getMember().getUsername();
         this.inquiryState = inquiry.getInquiryState().name();  // "PROCESSING", "COMPLETED"
         this.inquiryAt = inquiry.getInquiryAt();
