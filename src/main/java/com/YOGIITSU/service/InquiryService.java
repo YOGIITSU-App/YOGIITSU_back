@@ -36,7 +36,6 @@ public class InquiryService {
      *
      * @param requestDto 문의 요청 데이터
      * @param memberId   문의 작성한 회원 ID
-     * @return InquiryResponseDto 등록된 문의 정보
      */
     @Transactional
     public void createInquiry(InquiryRequestDto requestDto, Long memberId) {
@@ -82,9 +81,8 @@ public class InquiryService {
      * - 전체 공개
      * - 나의 문의 일 때만 수정, 삭제 가능
      *
-     * @param inquiryId
-     * @param memberId
-     * @return
+     * @param inquiryId 문의 ID
+     * @return InquiryResponseDto 문의 상세 정보
      */
     @Transactional(readOnly = true)
     public InquiryResponseDto getInquiry(Long inquiryId) {
