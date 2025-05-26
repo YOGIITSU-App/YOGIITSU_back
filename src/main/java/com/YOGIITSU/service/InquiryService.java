@@ -78,18 +78,17 @@ public class InquiryService {
     }
 
     /**
-     * Read-my: 개인 문의 조회
-     * - 본인 문의만 조회 가능
-     * - 전체 내용 포함한 DTO 반환
+     * Read: 문의 상세 조회
+     * - 전체 공개
+     * - 나의 문의 일 때만 수정, 삭제 가능
      *
-     * @param inquiryId 문의 ID
-     * @param memberId  사용자 ID
-     * @return InquiryResponseDto 개인 문의 정보
+     * @param inquiryId
+     * @param memberId
+     * @return
      */
     @Transactional(readOnly = true)
-    public InquiryResponseDto getInquiry(Long inquiryId, Long memberId) {
+    public InquiryResponseDto getInquiry(Long inquiryId) {
         Inquiry inquiry = findInquiry(inquiryId);
-        validateOwnership(inquiry, memberId);
 
         // 문의 정보 반환
         return new InquiryResponseDto(inquiry);
@@ -111,7 +110,7 @@ public class InquiryService {
         // 1. 해당 문의 조회
         Inquiry inquiry = findInquiry(inquiryId);
 
-        // 2. 본인이 작성한 문의인지 확인 (비밀번호 검증은 단건 조회에서 완료)
+        // 2. 본인이 작성한 문의인지 확인
         validateOwnership(inquiry, memberId);
 
         // 3. 관리자 답변이 있는 경우 수정 불가
@@ -162,7 +161,7 @@ public class InquiryService {
     }
 
     /**
-     * 특정 ID의 문의 조회 (예외 처리 포함)
+     * 문의 조회 (예외 처리 포함)
      *
      * @param inquiryId 문의 ID
      * @return Inquiry 조회된 문의 객체
@@ -177,7 +176,7 @@ public class InquiryService {
      */
     private void validateOwnership(Inquiry inquiry, Long memberId) {
         if (!inquiry.getMember().getId().equals(memberId)) {
-            throw new IllegalArgumentException("본인이 작성한 문의만 조회할 수 있습니다.");
+            throw new IllegalArgumentException("본인이 작성한 문의만 수정 또는 삭제할 수 있습니다.");
         }
     }
 
