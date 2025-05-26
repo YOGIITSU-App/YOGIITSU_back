@@ -39,7 +39,7 @@ public class InquiryService {
      * @return InquiryResponseDto 등록된 문의 정보
      */
     @Transactional
-    public InquiryResponseDto createInquiry(InquiryRequestDto requestDto, Long memberId) {
+    public void createInquiry(InquiryRequestDto requestDto, Long memberId) {
 
         // 1. 회원 조회
         Member member = findMember(memberId);
@@ -59,9 +59,8 @@ public class InquiryService {
             .inquiryState(InquiryState.PROCESSING)  // 기본 상태: PROCESSING(답변대기)
             .build();
 
-        // 2. 생성된 문의 DB에 저장 & 반환
-        Inquiry savedInquiry = inquiryRepository.save(inquiry);
-        return new InquiryResponseDto(savedInquiry);
+        // 3. 생성된 문의 DB에 저장
+        inquiryRepository.save(inquiry);
     }
 
     /**

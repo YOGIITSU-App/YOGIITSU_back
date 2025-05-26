@@ -6,6 +6,7 @@ import com.YOGIITSU.dto.RequestDto.InquiryRequestDto;
 import com.YOGIITSU.dto.ResponseDto.InquiryListResponseDto;
 import com.YOGIITSU.dto.ResponseDto.InquiryResponseDto;
 import com.YOGIITSU.entity.Member;
+import com.YOGIITSU.jwt.CustomUserDetails;
 import com.YOGIITSU.jwt.JwtTokenProvider;
 import com.YOGIITSU.repository.MemberRepository;
 import com.YOGIITSU.service.InquiryService;
@@ -15,7 +16,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -42,16 +45,13 @@ public class InquiryController {
      */
     @Operation(summary = "문의 등록")
     @PostMapping
-    public ResponseEntity<InquiryResponseDto> createInquiry(
-        @RequestBody @Valid InquiryRequestDto requestDto,
-        HttpServletRequest request) {
+    public ResponseEntity<Void> createInquiry(
+        @RequestBody InquiryRequestDto requestDto,
+        @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         // JWT 토큰에서 memberId 추출
-        Long memberId = extractMemberIdFromToken(request);
-
-        // 문의 등록
-        InquiryResponseDto response = inquiryService.createInquiry(requestDto, memberId);
-        return ResponseEntity.ok(response);
+        inquiryService.createInquiry(requestDto, userDetails.getId());
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     /**
