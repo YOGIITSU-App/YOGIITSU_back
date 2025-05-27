@@ -2,9 +2,10 @@ package com.YOGIITSU.converter;
 
 import com.YOGIITSU.dto.ResponseDto.*;
 import com.YOGIITSU.entity.*;
-import java.util.ArrayList;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,11 +41,15 @@ public class BuildingConverter {
 			.name(building.getName())
 			.tags(building.getBuildingTags().stream()
 				.map(BuildingTag::getName)
+				.sorted()
 				.collect(Collectors.toList()))
 			.imageUrl(building.getImageUrl())
 			.latitude(building.getLatitude())
 			.longitude(building.getLongitude())
 			.facilities(building.getBuildingFacilities().stream()
+				.sorted(Comparator.comparing(BuildingFacility::getFloor,
+						Comparator.nullsLast(String::compareTo))
+					.thenComparing(BuildingFacility::getName))
 				.map(facility -> FacilityResponseDto.builder()
 					.name(facility.getName())
 					.floor(facility.getFloor())
@@ -62,6 +67,7 @@ public class BuildingConverter {
 	private List<DepartmentResponseDto> convertToDepartmentResponseDtos(
 		List<Department> departments) {
 		return departments.stream()
+			.sorted(Comparator.comparing(Department::getId))
 			.map(department -> DepartmentResponseDto.builder()
 				.id(department.getId())
 				.collegeName(department.getCollegeName())
@@ -83,6 +89,7 @@ public class BuildingConverter {
 	private List<FloorImageResponseDto> convertToFloorPlanResponseDtos(
 		List<BuildingFloorImage> floorImages) {
 		return floorImages.stream()
+			.sorted(Comparator.comparing(BuildingFloorImage::getFloor))
 			.map(floorImage -> FloorImageResponseDto.builder()
 				.floor(floorImage.getFloor())
 				.imageUrl(floorImage.getImageUrl())
