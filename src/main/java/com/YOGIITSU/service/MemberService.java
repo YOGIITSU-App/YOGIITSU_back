@@ -9,9 +9,11 @@ import com.YOGIITSU.dto.RequestDto.PasswordResetRequestDto;
 import com.YOGIITSU.dto.ResponseDto.TokenResponseDto;
 import com.YOGIITSU.entity.EmailMessage;
 import com.YOGIITSU.entity.Member;
+import com.YOGIITSU.jwt.CustomUserDetails;
 import com.YOGIITSU.jwt.JwtTokenProvider;
 import com.YOGIITSU.repository.EmailMessageRepository;
 import com.YOGIITSU.repository.MemberRepository;
+import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -46,7 +48,7 @@ public class MemberService {
 	 * @return accessToken은 Authorization 헤더로, refreshToken은 X-Refresh-Token 헤더로 내려보냄
 	 */
 	@Transactional
-	public ResponseEntity<Map<String, String>> login(String memberId, String password) {
+	public ResponseEntity<Map<String, Object>> login(String memberId, String password) {
 		try {
 			// 1. 아이디와 비밀번호로 Authentication 객체 생성
 			Authentication authentication = authenticationManagerBuilder.getObject()
@@ -55,17 +57,25 @@ public class MemberService {
 			// 2. 인증된 정보를 바탕으로 JWT 토큰 생성
 			TokenResponseDto tokenInfo = jwtTokenProvider.generateToken(authentication);
 
+			CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+			Long userId = userDetails.getId();
+			String role = userDetails.getRole();
+
 			// 3. 생성된 토큰을 헤더에 담아 반환
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Authorization", "Bearer " + tokenInfo.getAccessToken());   // AccessToken → Authorization 헤더
 			headers.set("X-Refresh-Token", tokenInfo.getRefreshToken());           // RefreshToken → X-Refresh-Token 헤더
 
+			Map<String, Object> responseBody = new HashMap<>();
+			responseBody.put("message", "로그인 성공");
+			responseBody.put("userId", userId);
+			responseBody.put("role", role);
+
 			return ResponseEntity.ok()
 				.headers(headers)
-				.body(Map.of("message", "로그인 성공"));
+				.body(responseBody);
 
 		} catch (BadCredentialsException e) {
-			// 4. 인증 실패 시 커스텀 예외 던짐
 			throw new InvalidLoginException();
 		}
 	}
