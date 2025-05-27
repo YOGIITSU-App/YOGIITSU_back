@@ -1,6 +1,7 @@
 package com.YOGIITSU.controller;
 
 import com.YOGIITSU.config.handler.GlobalExceptionHandler.InvalidTokenException;
+import com.YOGIITSU.config.handler.GlobalExceptionHandler.MemberNotFoundException;
 import com.YOGIITSU.config.handler.GlobalExceptionHandler.MissingTokenException;
 import com.YOGIITSU.dto.RequestDto.InquiryRequestDto;
 import com.YOGIITSU.dto.ResponseDto.InquiryListResponseDto;
@@ -126,7 +127,7 @@ public class InquiryController {
 
         String memberId = jwtTokenProvider.getAuthentication(token).getName();
         Member member = memberRepository.findByMemberId(memberId)
-            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+            .orElseThrow(MemberNotFoundException::new);
 
         return member.getId();
     }
