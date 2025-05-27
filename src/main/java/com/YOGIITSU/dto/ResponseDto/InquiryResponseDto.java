@@ -14,19 +14,24 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class InquiryResponseDto {
 
-    private Long inquiryId;
     private String inquiryTitle;
     private String inquiryContent;
-    private String response;
     private LocalDateTime inquiryAt;
+
+    private Long authorId;
+    private String authorName;
+
+    private String response;
     private LocalDateTime responseAt;
 
     public InquiryResponseDto(Inquiry inquiry) {
-        this.inquiryId = inquiry.getInquiryId();
+
         this.inquiryTitle = inquiry.getInquiryTitle();
         this.inquiryContent = inquiry.getInquiryContent();
-        this.response = inquiry.getResponse();
         this.inquiryAt = inquiry.getInquiryAt();
+        this.authorId = inquiry.getMember().getId();
+        this.authorName = inquiry.getMember().getUserName();
+        this.response = inquiry.getResponse();
         this.responseAt = inquiry.getResponseAt();
     }
 }

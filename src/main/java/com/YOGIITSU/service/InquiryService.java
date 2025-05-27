@@ -36,10 +36,9 @@ public class InquiryService {
      *
      * @param requestDto 문의 요청 데이터
      * @param memberId   문의 작성한 회원 ID
-     * @return InquiryResponseDto 등록된 문의 정보
      */
     @Transactional
-    public InquiryResponseDto createInquiry(InquiryRequestDto requestDto, Long memberId) {
+    public void createInquiry(InquiryRequestDto requestDto, Long memberId) {
 
         // 1. 회원 조회
         Member member = findMember(memberId);
@@ -59,9 +58,8 @@ public class InquiryService {
             .inquiryState(InquiryState.PROCESSING)  // 기본 상태: PROCESSING(답변대기)
             .build();
 
-        // 2. 생성된 문의 DB에 저장 & 반환
-        Inquiry savedInquiry = inquiryRepository.save(inquiry);
-        return new InquiryResponseDto(savedInquiry);
+        // 3. 생성된 문의 DB에 저장
+        inquiryRepository.save(inquiry);
     }
 
     /**
@@ -79,18 +77,16 @@ public class InquiryService {
     }
 
     /**
-     * Read-my: 개인 문의 조회
-     * - 본인 문의만 조회 가능
-     * - 전체 내용 포함한 DTO 반환
+     * Read: 문의 상세 조회
+     * - 전체 공개
+     * - 나의 문의 일 때만 수정, 삭제 가능
      *
      * @param inquiryId 문의 ID
-     * @param memberId  사용자 ID
-     * @return InquiryResponseDto 개인 문의 정보
+     * @return InquiryResponseDto 문의 상세 정보
      */
     @Transactional(readOnly = true)
-    public InquiryResponseDto getInquiry(Long inquiryId, Long memberId) {
+    public InquiryResponseDto getInquiry(Long inquiryId) {
         Inquiry inquiry = findInquiry(inquiryId);
-        validateOwnership(inquiry, memberId);
 
         // 문의 정보 반환
         return new InquiryResponseDto(inquiry);
@@ -112,7 +108,7 @@ public class InquiryService {
         // 1. 해당 문의 조회
         Inquiry inquiry = findInquiry(inquiryId);
 
-        // 2. 본인이 작성한 문의인지 확인 (비밀번호 검증은 단건 조회에서 완료)
+        // 2. 본인이 작성한 문의인지 확인
         validateOwnership(inquiry, memberId);
 
         // 3. 관리자 답변이 있는 경우 수정 불가
@@ -163,7 +159,7 @@ public class InquiryService {
     }
 
     /**
-     * 특정 ID의 문의 조회 (예외 처리 포함)
+     * 문의 조회 (예외 처리 포함)
      *
      * @param inquiryId 문의 ID
      * @return Inquiry 조회된 문의 객체
@@ -178,7 +174,7 @@ public class InquiryService {
      */
     private void validateOwnership(Inquiry inquiry, Long memberId) {
         if (!inquiry.getMember().getId().equals(memberId)) {
-            throw new IllegalArgumentException("본인이 작성한 문의만 조회할 수 있습니다.");
+            throw new IllegalArgumentException("본인이 작성한 문의만 수정 또는 삭제할 수 있습니다.");
         }
     }
 
