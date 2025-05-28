@@ -139,9 +139,7 @@ public class EmailService {
 
     public void validateEmailForChangeOld(String email, Authentication auth) {
         // 1. 로그인된 사용자 확인
-        if (auth == null || !auth.isAuthenticated()) {
-            throw new IllegalArgumentException("로그인이 필요한 요청입니다.");
-        }
+        checkAuthentication(auth);
 
         // 2. DB에 해당 이메일 존재 여부 확인 추가
         if (!memberRepository.existsByEmail(email)) {
