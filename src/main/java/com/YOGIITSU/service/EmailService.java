@@ -159,12 +159,7 @@ public class EmailService {
 
     @Transactional
     public void approveEmailCode(String email, String code) {
-        EmailMessage message = emailMessageRepository.findByEmailAndCode(email, code)
-            .orElseThrow(() -> new IllegalArgumentException("DB에 인증 코드가 존재하지 않습니다."));
-
-        if (message.getExpiresAt().isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("인증 코드가 만료되었습니다.");
-        }
+        EmailMessage message = findAndValidateEmailMessage(email, code);
 
         message.setIsApproved(true);
         emailMessageRepository.save(message);
@@ -212,6 +207,10 @@ public class EmailService {
             throw new IllegalArgumentException("이메일 또는 인증 코드가 일치하지 않습니다.");
         }
 
+        return findAndValidateEmailMessage(email, code);
+    }
+
+    private EmailMessage findAndValidateEmailMessage(String email, String code) {
         EmailMessage message = emailMessageRepository.findByEmailAndCode(email, code)
             .orElseThrow(() -> new IllegalArgumentException("DB에 인증 코드가 존재하지 않습니다."));
 
