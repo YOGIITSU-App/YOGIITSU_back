@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
+import org.springframework.security.core.Authentication;
 
 @Tag(name = "인증 코드 전송 API", description = "인증 메일 전송 기능 제공합니다.")
 @RestController
@@ -32,9 +33,14 @@ public class EmailController {
     @Operation(summary = "인증 메일 전송", description = "입력한 이메일로 인증 코드를 전송하고, 이메일 + 인증코드를 포함한 토큰을 반환합니다.")
     @PostMapping("/send-code")
     public ResponseEntity<EmailPostResponseDto> sendJoinMail(
-        @RequestBody @Valid EmailPostRequestDto emailPostRequestDto) {
+        @RequestParam(name = "purpose") EmailPurpose purpose,
+        @RequestBody @Valid EmailPostRequestDto emailPostRequestDto,
+        Authentication authentication) {
+
         String email = emailPostRequestDto.getEmail();
-        EmailPurpose purpose = emailPostRequestDto.getPurpose();
+
+        // 목적에 따라 유효성 검사 실행 (서비스로 위임했다.)
+        emailService.validateEmailRequest(email, purpose, authentication);
 
         // 1. 인증 코드 생성
         String code = emailService.generateVerificationCode();
