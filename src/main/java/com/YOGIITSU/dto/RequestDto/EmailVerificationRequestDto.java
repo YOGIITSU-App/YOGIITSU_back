@@ -8,6 +8,5 @@ import lombok.*;
 @NoArgsConstructor
 public class EmailVerificationRequestDto {
 
-    private String email;
     private String code;
 }
