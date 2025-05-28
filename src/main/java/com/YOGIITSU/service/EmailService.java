@@ -73,7 +73,7 @@ public class EmailService {
     }
 
     // 허용된 이메일 도메인인지 확인
-    private boolean isAllowedEmailDomain(String email){
+    private boolean isAllowedEmailDomain(String email) {
         String normalized = email.trim().toLowerCase(Locale.ROOT);
         return normalized.endsWith("@suwon.ac.kr")
             || normalized.endsWith("@naver.com")
@@ -106,17 +106,111 @@ public class EmailService {
         return templateEngine.process(type, context);
     }
 
+    // 목적에 따라 이메일 요청 유효성 검사
+    public void validateEmailRequest(String email, EmailPurpose purpose, Authentication auth) {
+        switch (purpose) {
+            case EMAIL_CHANGE_OLD -> validateEmailForChangeOld(email, auth);
+
+            case EMAIL_CHANGE_NEW -> {
+                checkAuthentication(auth);
+                if (memberRepository.existsByEmail(email)) {
+                    throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+                }
+            }
+
+            case PASSWORD_CHANGE, FIND_PASSWORD, FIND_ID -> checkAuthentication(auth);
+
+            case SIGNUP -> {
+                if (memberRepository.existsByEmail(email)) {
+                    throw new IllegalArgumentException("이미 가입된 이메일입니다.");
+                }
+            }
+
+            default -> throw new IllegalArgumentException("지원하지 않는 인증 목적입니다.");
+        }
+    }
+
+    // 인증이 필요한 경우 공통 검사 메서드
+    public void checkAuthentication(Authentication auth) {
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new IllegalArgumentException("로그인이 필요한 요청입니다.");
+        }
+    }
+
+    public void validateEmailForChangeOld(String email, Authentication auth) {
+        // 1. 로그인된 사용자 확인
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new IllegalArgumentException("로그인이 필요한 요청입니다.");
+        }
+
+        // 2. DB에 해당 이메일 존재 여부 확인 추가
+        if (!memberRepository.existsByEmail(email)) {
+            throw new IllegalArgumentException("해당 이메일로 가입된 계정이 존재하지 않습니다.");
+        }
+
+        // 3. 로그인된 사용자 정보 조회
+        String memberId = auth.getName();
+        Member member = memberRepository.findByMemberId(memberId)
+            .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다."));
+
+        // 4. 입력한 이메일이 로그인된 사용자의 현재 이메일과 일치하는지 확인
+        if (!member.getEmail().equals(email)) {
+            throw new IllegalArgumentException("입력한 이메일이 로그인된 사용자의 이메일과 일치하지 않습니다.");
+        }
+    }
+
+    @Transactional
+    public void approveEmailCode(String email, String code) {
+        EmailMessage message = emailMessageRepository.findByEmailAndCode(email, code)
+            .orElseThrow(() -> new IllegalArgumentException("DB에 인증 코드가 존재하지 않습니다."));
+
+        if (message.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("인증 코드가 만료되었습니다.");
+        }
+
+        message.setIsApproved(true);
+        emailMessageRepository.save(message);
+    }
+
+    public void checkAuthenticationIfRequired(EmailPurpose purpose, Authentication auth) {
+        if (EmailPurpose.requiresLogin(purpose)) {
+            checkAuthentication(auth);
+        }
+    }
+
     // 이메일 변경 부분
     @Transactional
     public void verifyAndMaybeChangeEmail(String email, String code, String token,
         Authentication auth) {
+        // 인증 코드 확인만 별도 메서드로 위임
+        EmailMessage message = verifyEmailCode(email, code, token);
+
+        message.setIsApproved(true);
+        emailMessageRepository.save(message);
+
+        EmailPurpose purpose = message.getPurpose();
+        checkAuthenticationIfRequired(purpose, auth);
+
+        if (purpose == EmailPurpose.EMAIL_CHANGE_NEW) {
+            String memberId = auth.getName();
+            Member member = memberRepository.findByMemberId(memberId)
+                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다."));
+
+            if (memberRepository.existsByEmail(email)) {
+                throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+            }
+
+            member.setEmail(email);
+            memberRepository.save(member);
+            log.info("이메일 변경 완료 - memberId: {}, newEmail: {}", memberId, email); // 로그 추가
+        }
+    }
+
+    private EmailMessage verifyEmailCode(String email, String code, String token) {
         Claims claims = emailJwtProvider.parseEmailToken(token)
             .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 인증 토큰입니다."));
 
-        String tokenEmail = claims.getSubject();
-        String tokenCode = claims.get("code", String.class);
-
-        if (!tokenEmail.equals(email) || !tokenCode.equals(code)) {
+        if (!claims.getSubject().equals(email) || !claims.get("code", String.class).equals(code)) {
             throw new IllegalArgumentException("이메일 또는 인증 코드가 일치하지 않습니다.");
         }
 
@@ -127,25 +221,6 @@ public class EmailService {
             throw new IllegalArgumentException("인증 코드가 만료되었습니다.");
         }
 
-        message.setIsApproved(true);
-        emailMessageRepository.save(message);
-
-        // 목적이 EMAIL_CHANGE인 경우에만 이메일 변경하고 SIGNUP, NORMAL인 경우에는 그냥 이메일 전송
-        if (message.getPurpose() == EmailPurpose.EMAIL_CHANGE) {
-            if (auth == null || !auth.isAuthenticated()) {
-                throw new IllegalArgumentException("이메일 변경은 로그인된 사용자만 가능합니다.");
-            }
-
-            if (memberRepository.existsByEmail(email)) {
-                throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
-            }
-
-            String memberId = auth.getName();
-            Member member = memberRepository.findByMemberId(memberId)
-                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다."));
-
-            member.setEmail(email);
-            memberRepository.save(member);
-        }
+        return message;
     }
 }
