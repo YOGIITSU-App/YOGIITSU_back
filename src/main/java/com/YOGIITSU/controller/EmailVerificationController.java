@@ -42,12 +42,11 @@ public class EmailVerificationController {
             String tokenCode = claims.get("code", String.class);
 
             // 2. 입력 값과 토큰 비교
-            if (!tokenEmail.equals(requestDto.getEmail()) || !tokenCode.equals(
-                requestDto.getCode())) {
+            if (!tokenCode.equals(requestDto.getCode())) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(EmailVerificationResponseDto.builder()
                         .status("error")
-                        .message("인증 실패: 이메일 또는 인증 코드가 일치하지 않습니다.")
+                        .message("인증 실패: 인증 코드가 일치하지 않습니다.")
                         .email(null)
                         .build());
             }
