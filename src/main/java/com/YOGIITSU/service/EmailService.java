@@ -189,10 +189,6 @@ public class EmailService {
             Member member = memberRepository.findByMemberId(memberId)
                 .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다."));
 
-            if (memberRepository.existsByEmail(email)) {
-                throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
-            }
-
             member.setEmail(email);
             memberRepository.save(member);
             log.info("이메일 변경 완료 - memberId: {}, newEmail: {}", memberId, email); // 로그 추가
