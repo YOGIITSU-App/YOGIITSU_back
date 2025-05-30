@@ -45,12 +45,14 @@ public class MemberController {
 	 */
 	@Operation(summary = "로그인", description = "아이디와 비밀번호를 이용해 로그인합니다.")
 	@PostMapping("/login")
-	public TokenResponseDto login(@RequestBody MemberLoginRequestDto memberLoginRequestDto) {
+	public ResponseEntity<Map<String, Object>> login(
+		@RequestBody MemberLoginRequestDto memberLoginRequestDto) {
 		return memberService.login(
 			memberLoginRequestDto.getMemberId(),
 			memberLoginRequestDto.getPassword()
 		);
 	}
+
 
 	/**
 	 * 아이디 찾기 API

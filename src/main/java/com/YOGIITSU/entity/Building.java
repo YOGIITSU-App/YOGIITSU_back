@@ -33,18 +33,22 @@ public class Building {
 	@Column(name = "image_url")
 	private String imageUrl;
 
+	@Builder.Default
 	@OneToMany(mappedBy = "building", cascade = CascadeType.ALL, orphanRemoval = true)
 	@JsonManagedReference
 	private Set<BuildingFacility> buildingFacilities = new HashSet<>();
 
+	@Builder.Default
 	@OneToMany(mappedBy = "building", cascade = CascadeType.ALL, orphanRemoval = true)
 	@JsonManagedReference
 	private Set<BuildingFloorImage> buildingFloorImages = new HashSet<>();
 
+	@Builder.Default
 	@OneToMany(mappedBy = "building", cascade = CascadeType.ALL, orphanRemoval = true)
 	@JsonManagedReference
 	private Set<BuildingTag> buildingTags = new HashSet<>();
 
+	@Builder.Default
 	@OneToMany(mappedBy = "building", cascade = CascadeType.ALL, orphanRemoval = true)
 	@JsonManagedReference
 	private Set<Department> departments = new HashSet<>();
