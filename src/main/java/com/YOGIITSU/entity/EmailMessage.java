@@ -17,10 +17,10 @@ public class EmailMessage {
     @Column(name = "email_message_id")
     private Long id;
 
-    @Column(nullable = false, length = 255)
+    @Column(nullable = false)
     private String email;
 
-    @Column(nullable = false, length = 255)
+    @Column(nullable = false)
     private String code;
 
     @Column(name = "is_approved", nullable = false, columnDefinition = "TINYINT(1)")
@@ -34,7 +34,7 @@ public class EmailMessage {
     private EmailPurpose purpose;
 
     // 인증 성공 시 승인 처리
-    public void setIsApproved(Boolean isApproved) {
+    public void setIsApproved(boolean isApproved) {
         this.isApproved = isApproved;
     }
 }
