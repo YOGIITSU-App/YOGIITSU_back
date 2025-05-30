@@ -1,5 +1,6 @@
 package com.YOGIITSU.service;
 
+import com.YOGIITSU.config.handler.EmailProperties;
 import com.YOGIITSU.entity.EmailMessage;
 import com.YOGIITSU.jwt.EmailVerificationJwtProvider;
 import com.YOGIITSU.repository.EmailMessageRepository;
@@ -32,6 +33,7 @@ public class EmailService {
     private final EmailMessageRepository emailMessageRepository;
     private final MemberRepository memberRepository;
     private final EmailVerificationJwtProvider emailJwtProvider;
+    private final EmailProperties emailProperties;
 
     // 6자리 인증 코드 생성 (A~Z 알파벳)
     public String generateVerificationCode() {
@@ -72,9 +74,8 @@ public class EmailService {
     // 허용된 이메일 도메인인지 확인
     private boolean isAllowedEmailDomain(String email) {
         String normalized = email.trim().toLowerCase(Locale.ROOT);
-        return normalized.endsWith("@suwon.ac.kr")
-            || normalized.endsWith("@naver.com")
-            || normalized.endsWith("@gmail.com");
+        return emailProperties.getAllowedDomains().stream()
+            .anyMatch(domain -> normalized.endsWith("@" + domain));
     }
 
     // MimeMessage 생성
