@@ -106,7 +106,10 @@ public class EmailService {
 
     // 인증 목적에 따른 이메일 유효성 검사
     public void validateEmailRequest(String email, EmailPurpose purpose, Authentication auth) {
-        checkAuthentication(auth);
+        // 인증이 필요한 목적인지 확인
+        if (requiresAuthentication(purpose)) {
+            checkAuthentication(auth); //목적이 signup인 경우에는 로그인 요청을 강요하면 안됨
+        }
 
         if (purpose.isMustExist()) {
             checkEmailExists(email);
@@ -164,6 +167,11 @@ public class EmailService {
         EmailMessage message = verifyEmailCode(newEmail, code);
         approveAndSave(message);
 
+        // 새 이메일 중복 검증 (동시성 문제 방지)
+        if (memberRepository.existsByEmail(newEmail)) {
+            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+        }
+
         // 로그인한 사용자 정보 가져오기
         String memberId = auth.getName();
         Member member = memberRepository.findByMemberId(memberId)
@@ -202,5 +210,9 @@ public class EmailService {
         if (!memberRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("해당 이메일로 가입된 계정이 존재하지 않습니다.");
         }
+    }
+
+    private boolean requiresAuthentication(EmailPurpose purpose) {
+        return purpose != EmailPurpose.SIGNUP;
     }
 }
