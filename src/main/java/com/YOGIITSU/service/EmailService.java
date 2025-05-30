@@ -3,9 +3,11 @@ package com.YOGIITSU.service;
 import com.YOGIITSU.config.handler.EmailProperties;
 import com.YOGIITSU.entity.EmailMessage;
 import com.YOGIITSU.jwt.EmailVerificationJwtProvider;
+import com.YOGIITSU.jwt.JwtTokenProvider;
 import com.YOGIITSU.repository.EmailMessageRepository;
 import com.YOGIITSU.repository.MemberRepository;
 import io.jsonwebtoken.Claims;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Locale;
 import java.util.Random;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +36,7 @@ public class EmailService {
     private final MemberRepository memberRepository;
     private final EmailVerificationJwtProvider emailJwtProvider;
     private final EmailProperties emailProperties;
+    private final JwtTokenProvider jwtTokenProvider;
 
     // 6자리 인증 코드 생성 (A~Z 알파벳)
     public String generateVerificationCode() {
@@ -156,28 +159,37 @@ public class EmailService {
 
     // 이메일 변경 수행 (인증 코드 검증 -> 승인 -> 사용자 이메일 변경)
     @Transactional
-    public void changeEmail(String token, Authentication auth) {
+    public void changeEmail(String token, HttpServletRequest request) {
+        // 1. AccessToken 추출 및 유효성 검사
+        String accessToken = jwtTokenProvider.resolveToken(request);
+        if (accessToken == null || !jwtTokenProvider.validateToken(accessToken)) {
+            throw new IllegalArgumentException("유효하지 않은 로그인 토큰입니다.");
+        }
+
+        // 2. 인증 객체 획득
+        Authentication auth = jwtTokenProvider.getAuthentication(accessToken);
+
+        // 3. JWT 토큰 파싱하여 새 이메일 및 인증 코드 추출
         Claims claims = emailJwtProvider.parseEmailToken(token)
             .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 인증 토큰입니다."));
 
         String newEmail = claims.getSubject();
         String code = claims.get("code", String.class);
 
-        // 인증 코드 검증 및 승인 처리
+        // 4. 인증 코드 검증 및 승인 처리
         EmailMessage message = verifyEmailCode(newEmail, code);
         approveAndSave(message);
 
-        // 새 이메일 중복 검증 (동시성 문제 방지)
+        // 5. 새 이메일 중복 여부 검사
         if (memberRepository.existsByEmail(newEmail)) {
             throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
         }
 
-        // 로그인한 사용자 정보 가져오기
+        // 6. 사용자 이메일 변경
         String memberId = auth.getName();
         Member member = memberRepository.findByMemberId(memberId)
             .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다."));
 
-        // 이메일 변경 및 저장
         member.setEmail(newEmail);
         memberRepository.save(member);
 
