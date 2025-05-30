@@ -2,7 +2,6 @@ package com.YOGIITSU.controller;
 
 import com.YOGIITSU.dto.RequestDto.EmailVerificationRequestDto;
 import com.YOGIITSU.dto.ResponseDto.EmailVerificationResponseDto;
-import com.YOGIITSU.entity.EmailPurpose;
 import com.YOGIITSU.jwt.EmailVerificationJwtProvider;
 import com.YOGIITSU.service.EmailService;
 import io.jsonwebtoken.Claims;
@@ -12,8 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.security.core.Authentication;
-
 
 @Tag(name = "이메일 인증 코드 검증 API", description = "인증 코드 검증 기능 제공합니다.")
 @RestController
@@ -30,9 +27,8 @@ public class EmailVerificationController {
     )
     @PostMapping("/verify")
     public ResponseEntity<EmailVerificationResponseDto> verifyCode(
-        @RequestParam(name = "purpose") EmailPurpose purpose,
         @RequestHeader("X-Email-Verification-Token") String token,
-        @RequestBody EmailVerificationRequestDto requestDto, Authentication authentication) {
+        @RequestBody EmailVerificationRequestDto requestDto) {
 
         try {
             // 1. JWT 토큰 검증
@@ -51,24 +47,14 @@ public class EmailVerificationController {
                         .build());
             }
 
-            // 3. 인증이 필요한 목적이라면 로그인 체크
-            if (EmailPurpose.requiresLogin(purpose)) {
-                emailService.checkAuthentication(authentication);
-            }
-
-            // 4. 인증 처리: 변경 목적이면 변경, 아니면 승인만
-            if (purpose == EmailPurpose.EMAIL_CHANGE_NEW) {
-                emailService.verifyAndMaybeChangeEmail(tokenEmail, tokenCode, token,
-                    authentication);
-            } else {
-                emailService.approveEmailCode(tokenEmail, tokenCode);
-            }
+            // isApproved = true로 바꾼다.
+            emailService.approveEmailCode(tokenEmail, tokenCode);
 
             // 5. 응답 메시지 생성 및 반환
             return ResponseEntity.ok(
                 EmailVerificationResponseDto.builder()
                     .status("success")
-                    .message(purpose.getSuccessMessage())
+                    .message("이메일 인증에 성공하였습니다.")
                     .email(tokenEmail)
                     .build());
 
