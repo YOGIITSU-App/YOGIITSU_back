@@ -21,4 +21,5 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     // userName을 기준으로 이름 중복 여부 확인 메서드
 	Optional<Member> findByUserName(String userName);
 
+	boolean existsByEmail(String email);
 }
