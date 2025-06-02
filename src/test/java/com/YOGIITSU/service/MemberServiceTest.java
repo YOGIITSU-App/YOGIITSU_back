@@ -1,9 +1,12 @@
 package com.YOGIITSU.service;
 
+import com.YOGIITSU.config.handler.GlobalExceptionHandler;
 import com.YOGIITSU.config.handler.GlobalExceptionHandler.InvalidLoginException;
 import com.YOGIITSU.dto.ResponseDto.TokenResponseDto;
+import com.YOGIITSU.entity.Member;
 import com.YOGIITSU.jwt.CustomUserDetails;
 import com.YOGIITSU.jwt.JwtTokenProvider;
+import com.YOGIITSU.repository.MemberRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,6 +21,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.util.List;
 import java.util.Map;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -33,6 +37,11 @@ class MemberServiceTest {
 	private JwtTokenProvider jwtTokenProvider;
 	@Mock
 	private Authentication authentication;
+
+	@Mock
+	private MemberRepository memberRepository;
+	@Mock
+	private PasswordEncoder passwordEncoder;
 
 	@InjectMocks
 	private MemberService memberService;
@@ -80,5 +89,57 @@ class MemberServiceTest {
 		// then
 		assertThrows(InvalidLoginException.class, () ->
 			memberService.login("wrong", "wrong"));
+	}
+
+	@DisplayName("회원 탈퇴 성공")
+	@Test
+	void deleteMember_success() {
+		// given
+		String memberId = "user123";
+		String rawPassword = "password123";
+		String encodedPassword = "encoded123";
+
+		Member member = Member.builder()
+			.id(1L)
+			.memberId(memberId)
+			.password(encodedPassword)
+			.email("test@email.com")
+			.userName("테스트유저")
+			.role("USER")
+			.joinAt(java.time.LocalDateTime.now())
+			.build();
+
+		when(memberRepository.findByMemberId(memberId)).thenReturn(java.util.Optional.of(member));
+		when(passwordEncoder.matches(rawPassword, encodedPassword)).thenReturn(true);
+		when(memberRepository.existsByMemberId(memberId)).thenReturn(false); // 삭제 이후 체크
+
+		// when
+		memberService.deleteMember(memberId, rawPassword);
+
+		// then
+		verify(memberRepository).delete(member);
+		verify(memberRepository).existsByMemberId(memberId);
+	}
+
+	@DisplayName("회원 탈퇴 실패 - 비밀번호 불일치")
+	@Test
+	void deleteMember_fail_wrongPassword() {
+		// given
+		String memberId = "user123";
+		String rawPassword = "wrongPass";
+
+		Member member = Member.builder()
+			.id(1L)
+			.memberId(memberId)
+			.password("encoded123")
+			.build();
+
+		when(memberRepository.findByMemberId(memberId)).thenReturn(java.util.Optional.of(member));
+		when(passwordEncoder.matches(rawPassword, "encoded123")).thenReturn(false);
+
+		// then
+		assertThrows(GlobalExceptionHandler.PasswordMismatchException.class, () ->
+			memberService.deleteMember(memberId, rawPassword)
+		);
 	}
 }
