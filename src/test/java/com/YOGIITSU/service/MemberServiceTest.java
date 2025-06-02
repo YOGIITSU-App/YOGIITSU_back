@@ -202,4 +202,31 @@ class MemberServiceTest {
 		);
 	}
 
+	@DisplayName("회원 탈퇴 실패 - 삭제 후에도 회원이 존재하는 경우")
+	@Test
+	void deleteMember_fail_stillExistsAfterDelete() {
+		// given
+		String memberId = "user123";
+		String rawPassword = "password123";
+
+		Member member = Member.builder()
+			.id(1L)
+			.memberId(memberId)
+			.password("encodedPassword")
+			.build();
+
+		when(memberRepository.findByMemberId(memberId)).thenReturn(java.util.Optional.of(member));
+		when(passwordEncoder.matches(rawPassword, "encodedPassword")).thenReturn(true);
+		when(memberRepository.existsByMemberId(memberId)).thenReturn(true); // 삭제 실패 시나리오
+
+		// then
+		assertThrows(RuntimeException.class, () ->
+			memberService.deleteMember(memberId, rawPassword)
+		);
+
+		// verify: delete() 호출 후 existsByMemberId도 호출되었는지 확인
+		verify(memberRepository).delete(member);
+		verify(memberRepository).existsByMemberId(memberId);
+	}
+
 }
