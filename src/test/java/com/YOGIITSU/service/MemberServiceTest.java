@@ -158,4 +158,26 @@ class MemberServiceTest {
 		);
 	}
 
+	@DisplayName("회원 탈퇴 실패 - 비밀번호가 null일 경우")
+	@Test
+	void deleteMember_fail_nullPassword() {
+		// given
+		String memberId = "user123";
+		String rawPassword = null;
+
+		Member member = Member.builder()
+			.id(1L)
+			.memberId(memberId)
+			.password("encodedPassword")
+			.build();
+
+		when(memberRepository.findByMemberId(memberId)).thenReturn(java.util.Optional.of(member));
+		when(passwordEncoder.matches(null, "encodedPassword")).thenReturn(false);
+
+		// then
+		assertThrows(GlobalExceptionHandler.PasswordMismatchException.class, () ->
+			memberService.deleteMember(memberId, rawPassword)
+		);
+	}
+
 }
