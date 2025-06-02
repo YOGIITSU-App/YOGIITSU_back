@@ -77,7 +77,7 @@ public class EmailService {
     // 허용된 이메일 도메인인지 확인
     private boolean isAllowedEmailDomain(String email) {
         String normalized = email.trim().toLowerCase(Locale.ROOT);
-        return emailProperties.getAllowedDomains().stream()
+        return emailProperties.allowedDomains().stream()
             .anyMatch(domain -> normalized.endsWith("@" + domain));
     }
 
