@@ -142,4 +142,20 @@ class MemberServiceTest {
 			memberService.deleteMember(memberId, rawPassword)
 		);
 	}
+
+	@DisplayName("회원 탈퇴 실패 - 존재하지 않는 회원 ID")
+	@Test
+	void deleteMember_fail_memberNotFound() {
+		// given
+		String memberId = "nonexistent";
+		String rawPassword = "anyPassword";
+
+		when(memberRepository.findByMemberId(memberId)).thenReturn(java.util.Optional.empty());
+
+		// then
+		assertThrows(RuntimeException.class, () ->
+			memberService.deleteMember(memberId, rawPassword)
+		);
+	}
+
 }
