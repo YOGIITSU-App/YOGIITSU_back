@@ -44,6 +44,9 @@ public class Member implements UserDetails {
 	@Column(name = "join_at", nullable = false)
 	private LocalDateTime joinAt; // 가입일
 
+	@OneToMany(mappedBy = "member", cascade = CascadeType.REMOVE, orphanRemoval = true)
+	private List<Inquiry> inquiries;
+
 	// UserDetails 인터페이스 구현 메서드들
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
