@@ -68,6 +68,11 @@ public class Member implements UserDetails {
 		this.password = newPassword;
 	}
 
+	// 이메일 변경 메서드
+	public void setEmail(String newEmail) {
+		this.email = newEmail;
+	}
+
 	// 사용자 이름 반환
 	public String getUserName() {
 		return this.userName;
