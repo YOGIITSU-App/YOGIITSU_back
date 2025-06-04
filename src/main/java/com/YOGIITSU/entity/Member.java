@@ -44,10 +44,12 @@ public class Member implements UserDetails {
     @Column(name = "join_at", nullable = false)
     private LocalDateTime joinAt; // 가입일
 
-    // UserDetails 인터페이스 구현 메서드들
+    @OneToMany(mappedBy = "member", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Inquiry> inquiries;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(role)); // role을 "ROLE_USER" 등으로 반환
+        return List.of(new SimpleGrantedAuthority(role)); // 권한 반환
     }
 
     @Override
@@ -70,8 +72,8 @@ public class Member implements UserDetails {
         this.email = newEmail;
     }
 
-	// 사용자 이름 반환
-	public String getUserName() {
-		return this.userName;
-	}
+    // 사용자 이름 반환
+    public String getUserName() {
+        return this.userName;
+    }
 }
