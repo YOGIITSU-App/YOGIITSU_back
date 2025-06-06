@@ -72,18 +72,13 @@ class FacilityMarkerServiceTest {
 		assertTrue(result.isEmpty());
 	}
 
-	@DisplayName("시설유형_null_예외없음_빈리스트반환")
+	@DisplayName("시설유형_null_예외발생")
 	@Test
-	void getMarkersByType_nullType() {
-		// given
-		when(facilityMarkerRepository.findByType(null)).thenReturn(Collections.emptyList());
-
-		// when
-		List<FacilityMarkerResponseDto> result = facilityMarkerService.getMarkersByType(null);
-
-		// then
-		assertNotNull(result);
-		assertTrue(result.isEmpty());
+	void getMarkersByType_nullType_throwsException() {
+		// given & when & then
+		assertThrows(IllegalArgumentException.class, () -> {
+			facilityMarkerService.getMarkersByType(null);
+		});
 	}
 
 	@DisplayName("시설유형_중복마커_정상반환")
