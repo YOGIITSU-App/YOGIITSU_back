@@ -25,6 +25,9 @@ public class FacilityMarkerService {
 	 * @return FacilityMarkerResponseDto
 	 */
 	public List<FacilityMarkerResponseDto> getMarkersByType(FacilityType type) {
+		if (type == null) {
+			throw new IllegalArgumentException("시설 유형은 필수값입니다.");
+		}
 		return facilityMarkerRepository.findByType(type).stream()
 			.map(f -> new FacilityMarkerResponseDto(
 				f.getPlaceName(),
