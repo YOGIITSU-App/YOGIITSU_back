@@ -118,5 +118,12 @@ class FacilityMarkerServiceTest {
 		assertEquals(2, result.size());
 		assertEquals("음대 주차장", result.get(0).getName());
 		assertEquals("음대 주차장", result.get(1).getName());
+
+		// 좌표가 다른지 검증 (중복 이름이지만 다른 위치)
+		assertEquals(37.210000, result.get(0).getLatitude());
+		assertEquals(126.970000, result.get(0).getLongitude());
+
+		assertEquals(37.210001, result.get(1).getLatitude());
+		assertEquals(126.970001, result.get(1).getLongitude());
 	}
 }
