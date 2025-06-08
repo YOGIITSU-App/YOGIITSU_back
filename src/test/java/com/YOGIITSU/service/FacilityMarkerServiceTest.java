@@ -53,7 +53,15 @@ class FacilityMarkerServiceTest {
 
 		// then
 		assertEquals(2, result.size());
+
+		// 첫 번째 마커 검증
 		assertEquals("종강 카페", result.get(0).getName());
+		assertEquals(37.2093280, result.get(0).getLatitude());
+		assertEquals(126.978640, result.get(0).getLongitude());
+
+		// 두 번째 마커 검증
+		assertEquals("인문대 CU", result.get(1).getName());
+		assertEquals(37.2113740, result.get(1).getLatitude());
 		assertEquals(126.979640, result.get(1).getLongitude());
 	}
 
