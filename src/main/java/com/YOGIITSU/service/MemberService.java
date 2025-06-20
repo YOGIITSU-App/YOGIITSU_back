@@ -179,7 +179,7 @@ public class MemberService {
 		memberRepository.save(member);
 
 		// 6. 인증 상태 초기화 (다시 사용하지 못하게)
-		emailMessage.setIsApproved(false);
+		emailMessage.approve();
 		emailMessageRepository.save(emailMessage);
 	}
 }
