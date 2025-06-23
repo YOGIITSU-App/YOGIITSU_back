@@ -64,7 +64,7 @@ public class BuildingController {
 		@Parameter(
 			description = "조회할 건물의 ID<br><br>" +
 				"예시:<br>9 → 지능형SW융합대학<br>13 → 경영공학대학",
-			example = "10"
+			example = "9"
 		)
 
 		@PathVariable Long id,
