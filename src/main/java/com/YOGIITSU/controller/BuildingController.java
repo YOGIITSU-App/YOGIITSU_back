@@ -37,16 +37,25 @@ public class BuildingController {
 			2: 체육관<br>
 			3: 미래혁신관<br>
 			4: 혁신공과대학<br>
-			5: 공학관<br>
-			6: ACE 교육관<br>
-			7: 디자인앤아트대학<br>
-			8: 조형관<br>
-			9: 음악테크놀로지대학<br>
-			10: 지능형SW융합대학<br>
-			11: 라이프케어사이언스대학<br>
-			12: 사회관<br>
-			13: 문화예술융합대학<br>
-			14: 경영공학대학
+			5: ACE 교육관<br>
+			6: 디자인앤아트대학<br>
+			7: 조형관<br>
+			8: 음악테크놀로지대학<br>
+			9: 지능형SW융합대학<br>
+			10: 라이프케어사이언스대학<br>
+			11: 사회관<br>
+			12: 문화예술융합대학<br>
+			13: 경영공학대학<br>
+			14: 고운첨단과학기술연구원<br>
+			15: 제1공학관<br>
+			16: 제2공학관<br>
+			17: 제3공학관<br>
+			18: 제4공학관<br>
+			19: 글로벌인재대학<br>
+			20: 대학본부<br>
+			21: 학생회관<br>
+			22: 중앙도서관<br>
+			23: ROTC
 			"""
 	)
 
@@ -54,7 +63,7 @@ public class BuildingController {
 	public BuildingDetailResponseDto getBuildingDetail(
 		@Parameter(
 			description = "조회할 건물의 ID<br><br>" +
-				"예시:<br>10 → 지능형SW융합대학<br>14 → 경영공학대학",
+				"예시:<br>9 → 지능형SW융합대학<br>13 → 경영공학대학",
 			example = "10"
 		)
 
