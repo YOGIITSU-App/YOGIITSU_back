@@ -118,4 +118,29 @@ public class RecentSearchController {
 		response.put("message", "해당 건물의 검색어가 삭제되었습니다.");
 		return ResponseEntity.ok(response);
 	}
+
+	/**
+	 * 검색어 전체 삭제 API
+	 *
+	 * @return 전체 검색어 삭제 성공 메시지
+	 */
+	@Operation(summary = "전체 최근 검색어 삭제", description = "모든 최근 검색어를 삭제합니다.")
+	@DeleteMapping("/deleteAll")
+	public ResponseEntity<Map<String, String>> deleteAllKeywords(HttpServletRequest httpRequest) {
+
+		String accessToken = jwtTokenProvider.resolveToken(httpRequest);
+		if (accessToken == null) {
+			throw new MissingTokenException();
+		}
+		if (!jwtTokenProvider.validateToken(accessToken)) {
+			throw new InvalidTokenException();
+		}
+
+		String memberId = jwtTokenProvider.getAuthentication(accessToken).getName();
+		recentSearchService.deleteAllSearchKeywords(memberId);
+
+		Map<String, String> response = new HashMap<>();
+		response.put("message", "전체 검색어가 삭제되었습니다.");
+		return ResponseEntity.ok(response);
+	}
 }

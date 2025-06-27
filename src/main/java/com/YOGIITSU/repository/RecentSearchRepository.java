@@ -15,6 +15,10 @@ public interface RecentSearchRepository extends JpaRepository<RecentSearch, Long
 
 	// 검색어 삭제
 	void deleteByMemberAndKeyword(Member member, String keyword);
+
+	// 특정 회원의 모든 검색어 삭제
+	void deleteByMember(Member member);
+
 	// 특정 회원과 건물에 대한 검색어 조회
 	List<RecentSearch> findByMemberAndBuildingId(Member member, Long buildingId);
 
