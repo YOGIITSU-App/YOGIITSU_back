@@ -32,7 +32,9 @@ public class FacilityMarkerService {
 			.map(f -> new FacilityMarkerResponseDto(
 				f.getPlaceName(),
 				f.getLatitude(),
-				f.getLongitude()))
+				f.getLongitude(),
+				f.getBuilding() != null ? f.getBuilding().getId() : null // 빌딩 ID 추가
+			))
 			.collect(Collectors.toList());
 	}
 }
