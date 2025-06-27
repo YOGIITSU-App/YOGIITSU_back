@@ -32,13 +32,6 @@ public class RecentSearchService {
 		// 기존에 같은 검색어가 있으면 삭제
 		recentSearchRepository.deleteByMemberAndKeyword(member, keyword);
 
-		// 최대 개수(6개) 초과 시 가장 오래된 검색어 삭제
-		List<RecentSearch> recentSearches = recentSearchRepository.findByMemberOrderBySearchedAtDesc(
-			member);
-		if (recentSearches.size() >= 6) {
-			recentSearchRepository.delete(recentSearches.getLast());
-		}
-
 		// alias 기반으로 building 매핑
 		Building matchedBuilding = buildingAliasRepository
 			.findFirstByAliasContainingOrderByIdAsc(keyword)
@@ -66,4 +59,20 @@ public class RecentSearchService {
 			.map(RecentSearchResponseDto::new)
 			.toList();
 	}
+
+	// 검색어 단건 삭제
+	@Transactional
+	public void deleteSearchKeywordByBuildingId(String memberId, Long buildingId) {
+		Member member = memberRepository.findByMemberId(memberId)
+			.orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
+
+		List<RecentSearch> searchList = recentSearchRepository.findByMemberAndBuildingId(member, buildingId);
+		if (searchList.isEmpty()) {
+			throw new EntityNotFoundException("해당 건물과 연결된 검색어가 없습니다.");
+		}
+
+		// 가장 최근 항목 하나만 삭제
+		recentSearchRepository.delete(searchList.get(0));
+	}
+
 }
