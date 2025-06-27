@@ -40,9 +40,9 @@ public class RecentSearchService {
 		}
 
 		// alias 기반으로 building 매핑
-		Building matchedBuilding = buildingAliasRepository.findByAliasContaining(keyword).stream()
+		Building matchedBuilding = buildingAliasRepository
+			.findFirstByAliasContainingOrderByIdAsc(keyword)
 			.map(BuildingAlias::getBuilding)
-			.findFirst()
 			.orElse(null);
 
 		// 새로운 검색어 저장
