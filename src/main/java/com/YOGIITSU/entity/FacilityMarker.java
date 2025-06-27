@@ -25,4 +25,8 @@ public class FacilityMarker {
 	private Double latitude;
 
 	private Double longitude;
+
+	@ManyToOne(fetch = FetchType.EAGER)
+	@JoinColumn(name = "building_id", nullable = false)
+	private Building building;
 }
