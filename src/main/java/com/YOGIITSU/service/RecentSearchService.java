@@ -1,8 +1,11 @@
 package com.YOGIITSU.service;
 
 import com.YOGIITSU.dto.ResponseDto.RecentSearchResponseDto;
+import com.YOGIITSU.entity.Building;
 import com.YOGIITSU.entity.Member;
+import com.YOGIITSU.entity.BuildingAlias;
 import com.YOGIITSU.entity.RecentSearch;
+import com.YOGIITSU.repository.BuildingAliasRepository;
 import com.YOGIITSU.repository.MemberRepository;
 import com.YOGIITSU.repository.RecentSearchRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -18,6 +21,7 @@ public class RecentSearchService {
 
 	private final RecentSearchRepository recentSearchRepository;
 	private final MemberRepository memberRepository;
+	private final BuildingAliasRepository buildingAliasRepository;
 
 	//최근 검색어 저장
 	@Transactional
@@ -35,11 +39,18 @@ public class RecentSearchService {
 			recentSearchRepository.delete(recentSearches.getLast());
 		}
 
+		// alias 기반으로 building 매핑
+		Building matchedBuilding = buildingAliasRepository.findByAliasContaining(keyword).stream()
+			.map(BuildingAlias::getBuilding)
+			.findFirst()
+			.orElse(null);
+
 		// 새로운 검색어 저장
 		RecentSearch search = RecentSearch.builder()
 			.member(member)
 			.keyword(keyword)
 			.searchedAt(LocalDateTime.now())
+			.building(matchedBuilding)
 			.build();
 		recentSearchRepository.save(search);
 	}
