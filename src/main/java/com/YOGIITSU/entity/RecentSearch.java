@@ -26,4 +26,8 @@ public class RecentSearch {
 
 	@Column(name = "searched_at", nullable = false)
 	private LocalDateTime searchedAt;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "building_id", nullable = true)
+	private Building building;
 }

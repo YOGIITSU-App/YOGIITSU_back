@@ -7,7 +7,6 @@ import com.YOGIITSU.dto.ResponseDto.RecentSearchResponseDto;
 import com.YOGIITSU.service.RecentSearchService;
 import com.YOGIITSU.jwt.JwtTokenProvider;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -89,5 +88,59 @@ public class RecentSearchController {
 
 		// 3. 최근 검색어 조회 후 반환
 		return ResponseEntity.ok(recentSearchService.getRecentSearches(memberId));
+	}
+
+	/**
+	 * 검색어 단건 삭제 API
+	 *
+	 * @param buildingId 삭제할 검색어가 연결된 건물 ID
+	 * @return 삭제 성공 메시지
+	 */
+
+	@Operation(summary = "최근 검색어 단건 삭제", description = "연결된 건물 ID를 통해 해당 검색어를 삭제합니다.")
+	@DeleteMapping("/delete/{buildingId}")
+	public ResponseEntity<Map<String, String>> deleteByBuildingId(
+		@PathVariable Long buildingId,
+		HttpServletRequest httpRequest) {
+
+		String accessToken = jwtTokenProvider.resolveToken(httpRequest);
+		if (accessToken == null) {
+			throw new MissingTokenException();
+		}
+		if (!jwtTokenProvider.validateToken(accessToken)) {
+			throw new InvalidTokenException();
+		}
+
+		String memberId = jwtTokenProvider.getAuthentication(accessToken).getName();
+		recentSearchService.deleteSearchKeywordByBuildingId(memberId, buildingId);
+
+		Map<String, String> response = new HashMap<>();
+		response.put("message", "해당 건물의 검색어가 삭제되었습니다.");
+		return ResponseEntity.ok(response);
+	}
+
+	/**
+	 * 검색어 전체 삭제 API
+	 *
+	 * @return 전체 검색어 삭제 성공 메시지
+	 */
+	@Operation(summary = "전체 최근 검색어 삭제", description = "모든 최근 검색어를 삭제합니다.")
+	@DeleteMapping("/deleteAll")
+	public ResponseEntity<Map<String, String>> deleteAllKeywords(HttpServletRequest httpRequest) {
+
+		String accessToken = jwtTokenProvider.resolveToken(httpRequest);
+		if (accessToken == null) {
+			throw new MissingTokenException();
+		}
+		if (!jwtTokenProvider.validateToken(accessToken)) {
+			throw new InvalidTokenException();
+		}
+
+		String memberId = jwtTokenProvider.getAuthentication(accessToken).getName();
+		recentSearchService.deleteAllSearchKeywords(memberId);
+
+		Map<String, String> response = new HashMap<>();
+		response.put("message", "전체 검색어가 삭제되었습니다.");
+		return ResponseEntity.ok(response);
 	}
 }
