@@ -109,6 +109,10 @@ public class EmailService {
 
     // 인증 목적에 따른 이메일 유효성 검사
     public void validateEmailRequest(String email, EmailPurpose purpose, Authentication auth) {
+        if (email == null || email.trim().isEmpty()) {
+            throw new IllegalArgumentException("이메일 주소는 필수입니다.");
+        }
+
         // 인증이 필요한 목적인지 확인
         if (requiresAuthentication(purpose)) {
             checkAuthentication(auth); //목적이 signup인 경우에는 로그인 요청을 강요하면 안됨
@@ -187,7 +191,7 @@ public class EmailService {
 
         // 6. 사용자 이메일 변경
         String memberId = auth.getName();
-        Member member = memberRepository.findByMemberId(memberId)
+        Member member = memberRepository.findByMemberIdWithLock(memberId)
             .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다."));
 
         member.setEmail(newEmail);
@@ -213,7 +217,7 @@ public class EmailService {
 
     // 인증 승인 처리 및 저장
     private void approveAndSave(EmailMessage message) {
-        message.setIsApproved(true);
+        message.approve();
         emailMessageRepository.save(message);
     }
 

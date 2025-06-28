@@ -178,8 +178,7 @@ public class MemberService {
 		member.changePassword(passwordEncoder.encode(requestDto.getNewPassword()));
 		memberRepository.save(member);
 
-		// 6. 인증 상태 초기화 (다시 사용하지 못하게)
-		emailMessage.setIsApproved(false);
-		emailMessageRepository.save(emailMessage);
+		// 6. 사용된 인증 메시지 삭제 (재사용 방지)
+		emailMessageRepository.delete(emailMessage);
 	}
 }

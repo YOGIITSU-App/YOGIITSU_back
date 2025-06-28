@@ -34,7 +34,7 @@ public class EmailMessage {
     private EmailPurpose purpose;
 
     // 인증 성공 시 승인 처리
-    public void setIsApproved(boolean isApproved) {
-        this.isApproved = isApproved;
+    public void approve() {
+        this.isApproved = true;
     }
 }
