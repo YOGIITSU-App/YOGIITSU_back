@@ -31,6 +31,7 @@ public class RecentSearchService {
 
 		// 기존에 같은 검색어가 있으면 삭제
 		recentSearchRepository.deleteByMemberAndKeyword(member, keyword);
+		recentSearchRepository.flush();
 
 		// alias 기반으로 building 매핑
 		Building matchedBuilding = buildingAliasRepository
