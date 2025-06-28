@@ -4,6 +4,9 @@ import com.YOGIITSU.entity.Building;
 import com.YOGIITSU.entity.Member;
 import com.YOGIITSU.entity.RecentSearch;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import java.util.List;
 
@@ -14,7 +17,10 @@ public interface RecentSearchRepository extends JpaRepository<RecentSearch, Long
 	List<RecentSearch> findByMemberOrderBySearchedAtDesc(Member member);
 
 	// 검색어 삭제
-	void deleteByMemberAndKeyword(Member member, String keyword);
+	@Modifying(clearAutomatically = true)
+	@Query("DELETE FROM RecentSearch rs WHERE rs.member = :member AND rs.keyword = :keyword")
+	void deleteByMemberAndKeyword(@Param("member") Member member, @Param("keyword") String keyword);
+
 
 	// 특정 회원의 모든 검색어 삭제
 	void deleteByMember(Member member);
