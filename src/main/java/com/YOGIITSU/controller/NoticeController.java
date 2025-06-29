@@ -26,21 +26,29 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/notices")
 @RequiredArgsConstructor
-class NoticeController {
+public class NoticeController {
 
     private final NoticeService noticeService;
 
     // 공지 전체 목록 조회 (모든 사용자 가능)
     @Operation(summary = "공지사항 전체 조회", description = "모든 사용자가 공지사항 목록을 최신순으로 조회할 수 있습니다.")
     @GetMapping
-    public ResponseEntity<List<NoticeResponseDto>> getNotices() {
+    public ResponseEntity<List<NoticeResponseDto>> getNotices(
+        @AuthenticationPrincipal CustomUserDetails userDetails) {
+        if (userDetails == null) {
+            throw new RuntimeException("로그인된 사용자만 접근 가능합니다.");
+        }
         return ResponseEntity.ok(noticeService.getAllNotices());
     }
 
     // 공지 상세 조회 (모든 사용자 가능)
     @Operation(summary = "공지사항 상세 조회", description = "공지사항의 ID를 통해 상세 내용을 조회할 수 있습니다. 모든 사용자가 접근할 수 있습니다.")
     @GetMapping("/{id}")
-    public ResponseEntity<NoticeResponseDto> getNotice(@PathVariable("id") Long id) {
+    public ResponseEntity<NoticeResponseDto> getNotice(@PathVariable("id") Long id,
+        @AuthenticationPrincipal CustomUserDetails userDetails) {
+        if (userDetails == null) {
+            throw new RuntimeException("로그인된 사용자만 접근 가능합니다.");
+        }
         return ResponseEntity.ok(noticeService.getNoticeById(id));
     }
 
@@ -51,9 +59,6 @@ class NoticeController {
     public ResponseEntity<Map<String, String>> createNotice(
         @RequestBody @Valid NoticeRequestDto dto,
         @AuthenticationPrincipal CustomUserDetails userDetails) {
-        if (userDetails == null) {
-            throw new RuntimeException("관리자 로그인이 필요합니다.");
-        }
         noticeService.createNotice(dto, userDetails.getId());
         return ResponseEntity.ok(Map.of("message", "공지사항이 등록되었습니다."));
     }
@@ -65,9 +70,6 @@ class NoticeController {
     public ResponseEntity<Map<String, String>> updateNotice(@PathVariable("id") Long id,
         @RequestBody @Valid NoticeRequestDto dto,
         @AuthenticationPrincipal CustomUserDetails userDetails) {
-        if (userDetails == null) {
-            throw new RuntimeException("관리자 로그인이 필요합니다.");
-        }
         noticeService.updateNotice(id, dto, userDetails.getId());
         return ResponseEntity.ok(Map.of("message", "공지사항이 수정되었습니다."));
     }
@@ -78,9 +80,6 @@ class NoticeController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, String>> deleteNotice(@PathVariable("id") Long id,
         @AuthenticationPrincipal CustomUserDetails userDetails) {
-        if (userDetails == null) {
-            throw new RuntimeException("관리자 로그인이 필요합니다.");
-        }
         noticeService.deleteNotice(id, userDetails.getId());
         return ResponseEntity.ok(Map.of("message", "공지사항이 삭제되었습니다."));
     }
