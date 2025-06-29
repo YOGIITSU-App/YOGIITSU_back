@@ -48,7 +48,9 @@ class NoticeController {
     @Operation(summary = "공지사항 등록", description = "제목과 내용을 입력하여 새로운 공지사항을 등록합니다. 관리자만 접근 가능합니다.")
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, String>> createNotice(@RequestBody @Valid NoticeRequestDto dto, @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<Map<String, String>> createNotice(
+        @RequestBody @Valid NoticeRequestDto dto,
+        @AuthenticationPrincipal CustomUserDetails userDetails) {
         if (userDetails == null) {
             throw new RuntimeException("관리자 로그인이 필요합니다.");
         }
@@ -60,7 +62,9 @@ class NoticeController {
     @Operation(summary = "공지사항 수정", description = "기존 공지사항의 제목과 내용을 수정합니다. 관리자만 접근 가능합니다.")
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, String>> updateNotice(@PathVariable("id") Long id, @RequestBody @Valid NoticeRequestDto dto, @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<Map<String, String>> updateNotice(@PathVariable("id") Long id,
+        @RequestBody @Valid NoticeRequestDto dto,
+        @AuthenticationPrincipal CustomUserDetails userDetails) {
         if (userDetails == null) {
             throw new RuntimeException("관리자 로그인이 필요합니다.");
         }
@@ -72,7 +76,8 @@ class NoticeController {
     @Operation(summary = "공지사항 삭제", description = "공지사항을 삭제합니다. 관리자만 접근 가능합니다.")
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, String>> deleteNotice(@PathVariable("id") Long id, @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<Map<String, String>> deleteNotice(@PathVariable("id") Long id,
+        @AuthenticationPrincipal CustomUserDetails userDetails) {
         if (userDetails == null) {
             throw new RuntimeException("관리자 로그인이 필요합니다.");
         }
