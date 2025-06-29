@@ -4,6 +4,7 @@ import com.YOGIITSU.dto.RequestDto.NoticeRequestDto;
 import com.YOGIITSU.dto.ResponseDto.NoticeResponseDto;
 import com.YOGIITSU.entity.Member;
 import com.YOGIITSU.entity.Notice;
+import com.YOGIITSU.exception.notice.NoticeAuthorizationException;
 import com.YOGIITSU.repository.MemberRepository;
 import com.YOGIITSU.repository.NoticeRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +23,7 @@ public class NoticeService {
     // 관리자 권한이 있는지 확인
     private void validateAdmin(Member member) {
         if (!"ADMIN".equalsIgnoreCase(member.getRole())) {
-            throw new SecurityException("관리자만 수행할 수 있는 작업입니다.");
+            throw new NoticeAuthorizationException("관리자 권한이 필요합니다.");
         }
     }
 
