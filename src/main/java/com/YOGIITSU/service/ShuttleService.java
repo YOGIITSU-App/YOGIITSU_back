@@ -46,7 +46,7 @@ public class ShuttleService {
 
 		List<LocalTime> upcoming = timeTable.stream()
 			.filter(t -> !t.isBefore(now))
-			.collect(Collectors.toList());
+			.toList();
 
 		List<LocalTime> result = new ArrayList<>();
 		result.addAll(upcoming);
