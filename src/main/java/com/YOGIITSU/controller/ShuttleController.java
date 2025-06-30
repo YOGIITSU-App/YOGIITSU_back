@@ -4,20 +4,18 @@ import com.YOGIITSU.dto.ResponseDto.ShuttleScheduleResponseDto;
 import com.YOGIITSU.service.ShuttleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "셔틀버스 API", description = "셔틀버스 운행 시간표 및 다음 운행 시간 정보를 제공합니다.")
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/shuttles")
 public class ShuttleController {
 
 	private final ShuttleService shuttleService;
-
-	public ShuttleController(ShuttleService shuttleService) {
-		this.shuttleService = shuttleService;
-	}
 
 	@Operation(
 		summary = "셔틀버스 시간표 및 다음 운행 시간 조회",
