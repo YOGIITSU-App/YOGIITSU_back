@@ -7,5 +7,9 @@ public record ShuttleScheduleResponseDto(
 	List<String> timeTable,
 	List<String> route
 ) {
-
+	public ShuttleScheduleResponseDto {
+		nextShuttleTime = List.copyOf(nextShuttleTime);
+		timeTable = List.copyOf(timeTable);
+		route = List.copyOf(route);
+	}
 }
