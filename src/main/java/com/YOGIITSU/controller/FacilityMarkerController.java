@@ -31,7 +31,7 @@ public class FacilityMarkerController {
 	@GetMapping
 	public List<FacilityMarkerResponseDto> getMarkersByType(
 		@Parameter(
-			description = "시설 유형 (RESTAURANT: 식당, PARKING: 주차장, CONVENIENCE_CAFE: 카페 및 편의점, SHUTTLE_BUS: 셔틀버스 정류장)",
+			description = "시설 유형 (RESTAURANT: 식당, PARKING: 주차장, CONVENIENCE_CAFE: 카페 및 편의점, SHUTTLE_BUS: 셔틀버스 정류장, PRINTER: 프린터기)",
 			example = "PARKING",
 			required = true
 		)

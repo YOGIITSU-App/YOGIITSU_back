@@ -4,5 +4,6 @@ public enum FacilityType {
 	RESTAURANT,
 	PARKING,
 	CONVENIENCE_CAFE,
-	SHUTTLE_BUS
+	SHUTTLE_BUS,
+	PRINTER
 }
