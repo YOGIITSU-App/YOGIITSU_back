@@ -11,4 +11,5 @@ public class FacilityMarkerResponseDto {
 	private Double latitude;
 	private Double longitude;
 	private Long buildingId;
+	private String type;
 }

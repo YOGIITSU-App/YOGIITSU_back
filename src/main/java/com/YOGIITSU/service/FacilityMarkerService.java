@@ -33,8 +33,9 @@ public class FacilityMarkerService {
 				f.getPlaceName(),
 				f.getLatitude(),
 				f.getLongitude(),
-				f.getBuilding() != null ? f.getBuilding().getId() : null // 빌딩 ID 추가
-			))
+				f.getBuilding() != null ? f.getBuilding().getId() : null, // 빌딩 ID 추가
+				f.getType().name(
+				)))
 			.collect(Collectors.toList());
 	}
 }
