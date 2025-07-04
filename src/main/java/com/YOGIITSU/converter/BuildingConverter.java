@@ -47,9 +47,14 @@ public class BuildingConverter {
 			.latitude(building.getLatitude())
 			.longitude(building.getLongitude())
 			.facilities(building.getBuildingFacilities().stream()
-				.sorted(Comparator.comparing(BuildingFacility::getFloor,
-						Comparator.nullsLast(String::compareTo))
-					.thenComparing(BuildingFacility::getName))
+				.sorted(Comparator
+					.comparing(
+						BuildingFacility::getFloor,
+						Comparator.nullsLast(
+							Comparator.comparingInt(this::convertFloorStringToOrder))
+					)
+					.thenComparing(BuildingFacility::getName)
+				)
 				.map(facility -> FacilityResponseDto.builder()
 					.name(facility.getName())
 					.floor(facility.getFloor())
@@ -89,11 +94,32 @@ public class BuildingConverter {
 	private List<FloorImageResponseDto> convertToFloorPlanResponseDtos(
 		List<BuildingFloorImage> floorImages) {
 		return floorImages.stream()
-			.sorted(Comparator.comparing(BuildingFloorImage::getFloor))
+			.sorted(Comparator.comparing(
+				BuildingFloorImage::getFloor,
+				Comparator.nullsLast(Comparator.comparingInt(this::convertFloorStringToOrder))
+			))
 			.map(floorImage -> FloorImageResponseDto.builder()
 				.floor(floorImage.getFloor())
 				.imageUrl(floorImage.getImageUrl())
 				.build())
 			.collect(Collectors.toList());
+	}
+
+	/**
+	 * "B3F", "1F", "2F" 등의 문자열을 정렬 가능한 숫자로 변환 B3F -> -3, B2F -> -2, B1F -> -1, 1F -> 1, 2F -> 2 등
+	 */
+	private int convertFloorStringToOrder(String floor) {
+		if (floor == null) {
+			return Integer.MAX_VALUE; // null은 가장 마지막
+		}
+		try {
+			if (floor.startsWith("B")) {
+				return -Integer.parseInt(floor.substring(1, floor.length() - 1));
+			} else if (floor.endsWith("F")) {
+				return Integer.parseInt(floor.substring(0, floor.length() - 1));
+			}
+		} catch (NumberFormatException ignored) {
+		}
+		return Integer.MAX_VALUE; // 예외나 비정상 문자열도 마지막에 정렬
 	}
 }
