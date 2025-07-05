@@ -1,7 +1,8 @@
 package com.YOGIITSU.service;
 
 import com.YOGIITSU.dto.RequestDto.NoticeRequestDto;
-import com.YOGIITSU.dto.ResponseDto.NoticeResponseDto;
+import com.YOGIITSU.dto.ResponseDto.NoticeDetailResponseDto;
+import com.YOGIITSU.dto.ResponseDto.NoticeListResponseDto;
 import com.YOGIITSU.entity.Member;
 import com.YOGIITSU.entity.Notice;
 import com.YOGIITSU.exception.notice.NoticeAuthorizationException;
@@ -23,7 +24,7 @@ public class NoticeService {
     // 관리자 권한이 있는지 확인
     private void validateAdmin(Member member) {
         if (!"ADMIN".equalsIgnoreCase(member.getRole())) {
-            throw new NoticeAuthorizationException("관리자 권한이 필요합니다.");
+            throw new NoticeAuthorizationException("관리자 권한이 필요합니다.", true);
         }
     }
 
@@ -46,8 +47,8 @@ public class NoticeService {
         validateAdmin(member);
 
         Notice notice = Notice.builder()
-            .title(dto.getTitle())
-            .content(dto.getContent())
+            .noticeTitle(dto.getTitle())
+            .noticeContent(dto.getContent())
             .member(member)
             .build();
         noticeRepository.save(notice);
@@ -75,17 +76,18 @@ public class NoticeService {
     }
 
     // 공지사항 전체 조회 (최신순 정렬)
-    public List<NoticeResponseDto> getAllNotices() {
+    public List<NoticeListResponseDto> getAllNotices() {
         return noticeRepository.findAllByOrderByNoticeAtDesc().stream()
-            .map(n -> new NoticeResponseDto(n.getId(), n.getTitle(), n.getContent(),
+            .map(n -> new NoticeListResponseDto(n.getNoticeId(), n.getNoticeTitle(),
                 n.getNoticeAt()))
             .collect(Collectors.toList());
     }
 
     // 공지사항 단건 조회
-    public NoticeResponseDto getNoticeById(Long id) {
+    public NoticeDetailResponseDto getNoticeById(Long id) {
         Notice n = noticeRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("해당 공지사항이 존재하지 않습니다."));
-        return new NoticeResponseDto(n.getId(), n.getTitle(), n.getContent(), n.getNoticeAt());
+        return new NoticeDetailResponseDto(n.getNoticeId(), n.getNoticeTitle(),
+            n.getNoticeContent(), n.getNoticeAt());
     }
 }
