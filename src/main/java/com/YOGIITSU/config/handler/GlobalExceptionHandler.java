@@ -188,6 +188,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NoticeAuthorizationException.class)
     public ResponseEntity<Map<String, String>> handleNoticeAuthorizationException(
         NoticeAuthorizationException ex) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", ex.getMessage()));
+        HttpStatus status = ex.isAuthenticated() ? HttpStatus.FORBIDDEN : HttpStatus.UNAUTHORIZED;
+        return ResponseEntity.status(status).body(Map.of("message", ex.getMessage()));
     }
 }
