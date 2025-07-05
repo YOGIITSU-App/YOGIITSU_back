@@ -85,8 +85,7 @@ public class NoticeService {
 
     // 공지사항 단건 조회
     public NoticeDetailResponseDto getNoticeById(Long id) {
-        Notice n = noticeRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("해당 공지사항이 존재하지 않습니다."));
+        Notice n = getNoticeOrThrow(id);
         return new NoticeDetailResponseDto(n.getNoticeId(), n.getNoticeTitle(),
             n.getNoticeContent(), n.getNoticeAt());
     }
