@@ -16,7 +16,7 @@ public class Notice {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "notice_id", updatable = false, nullable = false)
-    private Long id;
+    private Long noticeId;
 
     // 공지 작성자
     @ManyToOne(fetch = FetchType.LAZY)
@@ -25,11 +25,11 @@ public class Notice {
 
     // 공지 제목
     @Column(name = "notice_title", nullable = false)
-    private String title;
+    private String noticeTitle;
 
     // 공지 본문 내용
     @Column(name = "notice_content", nullable = false, columnDefinition = "TEXT")
-    private String content;
+    private String noticeContent;
 
     // 공지 작성일
     @Column(name = "notice_at", nullable = false)
@@ -43,7 +43,7 @@ public class Notice {
 
     // 공지사항 제목 및 내용 수정용 메서드
     public void update(String title, String content) {
-        this.title = title;
-        this.content = content;
+        this.noticeTitle = title;
+        this.noticeContent = content;
     }
 }
