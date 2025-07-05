@@ -1,7 +1,9 @@
 package com.YOGIITSU.controller;
 
 import com.YOGIITSU.dto.RequestDto.NoticeRequestDto;
-import com.YOGIITSU.dto.ResponseDto.NoticeResponseDto;
+import com.YOGIITSU.dto.ResponseDto.NoticeDetailResponseDto;
+import com.YOGIITSU.dto.ResponseDto.NoticeListResponseDto;
+import com.YOGIITSU.exception.notice.NoticeAuthorizationException;
 import com.YOGIITSU.jwt.CustomUserDetails;
 import com.YOGIITSU.service.NoticeService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,24 +33,20 @@ public class NoticeController {
     private final NoticeService noticeService;
 
     // 공지 전체 목록 조회 (모든 사용자 가능)
-    @Operation(summary = "공지사항 전체 조회", description = "모든 사용자가 공지사항 목록을 최신순으로 조회할 수 있습니다.")
+    @Operation(summary = "공지사항 전체 조회", description = "로그인된 모든 사용자가 공지사항 목록을 최신순으로 조회할 수 있습니다.")
     @GetMapping
-    public ResponseEntity<List<NoticeResponseDto>> getNotices(
+    public ResponseEntity<List<NoticeListResponseDto>> getNotices(
         @AuthenticationPrincipal CustomUserDetails userDetails) {
-        if (userDetails == null) {
-            throw new RuntimeException("로그인된 사용자만 접근 가능합니다.");
-        }
+        requireLogin(userDetails);
         return ResponseEntity.ok(noticeService.getAllNotices());
     }
 
     // 공지 상세 조회 (모든 사용자 가능)
-    @Operation(summary = "공지사항 상세 조회", description = "공지사항의 ID를 통해 상세 내용을 조회할 수 있습니다. 모든 사용자가 접근할 수 있습니다.")
+    @Operation(summary = "공지사항 상세 조회", description = "공지사항의 ID를 통해 상세 내용을 조회할 수 있습니다. 로그인된 모든 사용자가 접근할 수 있습니다.")
     @GetMapping("/{id}")
-    public ResponseEntity<NoticeResponseDto> getNotice(@PathVariable("id") Long id,
+    public ResponseEntity<NoticeDetailResponseDto> getNotice(@PathVariable("id") Long id,
         @AuthenticationPrincipal CustomUserDetails userDetails) {
-        if (userDetails == null) {
-            throw new RuntimeException("로그인된 사용자만 접근 가능합니다.");
-        }
+        requireLogin(userDetails);
         return ResponseEntity.ok(noticeService.getNoticeById(id));
     }
 
@@ -59,6 +57,7 @@ public class NoticeController {
     public ResponseEntity<Map<String, String>> createNotice(
         @RequestBody @Valid NoticeRequestDto dto,
         @AuthenticationPrincipal CustomUserDetails userDetails) {
+        requireLogin(userDetails);
         noticeService.createNotice(dto, userDetails.getId());
         return ResponseEntity.ok(Map.of("message", "공지사항이 등록되었습니다."));
     }
@@ -70,6 +69,7 @@ public class NoticeController {
     public ResponseEntity<Map<String, String>> updateNotice(@PathVariable("id") Long id,
         @RequestBody @Valid NoticeRequestDto dto,
         @AuthenticationPrincipal CustomUserDetails userDetails) {
+        requireLogin(userDetails);
         noticeService.updateNotice(id, dto, userDetails.getId());
         return ResponseEntity.ok(Map.of("message", "공지사항이 수정되었습니다."));
     }
@@ -80,7 +80,14 @@ public class NoticeController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, String>> deleteNotice(@PathVariable("id") Long id,
         @AuthenticationPrincipal CustomUserDetails userDetails) {
+        requireLogin(userDetails);
         noticeService.deleteNotice(id, userDetails.getId());
         return ResponseEntity.ok(Map.of("message", "공지사항이 삭제되었습니다."));
+    }
+
+    private void requireLogin(CustomUserDetails userDetails) {
+        if (userDetails == null) {
+            throw new NoticeAuthorizationException("로그인된 사용자만 접근 가능합니다.", false); // 인증 실패
+        }
     }
 }
