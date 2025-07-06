@@ -1,11 +1,11 @@
 package com.YOGIITSU.service;
 
+import com.YOGIITSU.config.handler.GlobalExceptionHandler;
 import com.YOGIITSU.dto.RequestDto.NoticeRequestDto;
 import com.YOGIITSU.dto.ResponseDto.NoticeDetailResponseDto;
 import com.YOGIITSU.dto.ResponseDto.NoticeListResponseDto;
 import com.YOGIITSU.entity.Member;
 import com.YOGIITSU.entity.Notice;
-import com.YOGIITSU.exception.notice.NoticeAuthorizationException;
 import com.YOGIITSU.repository.MemberRepository;
 import com.YOGIITSU.repository.NoticeRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +24,7 @@ public class NoticeService {
     // 관리자 권한이 있는지 확인
     private void validateAdmin(Member member) {
         if (!"ADMIN".equalsIgnoreCase(member.getRole())) {
-            throw new NoticeAuthorizationException("관리자 권한이 필요합니다.", true);
+            throw new GlobalExceptionHandler.AdminAccessDeniedException();
         }
     }
 
