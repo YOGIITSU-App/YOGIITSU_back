@@ -1,7 +1,9 @@
 package com.YOGIITSU.config.handler;
 
+import static org.springframework.http.HttpStatus.FORBIDDEN;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
+
 import com.YOGIITSU.exception.building.BuildingNotFoundException;
-import com.YOGIITSU.exception.notice.NoticeAuthorizationException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,21 +43,21 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AdminAccessDeniedException.class)
     public ResponseEntity<Map<String, String>> handleAdminAccessDeniedException(
         AdminAccessDeniedException e) {
-        return buildErrorResponse(e.getMessage(), HttpStatus.FORBIDDEN);
+        return buildErrorResponse(e.getMessage(), FORBIDDEN);
     }
 
     // 로그인 실패 (잘못된 아이디/비밀번호)
     @ExceptionHandler(InvalidLoginException.class)
     public ResponseEntity<Map<String, String>> handleInvalidLoginException(
         InvalidLoginException e) {
-        return buildErrorResponse(e.getMessage(), HttpStatus.UNAUTHORIZED);
+        return buildErrorResponse(e.getMessage(), UNAUTHORIZED);
     }
 
     // 사용자를 찾을 수 없을 경우 예외 클래스 정의
     @ExceptionHandler(MemberNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleMemberNotFoundException(
         MemberNotFoundException e) {
-        return buildErrorResponse(e.getMessage(), HttpStatus.FORBIDDEN);
+        return buildErrorResponse(e.getMessage(), FORBIDDEN);
     }
 
     // 비밀번호가 일치하지 않을 경우 예외 처리
@@ -76,7 +78,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(EmailVerificationNotApprovedException.class)
     public ResponseEntity<Map<String, String>> handleNotApproved(
         EmailVerificationNotApprovedException e) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+        return ResponseEntity.status(UNAUTHORIZED)
             .body(Map.of("message", e.getMessage()));
     }
 
@@ -184,11 +186,18 @@ public class GlobalExceptionHandler {
         }
     }
 
-    // 공지사항 접근 권한이 없을 경우 (로그인하지 않았거나 관리자가 아닐 경우) 예외 처리
-    @ExceptionHandler(NoticeAuthorizationException.class)
-    public ResponseEntity<Map<String, String>> handleNoticeAuthorizationException(
-        NoticeAuthorizationException ex) {
-        HttpStatus status = ex.isAuthenticated() ? HttpStatus.FORBIDDEN : HttpStatus.UNAUTHORIZED;
-        return ResponseEntity.status(status).body(Map.of("message", ex.getMessage()));
+    //로그인 여부 확인
+    @ExceptionHandler(UnauthenticatedAccessException.class)
+    public ResponseEntity<Map<String, String>> handleUnauthenticatedAccess(
+        UnauthenticatedAccessException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+            .body(Map.of("message", e.getMessage()));
+    }
+
+    public static class UnauthenticatedAccessException extends RuntimeException {
+
+        public UnauthenticatedAccessException() {
+            super("로그인된 사용자만 접근 가능합니다.");
+        }
     }
 }
