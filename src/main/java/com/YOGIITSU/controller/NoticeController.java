@@ -1,9 +1,9 @@
 package com.YOGIITSU.controller;
 
+import com.YOGIITSU.config.handler.GlobalExceptionHandler;
 import com.YOGIITSU.dto.RequestDto.NoticeRequestDto;
 import com.YOGIITSU.dto.ResponseDto.NoticeDetailResponseDto;
 import com.YOGIITSU.dto.ResponseDto.NoticeListResponseDto;
-import com.YOGIITSU.exception.notice.NoticeAuthorizationException;
 import com.YOGIITSU.jwt.CustomUserDetails;
 import com.YOGIITSU.service.NoticeService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -87,7 +87,7 @@ public class NoticeController {
 
     private void requireLogin(CustomUserDetails userDetails) {
         if (userDetails == null) {
-            throw new NoticeAuthorizationException("로그인된 사용자만 접근 가능합니다.", false); // 인증 실패
+            throw new GlobalExceptionHandler.UnauthenticatedAccessException();
         }
     }
 }
