@@ -6,15 +6,12 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class ShortcutDetailResponse {
+public class ShortcutDetailResponseDto {
 
     private Long shortcutId;
-    private String shortcutName;
-    private String startPoint;
-    private String endPoint;
-    private String description;
+    private String pointA;
+    private String pointB;
     private Double distance;
-    private String imageUrl;
     private List<CoordinateDto> coordinates;
 
 }
