@@ -9,5 +9,8 @@ public class CoordinateDto {
 
     private Double latitude;
     private Double longitude;
+    private Integer pointOrder;
+    private String description;
+    private String imageUrl;
 
 }
