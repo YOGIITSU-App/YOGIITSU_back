@@ -40,7 +40,9 @@ public class ShortcutCoordinate {
     @Column(name = "point_order", nullable = false)
     private Integer pointOrder;
 
-    public void setShortcut(Shortcut shortcut) {
-        this.shortcut = shortcut;
-    }
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @Column(name = "image_url")
+    private String imageUrl;
 }
