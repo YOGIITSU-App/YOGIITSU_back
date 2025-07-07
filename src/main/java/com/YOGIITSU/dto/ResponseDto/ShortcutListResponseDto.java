@@ -8,11 +8,8 @@ import lombok.Getter;
 public class ShortcutListResponseDto {
 
     private Long shortcutId;
-    private String shortcutName;
-    private String startPoint;
-    private String endPoint;
-    private String description;
+    private String pointA;
+    private String pointB;
     private Double distance;
-    private String imageUrl;
 
 }
