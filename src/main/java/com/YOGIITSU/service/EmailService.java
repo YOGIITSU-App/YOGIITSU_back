@@ -114,8 +114,8 @@ public class EmailService {
         }
 
         // 인증이 필요한 목적인지 확인
-        if (requiresAuthentication(purpose)) {
-            checkAuthentication(auth); //목적이 signup인 경우에는 로그인 요청을 강요하면 안됨
+        if (purpose.isRequiresAuth()) {
+            checkAuthentication(auth);
         }
 
         if (purpose.isMustExist()) {
@@ -226,9 +226,5 @@ public class EmailService {
         if (!memberRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("해당 이메일로 가입된 계정이 존재하지 않습니다.");
         }
-    }
-
-    private boolean requiresAuthentication(EmailPurpose purpose) {
-        return purpose != EmailPurpose.SIGNUP;
     }
 }
