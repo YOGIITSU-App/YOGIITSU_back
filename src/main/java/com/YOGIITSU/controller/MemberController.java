@@ -16,6 +16,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -72,7 +73,8 @@ public class MemberController {
             .message(memberId == null ? NO_EMAIL_FOUND : EMAIL_MATCH_FOUND)
             .build();
 
-        return ResponseEntity.ok(response);
+        return memberId == null ? ResponseEntity.status(HttpStatus.NOT_FOUND).body(response)
+            : ResponseEntity.ok(response);
     }
 
     /**
