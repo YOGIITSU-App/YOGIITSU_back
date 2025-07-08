@@ -37,6 +37,9 @@ public class Shortcut {
     @Column(name = "distance", nullable = false)
     private Double distance;
 
+    @Column(name = "duration", nullable = false)
+    private Integer duration;
+
     @OneToMany(mappedBy = "shortcut", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ShortcutCoordinate> coordinates = new ArrayList<>();
 }
