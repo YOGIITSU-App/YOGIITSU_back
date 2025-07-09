@@ -12,6 +12,7 @@ public class ShortcutDetailResponseDto {
     private String pointA;
     private String pointB;
     private Double distance;
+    private Integer duration;
     private List<CoordinateDto> coordinates;
 
 }
