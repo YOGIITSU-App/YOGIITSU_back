@@ -44,6 +44,12 @@ public class SignUpService {
             throw new IllegalArgumentException("아이디가 이미 존재합니다.");
         }
 
+        // 3-1. 아이디 유효성 검사
+        String memberIdPattern = "^(?=.*[a-zA-Z])[a-zA-Z0-9]{4,20}$";
+        if (!Pattern.matches(memberIdPattern, dto.getMemberId())) {
+            throw new IllegalArgumentException("아이디는 4~20자의 영문 또는 영문+숫자로만 구성되어야 합니다.");
+        }
+
         // 4. 이메일 도메인 검사
         boolean isValidDomain = ALLOWED_DOMAINS.stream()
             .anyMatch(dto.getEmail()::endsWith);
@@ -58,9 +64,10 @@ public class SignUpService {
             throw new IllegalArgumentException("해당 이름으로 가입한 내역이 있습니다.");
         }
 
-        // 6. 이름 길이 검사
-        if (dto.getUserName().length() < 2) {
-            throw new IllegalArgumentException("이름은 최소 2글자 이상이어야 합니다.");
+        // 6. 이름 유효성 검사 (영문/한글/숫자, 특수문자 불가, 2~8자리)
+        String userNamePattern = "^[a-zA-Z0-9가-힣]{2,8}$";
+        if (!Pattern.matches(userNamePattern, dto.getUserName())) {
+            throw new IllegalArgumentException("이름은 2~8자의 영문, 한글, 숫자로만 입력해주세요. 특수문자는 사용할 수 없습니다.");
         }
 
         // 7. 비밀번호 유효성 검사
@@ -83,8 +90,8 @@ public class SignUpService {
     }
 
     private void validatePassword(String password) {
-        if (password.length() < 8) {
-            throw new IllegalArgumentException("비밀번호는 최소 8자 이상이어야 합니다.");
+        if (password.length() < 8 || password.length() > 16) {
+            throw new IllegalArgumentException("비밀번호는 8자 이상 16자 이하이어야 합니다.");
         }
         if (!Pattern.compile("[a-zA-Z]").matcher(password).find()) {
             throw new IllegalArgumentException("비밀번호에는 영문자가 최소 1자 이상 포함되어야 합니다.");
