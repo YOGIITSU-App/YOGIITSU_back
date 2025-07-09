@@ -1,5 +1,6 @@
 package com.YOGIITSU.dto.ResponseDto;
 
+import com.YOGIITSU.enums.TurnType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -11,6 +12,8 @@ public class CoordinateDto {
     private Double longitude;
     private Integer pointOrder;
     private String description;
+    private TurnType turnType;
+    private Double segmentDistance;
     private String imageUrl;
 
 }
