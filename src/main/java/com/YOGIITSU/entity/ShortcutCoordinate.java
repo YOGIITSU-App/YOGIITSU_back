@@ -1,7 +1,10 @@
 package com.YOGIITSU.entity;
 
+import com.YOGIITSU.enums.TurnType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -39,6 +42,13 @@ public class ShortcutCoordinate {
 
     @Column(name = "point_order", nullable = false)
     private Integer pointOrder;
+
+    @Column(name = "segment_distance")
+    private Double segmentDistance; // 다음 좌표까지 거리 (단위: m)
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "turn_type", nullable = false)
+    private TurnType turnType;    // 좌회전, 우회전, 직진 등
 
     @Column(columnDefinition = "TEXT")
     private String description;
