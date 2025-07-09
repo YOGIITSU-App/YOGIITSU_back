@@ -30,6 +30,6 @@ public class MemberSignUpRequestDto {
 
     // 사용자 이름 공백일 수 없음 + 최소 2글자 이상이어야 함
     @NotBlank(message = "이름을 입력해주세요.")
-    @Size(min = 2, message = "이름은 2~8자의 영문, 한글, 숫자로만 입력해주세요. 특수문자는 사용할 수 없습니다.")
+    @Size(min = 2, max = 8, message = "이름은 2~8자의 영문, 한글, 숫자로만 입력해주세요. 특수문자는 사용할 수 없습니다.")
     private String userName;
 }
