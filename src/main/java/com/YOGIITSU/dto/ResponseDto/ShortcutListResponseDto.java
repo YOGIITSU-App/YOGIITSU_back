@@ -11,5 +11,6 @@ public class ShortcutListResponseDto {
     private String pointA;
     private String pointB;
     private Double distance;
+    private Integer duration;
 
 }
