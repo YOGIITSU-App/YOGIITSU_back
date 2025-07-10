@@ -1,5 +1,6 @@
 package com.YOGIITSU.enums;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 @Getter
@@ -17,13 +18,8 @@ public enum TurnType {
         this.description = description;
     }
 
-    public static TurnType fromCode(int code) {
-        for (TurnType type : values()) {
-            if (type.code == code) {
-                return type;
-            }
-        }
-
-        throw new IllegalArgumentException("알 수 없는 TurnType 코드입니다: " + code);
+    @JsonValue
+    public int getCode() {
+        return code;
     }
 }
