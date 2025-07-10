@@ -45,10 +45,7 @@ public class SignUpService {
         }
 
         // 3-1. 아이디 유효성 검사
-        String memberIdPattern = "^[a-zA-Z][a-zA-Z0-9]{3,19}$";
-        if (!Pattern.matches(memberIdPattern, dto.getMemberId())) {
-            throw new IllegalArgumentException("아이디는 영문으로 시작하며, 4~20자의 영문과 숫자로만 구성되어야 합니다.");
-        }
+        validateMemberId(dto.getMemberId());
 
         // 4. 이메일 도메인 검사
         boolean isValidDomain = ALLOWED_DOMAINS.stream()
@@ -101,6 +98,18 @@ public class SignUpService {
         }
         if (!Pattern.compile("[!@#$%^&*(),.?\":{}|<>]").matcher(password).find()) {
             throw new IllegalArgumentException("비밀번호에는 특수문자가 최소 1자 이상 포함되어야 합니다.");
+        }
+    }
+
+    private void validateMemberId(String memberId) {
+        if (memberId.length() < 4 || memberId.length() > 20) {
+            throw new IllegalArgumentException("아이디는 4자 이상 20자 이하이어야 합니다.");
+        }
+        if (!Pattern.compile("^[a-zA-Z]").matcher(memberId).find()) {
+            throw new IllegalArgumentException("아이디는 반드시 영문자로 시작해야 합니다.");
+        }
+        if (!Pattern.compile("^[a-zA-Z0-9]+$").matcher(memberId).matches()) {
+            throw new IllegalArgumentException("아이디는 영문자와 숫자로만 구성되어야 합니다.");
         }
     }
 }
