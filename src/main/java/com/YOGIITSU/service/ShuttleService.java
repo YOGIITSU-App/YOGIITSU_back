@@ -23,13 +23,14 @@ public class ShuttleService {
 	);
 
 	private final List<String> route = Arrays.asList(
-		"인문대 앞",
+		"인문대 승차",
 		"학생회관 사거리",
 		"ICT 융합대학",
 		"음악대학",
 		"제1공학관",
 		"후문(제4공학관)",
-		"미술대학(조형관)"
+		"미술대학(조형관)",
+		"인문대 하차"
 	);
 
 	public ShuttleScheduleResponseDto getShuttleSchedule() {
