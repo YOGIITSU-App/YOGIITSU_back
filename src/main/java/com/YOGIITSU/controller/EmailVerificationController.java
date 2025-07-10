@@ -42,7 +42,7 @@ public class EmailVerificationController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(EmailVerificationResponseDto.builder()
                         .status("error")
-                        .message("인증 실패: 인증 코드가 일치하지 않습니다.")
+                        .message("인증 코드가 일치하지 않습니다.")
                         .email(null)
                         .build());
             }
@@ -62,7 +62,7 @@ public class EmailVerificationController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(EmailVerificationResponseDto.builder()
                     .status("error")
-                    .message("인증 실패: " + e.getMessage())
+                    .message(e.getMessage())
                     .email(null)
                     .build());
         }
