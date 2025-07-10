@@ -45,7 +45,7 @@ public class SignUpService {
         }
 
         // 3-1. 아이디 유효성 검사
-        String memberIdPattern = "^(?=.*[a-zA-Z])[a-zA-Z0-9]{4,20}$";
+        String memberIdPattern = "^[a-zA-Z][a-zA-Z0-9]{3,19}$";
         if (!Pattern.matches(memberIdPattern, dto.getMemberId())) {
             throw new IllegalArgumentException("아이디는 4~20자의 영문 또는 영문+숫자로만 구성되어야 합니다.");
         }
