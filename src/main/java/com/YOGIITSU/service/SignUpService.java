@@ -58,7 +58,7 @@ public class SignUpService {
 
         // 5. 이름 중복 체크
         if (memberRepository.findByUserName(dto.getUserName()).isPresent()) {
-            throw new IllegalArgumentException("해당 이름으로 가입한 내역이 있습니다.");
+            throw new IllegalArgumentException("이미 사용 중인 이름입니다. 다른 이름을 입력해주세요.");
         }
 
         // 6. 이름 유효성 검사 (영문/한글/숫자, 특수문자 불가, 2~8자리)
