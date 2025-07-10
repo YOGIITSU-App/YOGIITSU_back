@@ -16,20 +16,32 @@ jobs:
 
       - name: Setup SSH & Deploy
         env:
-          GH_PAT: ${{ secrets.GH_PAT }}
           PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
-          EC2_IP: ${{ secrets.EC2_IP }}
         run: |
           echo "Setting up SSH"
           mkdir -p ~/.ssh
           echo "$PRIVATE_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
+
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "Start deploying the operational server"
+            export EC2_IP=${{ secrets.EC2_IP }}
+            export BRANCH=main
+            export CORS_ALLOWED_ORIGIN=${{ secrets.CORS_ALLOWED_ORIGIN }}
+          else
+            echo "Starting development server deployment"
+            export EC2_IP=${{ secrets.DEV_EC2_IP }}
+            export BRANCH=develop
+            export CORS_ALLOWED_ORIGIN=${{ secrets.CORS_ALLOWED_ORIGIN_DEV }}
+          fi
+
+          echo "Known Hosts Setup"
           ssh-keyscan -H $EC2_IP >> ~/.ssh/known_hosts
 
           echo "Connecting to EC2 and deploying"
           ssh ubuntu@$EC2_IP << EOF
-            export CORS_ALLOWED_ORIGIN=${{ secrets.CORS_ALLOWED_ORIGIN }}
+            export CORS_ALLOWED_ORIGIN=$CORS_ALLOWED_ORIGIN
+            export BRANCH=$BRANCH
             cd ~/YOGIITSU
-            git pull origin develop
             ./deploy.sh
           EOF
