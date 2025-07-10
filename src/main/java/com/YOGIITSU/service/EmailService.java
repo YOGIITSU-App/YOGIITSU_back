@@ -204,7 +204,7 @@ public class EmailService {
     public EmailMessage verifyEmailCode(String email, String code) {
         EmailMessage message = findEmailMessage(email, code);
         if (message.getExpiresAt().isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("인증 코드가 유효하지 않습니다.");
+            throw new IllegalArgumentException("인증 코드가 만료되었습니다.");
         }
         return message;
     }
@@ -212,7 +212,7 @@ public class EmailService {
     // 이메일과 코드로 EmailMessage 조회
     private EmailMessage findEmailMessage(String email, String code) {
         return emailMessageRepository.findByEmailAndCode(email, code)
-            .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 인증 요청입니다."));
+            .orElseThrow(() -> new IllegalArgumentException("인증 코드가 만료되었습니다. 인증 코드를 재전송해 주세요."));
     }
 
     // 인증 승인 처리 및 저장
