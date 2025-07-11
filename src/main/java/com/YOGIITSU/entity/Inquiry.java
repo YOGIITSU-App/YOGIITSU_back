@@ -36,8 +36,11 @@ public class Inquiry {
     @Column(name = "inquiry_at", nullable = false, updatable = false)
     private LocalDateTime inquiryAt;
 
-    @Column(name = "response", columnDefinition = "TEXT")
-    private String response;
+    @Column(name = "response_title", columnDefinition = "TEXT")
+    private String responseTitle;
+
+    @Column(name = "response_content", columnDefinition = "TEXT")
+    private String responseContent;
 
     @Column(name = "response_at")
     private LocalDateTime responseAt;
@@ -67,14 +70,18 @@ public class Inquiry {
      * 답변 등록 및 답변일 설정
      */
     public void updateResponse(String response) {
-        this.response = response;
+        this.responseTitle = responseTitle;
+        this.responseContent = responseContent;
         this.responseAt = LocalDateTime.now();  // 답변 날짜 함께 갱신
+        this.inquiryState = InquiryState.COMPLETED;
     }
 
     /**
-     * 문의 상태 변경
+     * 관리자 답변 수정
      */
-    public void updateInquiryState(InquiryState newState) {
-        this.inquiryState = newState;
+    public void modifyResponse(String newTitle, String newContent) {
+        if (newTitle != null) this.responseTitle = newTitle;
+        if (newContent != null) this.responseContent = newContent;
+        this.responseAt = LocalDateTime.now();
     }
 }
