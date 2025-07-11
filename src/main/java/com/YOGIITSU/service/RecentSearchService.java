@@ -33,6 +33,13 @@ public class RecentSearchService {
 		recentSearchRepository.deleteByMemberAndKeyword(member, keyword);
 		recentSearchRepository.flush();
 
+		// 사용자별 최대 10개까지만 유지
+		List<RecentSearch> recentSearches = recentSearchRepository.findByMemberOrderBySearchedAtDesc(
+			member);
+		if (recentSearches.size() >= 10) {
+			recentSearchRepository.delete(recentSearches.getLast());
+		}
+
 		// alias 기반으로 building 매핑
 		Building matchedBuilding = buildingAliasRepository
 			.findFirstByAliasContainingOrderByIdAsc(keyword)
@@ -67,7 +74,8 @@ public class RecentSearchService {
 		Member member = memberRepository.findByMemberId(memberId)
 			.orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
 
-		List<RecentSearch> searchList = recentSearchRepository.findByMemberAndBuildingId(member, buildingId);
+		List<RecentSearch> searchList = recentSearchRepository.findByMemberAndBuildingId(member,
+			buildingId);
 		if (searchList.isEmpty()) {
 			throw new EntityNotFoundException("해당 건물과 연결된 검색어가 없습니다.");
 		}
