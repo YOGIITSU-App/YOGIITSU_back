@@ -42,19 +42,11 @@ public class AdminInquiryService {
             throw new IllegalArgumentException("이미 답변이 등록된 문의입니다.");
         }
 
-        String title = requestDto.getAnswerTitle();
-        String content = requestDto.getAnswerContent();
+        inquiry.createAnswer(
+            requestDto.getAnswerTitle(),
+            requestDto.getAnswerContent()
+        );
 
-        if (title == null || title.isBlank()) {
-            throw new IllegalArgumentException("답변 제목은 비워둘 수 없습니다.");
-        }
-
-        if (content == null || content.isBlank()) {
-            throw new IllegalArgumentException("답변 내용은 비워둘 수 없습니다.");
-        }
-
-        // 답변 등록
-        inquiry.createAnswer(title, content);
         return new InquiryResponseDto(inquiry);
     }
 
