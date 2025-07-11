@@ -36,14 +36,14 @@ public class Inquiry {
     @Column(name = "inquiry_at", nullable = false, updatable = false)
     private LocalDateTime inquiryAt;
 
-    @Column(name = "response_title", columnDefinition = "TEXT")
-    private String responseTitle;
+    @Column(name = "answer_title", columnDefinition = "TEXT")
+    private String answerTitle;
 
-    @Column(name = "response_content", columnDefinition = "TEXT")
-    private String responseContent;
+    @Column(name = "answer_content", columnDefinition = "TEXT")
+    private String answerContent;
 
-    @Column(name = "response_at")
-    private LocalDateTime responseAt;
+    @Column(name = "answer_at")
+    private LocalDateTime answerAt;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "inquiry_state", length = 50, nullable = false)
@@ -69,19 +69,19 @@ public class Inquiry {
     /**
      * 답변 등록 및 답변일 설정
      */
-    public void updateResponse(String response) {
-        this.responseTitle = responseTitle;
-        this.responseContent = responseContent;
-        this.responseAt = LocalDateTime.now();  // 답변 날짜 함께 갱신
+    public void createAnswer(String answerTitle, String answerContent) {
+        this.answerTitle = answerTitle;
+        this.answerContent = answerContent;
+        this.answerAt = LocalDateTime.now();  // 답변 날짜 함께 갱신
         this.inquiryState = InquiryState.COMPLETED;
     }
 
     /**
      * 관리자 답변 수정
      */
-    public void modifyResponse(String newTitle, String newContent) {
-        if (newTitle != null) this.responseTitle = newTitle;
-        if (newContent != null) this.responseContent = newContent;
-        this.responseAt = LocalDateTime.now();
+    public void updateAnswer(String newTitle, String newContent) {
+        if (newTitle != null) this.answerTitle = newTitle;
+        if (newContent != null) this.answerContent = newContent;
+        this.answerAt = LocalDateTime.now();
     }
 }
