@@ -80,8 +80,12 @@ public class Inquiry {
      * 관리자 답변 수정
      */
     public void updateAnswer(String newTitle, String newContent) {
-        if (newTitle != null) this.answerTitle = newTitle;
-        if (newContent != null) this.answerContent = newContent;
+        if (newTitle != null && !newTitle.isBlank()) {
+            this.answerTitle = newTitle;
+        }
+        if (newContent != null && !newContent.isBlank()) {
+            this.answerContent = newContent;
+        }
         this.answerAt = LocalDateTime.now();
     }
 }
