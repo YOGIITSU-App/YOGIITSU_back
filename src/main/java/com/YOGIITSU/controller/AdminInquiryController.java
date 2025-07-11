@@ -62,7 +62,7 @@ public class AdminInquiryController {
      * - 상태와 관계없이 강제 삭제 가능
      */
     @Operation(summary = "문의 삭제")
-    @DeleteMapping("{inquiryId}")
+    @DeleteMapping("/{inquiryId}")
     public ResponseEntity<Void> deleteInquiryByAdmin(
         @PathVariable Long inquiryId
     ) {
