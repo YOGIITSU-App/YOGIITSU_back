@@ -36,11 +36,14 @@ public class Inquiry {
     @Column(name = "inquiry_at", nullable = false, updatable = false)
     private LocalDateTime inquiryAt;
 
-    @Column(name = "response", columnDefinition = "TEXT")
-    private String response;
+    @Column(name = "answer_title", columnDefinition = "TEXT")
+    private String answerTitle;
 
-    @Column(name = "response_at")
-    private LocalDateTime responseAt;
+    @Column(name = "answer_content", columnDefinition = "TEXT")
+    private String answerContent;
+
+    @Column(name = "answer_at")
+    private LocalDateTime answerAt;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "inquiry_state", length = 50, nullable = false)
@@ -66,15 +69,23 @@ public class Inquiry {
     /**
      * 답변 등록 및 답변일 설정
      */
-    public void updateResponse(String response) {
-        this.response = response;
-        this.responseAt = LocalDateTime.now();  // 답변 날짜 함께 갱신
+    public void createAnswer(String answerTitle, String answerContent) {
+        this.answerTitle = answerTitle;
+        this.answerContent = answerContent;
+        this.answerAt = LocalDateTime.now();  // 답변 날짜 함께 갱신
+        this.inquiryState = InquiryState.COMPLETED;
     }
 
     /**
-     * 문의 상태 변경
+     * 관리자 답변 수정
      */
-    public void updateInquiryState(InquiryState newState) {
-        this.inquiryState = newState;
+    public void updateAnswer(String newTitle, String newContent) {
+        if (newTitle != null && !newTitle.isBlank()) {
+            this.answerTitle = newTitle;
+        }
+        if (newContent != null && !newContent.isBlank()) {
+            this.answerContent = newContent;
+        }
+        this.answerAt = LocalDateTime.now();
     }
 }

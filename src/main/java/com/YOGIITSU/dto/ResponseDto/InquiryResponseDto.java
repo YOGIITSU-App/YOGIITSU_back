@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 /**
  * 문의 상세 응답 DTO
- * - 제목, 내용, 답변, 작성일, 답변일 등 전체 정보 포함
+ * - 제목, 내용, 답변 내용, 작성일, 답변일 등 전체 정보 포함
  */
 @Getter
 @AllArgsConstructor
@@ -24,8 +24,9 @@ public class InquiryResponseDto {
     private Long authorId;
     private String authorName;
 
-    private String response;
-    private LocalDateTime responseAt;
+    private String answerTitle;
+    private String answerContent;
+    private LocalDateTime answerAt;
 
     public InquiryResponseDto(Inquiry inquiry) {
 
@@ -36,7 +37,8 @@ public class InquiryResponseDto {
         this.inquiryState = inquiry.getInquiryState();
         this.authorId = inquiry.getMember().getId();
         this.authorName = inquiry.getMember().getUserName();
-        this.response = inquiry.getResponse();
-        this.responseAt = inquiry.getResponseAt();
+        this.answerTitle = inquiry.getAnswerTitle();
+        this.answerContent = inquiry.getAnswerContent();
+        this.answerAt = inquiry.getAnswerAt();
     }
 }
