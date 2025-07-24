@@ -1,11 +1,22 @@
 services:
-  yogiitsu:
+  yogiitsu-dev:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: yogiitsu-app
+    container_name: yogiitsu-dev
+    ports:
+      - "8081:8080"
+    environment:
+      - CORS_ALLOWED_ORIGIN=https://dev.yogiitsu.com
+    restart: always
+
+  yogiitsu-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: yogiitsu-prod
     ports:
       - "8080:8080"
     environment:
-      - CORS_ALLOWED_ORIGIN=${CORS_ALLOWED_ORIGIN}
+      - CORS_ALLOWED_ORIGIN=https://yogiitsu.com
     restart: always
