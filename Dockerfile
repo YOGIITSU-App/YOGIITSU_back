@@ -11,5 +11,8 @@ COPY ${JAR_FILE} app.jar
 # 앱이 사용하는 포트
 EXPOSE 8080
 
-	# 앱 실행 명령어
+# 앱 실행 명령어
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+
+# Spring Boot가 /app/logs/app.log에 로그를 남기도록 지정
+ENTRYPOINT ["java", "-jar", "/app/app.jar", "--logging.file.name=/app/logs/app.log"]

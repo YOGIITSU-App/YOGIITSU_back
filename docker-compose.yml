@@ -8,6 +8,8 @@ services:
       - "8081:8080"
     environment:
       - CORS_ALLOWED_ORIGIN=https://dev.yogiitsu.com
+    volumes:
+      - /var/log/yogiitsu/dev:/app/logs
     restart: always
 
   yogiitsu-prod:
@@ -19,4 +21,6 @@ services:
       - "8080:8080"
     environment:
       - CORS_ALLOWED_ORIGIN=https://yogiitsu.com
+    volumes:
+      - /var/log/yogiitsu/prod:/app/logs
     restart: always
