@@ -1,0 +1,11 @@
+services:
+  yogiitsu:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: yogiitsu-app
+    ports:
+      - "8080:8080"
+    environment:
+      - CORS_ALLOWED_ORIGIN=${CORS_ALLOWED_ORIGIN}
+    restart: always
