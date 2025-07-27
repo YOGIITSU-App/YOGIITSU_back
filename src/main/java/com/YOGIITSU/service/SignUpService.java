@@ -96,8 +96,11 @@ public class SignUpService {
         if (!Pattern.compile("[0-9]").matcher(password).find()) {
             throw new IllegalArgumentException("비밀번호에는 숫자가 최소 1자 이상 포함되어야 합니다.");
         }
-        if (!Pattern.compile("[!@#$%^&*(),.?\":{}|<>]").matcher(password).find()) {
-            throw new IllegalArgumentException("비밀번호에는 특수문자가 최소 1자 이상 포함되어야 합니다.");
+        if (password.matches(".*[^a-zA-Z0-9*!_@#$].*")) {
+            throw new IllegalArgumentException("비밀번호에는 *!_@#$ 외의 특수문자는 사용할 수 없습니다.");
+        }
+        if (!password.matches(".*[*!_@#$].*")) {
+            throw new IllegalArgumentException("비밀번호에는 *!_@#$ 중 최소 1자 이상의 특수문자가 포함되어야 합니다.");
         }
     }
 
