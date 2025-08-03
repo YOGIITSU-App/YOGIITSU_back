@@ -5,6 +5,7 @@ import com.YOGIITSU.config.handler.GlobalExceptionHandler.InvalidLoginException;
 import com.YOGIITSU.config.handler.GlobalExceptionHandler.MemberNotFoundException;
 import com.YOGIITSU.config.handler.GlobalExceptionHandler.PasswordMismatchException;
 import com.YOGIITSU.config.handler.GlobalExceptionHandler.PasswordNotEqualsException;
+import com.YOGIITSU.config.handler.GlobalExceptionHandler.SamePasswordException;
 import com.YOGIITSU.dto.RequestDto.PasswordResetRequestDto;
 import com.YOGIITSU.dto.ResponseDto.TokenResponseDto;
 import com.YOGIITSU.entity.EmailMessage;
@@ -63,8 +64,10 @@ public class MemberService {
 
 			// 3. 생성된 토큰을 헤더에 담아 반환
 			HttpHeaders headers = new HttpHeaders();
-			headers.set("Authorization", "Bearer " + tokenInfo.getAccessToken());   // AccessToken → Authorization 헤더
-			headers.set("X-Refresh-Token", tokenInfo.getRefreshToken());           // RefreshToken → X-Refresh-Token 헤더
+			headers.set("Authorization",
+				"Bearer " + tokenInfo.getAccessToken());   // AccessToken → Authorization 헤더
+			headers.set("X-Refresh-Token",
+				tokenInfo.getRefreshToken());           // RefreshToken → X-Refresh-Token 헤더
 
 			Map<String, Object> responseBody = new HashMap<>();
 			responseBody.put("message", "로그인 성공");
@@ -140,13 +143,19 @@ public class MemberService {
 		Member member = memberRepository.findByMemberId(memberId)
 			.orElseThrow(MemberNotFoundException::new);
 
-		// 3. 비밀번호 암호화 후 변경
+		// 3. 기존 비밀번호와 같은지 확인
+		if (passwordEncoder.matches(newPassword, member.getPassword())) {
+			throw new SamePasswordException();
+		}
+
+		// 4. 비밀번호 암호화 후 변경
 		String encodedPassword = passwordEncoder.encode(newPassword);
 		member.changePassword(encodedPassword);
 
-		// 4. 저장
+		// 5. 저장
 		memberRepository.save(member);
 	}
+
 
 	/**
 	 * 비밀번호 재설정 메서드 (이메일 인증 후)
@@ -174,11 +183,16 @@ public class MemberService {
 		Member member = memberRepository.findByEmail(requestDto.getEmail())
 			.orElseThrow(MemberNotFoundException::new);
 
-		// 5. 비밀번호 암호화 후 변경
+		// 5. 새 비밀번호가 기존 비밀번호와 동일한지 확인
+		if (passwordEncoder.matches(requestDto.getNewPassword(), member.getPassword())) {
+			throw new SamePasswordException();
+		}
+
+		// 6. 비밀번호 암호화 후 변경
 		member.changePassword(passwordEncoder.encode(requestDto.getNewPassword()));
 		memberRepository.save(member);
 
-		// 6. 사용된 인증 메시지 삭제 (재사용 방지)
+		// 7. 사용된 인증 메시지 삭제 (재사용 방지)
 		emailMessageRepository.delete(emailMessage);
 	}
 }
