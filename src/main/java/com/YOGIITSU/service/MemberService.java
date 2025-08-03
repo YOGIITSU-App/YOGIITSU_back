@@ -64,8 +64,10 @@ public class MemberService {
 
 			// 3. 생성된 토큰을 헤더에 담아 반환
 			HttpHeaders headers = new HttpHeaders();
-			headers.set("Authorization", "Bearer " + tokenInfo.getAccessToken());   // AccessToken → Authorization 헤더
-			headers.set("X-Refresh-Token", tokenInfo.getRefreshToken());           // RefreshToken → X-Refresh-Token 헤더
+			headers.set("Authorization",
+				"Bearer " + tokenInfo.getAccessToken());   // AccessToken → Authorization 헤더
+			headers.set("X-Refresh-Token",
+				tokenInfo.getRefreshToken());           // RefreshToken → X-Refresh-Token 헤더
 
 			Map<String, Object> responseBody = new HashMap<>();
 			responseBody.put("message", "로그인 성공");

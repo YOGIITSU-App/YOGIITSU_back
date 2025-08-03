@@ -15,7 +15,8 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
 	// memberId를 가진 Member 엔티티에 쓰기 잠금을 걸어 동시성 문제를 방지
 	@Lock(LockModeType.PESSIMISTIC_WRITE)
-	@Query("SELECT m FROM Member m WHERE m.memberId = :memberId") // memberId로 Member를 조회
+	@Query("SELECT m FROM Member m WHERE m.memberId = :memberId")
+	// memberId로 Member를 조회
 	Optional<Member> findByMemberIdWithLock(@Param("memberId") String memberId);
 
 	// 이메일을 기준으로 회원을 찾는 메서드 추가
