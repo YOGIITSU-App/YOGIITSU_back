@@ -130,6 +130,13 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND);
     }
 
+    // 비밀번호 변경 시 기존 비밀번호와 동일한 비밀번호로 변경하려는 경우 예외 처리
+    @ExceptionHandler(SamePasswordException.class)
+    public ResponseEntity<Map<String, String>> handleSamePasswordException(
+        SamePasswordException e) {
+        return buildErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
     public static class PasswordMismatchException extends RuntimeException {
 
         public PasswordMismatchException() {
@@ -198,6 +205,12 @@ public class GlobalExceptionHandler {
 
         public UnauthenticatedAccessException() {
             super("로그인된 사용자만 접근 가능합니다.");
+        }
+    }
+
+    public static class SamePasswordException extends RuntimeException {
+        public SamePasswordException() {
+            super("기존 비밀번호와 동일한 비밀번호로는 변경할 수 없습니다.");
         }
     }
 }
