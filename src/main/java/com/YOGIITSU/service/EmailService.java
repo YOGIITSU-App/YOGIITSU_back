@@ -8,8 +8,8 @@ import com.YOGIITSU.repository.EmailMessageRepository;
 import com.YOGIITSU.repository.MemberRepository;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
+import java.security.SecureRandom;
 import java.util.Locale;
-import java.util.Random;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.MailException;
@@ -41,7 +41,7 @@ public class EmailService {
 
 	// 6자리 숫자 인증 코드 생성
 	public String generateVerificationCode() {
-		Random random = new Random();
+		SecureRandom random = new SecureRandom();
 		int code = 100000 + random.nextInt(900000); // 100000 ~ 999999
 		return String.valueOf(code);
 	}
