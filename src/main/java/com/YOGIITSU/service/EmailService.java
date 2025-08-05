@@ -24,6 +24,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import java.time.LocalDateTime;
 import com.YOGIITSU.entity.Member;
 import com.YOGIITSU.entity.EmailPurpose;
+import com.YOGIITSU.config.handler.GlobalExceptionHandler.SameEmailException;
 
 @Slf4j
 @Service
@@ -38,14 +39,11 @@ public class EmailService {
     private final EmailProperties emailProperties;
     private final JwtTokenProvider jwtTokenProvider;
 
-    // 6자리 인증 코드 생성 (A~Z 알파벳)
+    // 6자리 숫자 인증 코드 생성
     public String generateVerificationCode() {
         Random random = new Random();
-        StringBuilder key = new StringBuilder();
-        for (int i = 0; i < 6; i++) {
-            key.append((char) (random.nextInt(26) + 65)); // A~Z
-        }
-        return key.toString();
+        int code = 100000 + random.nextInt(900000); // 100000 ~ 999999
+        return String.valueOf(code);
     }
 
     //인증 메일 정보를 DB에 저장
@@ -113,6 +111,10 @@ public class EmailService {
             throw new IllegalArgumentException("이메일 주소는 필수입니다.");
         }
 
+        if (!isAllowedEmailDomain(email)) {
+            throw new IllegalArgumentException("suwon.ac.kr, naver.com, gmail.com 도메인만 인증할 수 있습니다.");
+        }
+
         // 인증이 필요한 목적인지 확인
         if (purpose.isRequiresAuth()) {
             checkAuthentication(auth);
@@ -126,6 +128,16 @@ public class EmailService {
             }
 
         } else {
+            if (purpose == EmailPurpose.EMAIL_CHANGE_NEW) {
+                String memberId = auth.getName();
+                Member member = memberRepository.findByMemberId(memberId)
+                    .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다."));
+
+                if (member.getEmail().trim().equalsIgnoreCase(email.trim())) {
+                    throw new SameEmailException();
+                }
+            }
+
             if (memberRepository.existsByEmail(email)) {
                 throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
             }
@@ -184,19 +196,24 @@ public class EmailService {
         EmailMessage message = verifyEmailCode(newEmail, code);
         approveAndSave(message);
 
-        // 5. 새 이메일 중복 여부 검사
-        if (memberRepository.existsByEmail(newEmail)) {
-            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
-        }
-
-        // 6. 사용자 이메일 변경
+        // 5. 사용자 정보 조회
         String memberId = auth.getName();
         Member member = memberRepository.findByMemberIdWithLock(memberId)
             .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다."));
 
+        // 6. 기존 이메일과 동일한지 검사
+        if (member.getEmail().trim().equalsIgnoreCase(newEmail.trim())) {
+            throw new SameEmailException();
+        }
+
+        // 7. 새 이메일 중복 여부 검사
+        if (memberRepository.existsByEmail(newEmail)) {
+            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+        }
+
+        // 8. 사용자 이메일 변경
         member.setEmail(newEmail);
         memberRepository.save(member);
-
         log.info("이메일 변경 완료 - memberId: {}, newEmail: {}", memberId, newEmail);
     }
 

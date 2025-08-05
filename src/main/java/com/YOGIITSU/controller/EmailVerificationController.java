@@ -39,7 +39,7 @@ public class EmailVerificationController {
 
             // 2. 입력 값과 토큰 비교
             if (!tokenCode.equals(requestDto.getCode())) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(EmailVerificationResponseDto.builder()
                         .status("error")
                         .message("인증 코드가 일치하지 않습니다.")
