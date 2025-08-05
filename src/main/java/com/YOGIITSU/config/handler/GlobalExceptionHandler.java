@@ -137,6 +137,13 @@ public class GlobalExceptionHandler {
 		return buildErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
 	}
 
+	// 이메일 변경 시 기존 이메일과 동일한 이메일로 변경하려는 경우 예외 처리
+	@ExceptionHandler(SameEmailException.class)
+	public ResponseEntity<Map<String, String>> handleSameEmailException(
+		SameEmailException e) {
+		return buildErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
+	}
+
 	public static class PasswordMismatchException extends RuntimeException {
 
 		public PasswordMismatchException() {
@@ -212,6 +219,13 @@ public class GlobalExceptionHandler {
 
 		public SamePasswordException() {
 			super("기존 비밀번호와 동일한 비밀번호로는 변경할 수 없습니다.");
+		}
+	}
+
+	public static class SameEmailException extends RuntimeException {
+
+		public SameEmailException() {
+			super("기존 이메일과 동일한 이메일로는 변경할 수 없습니다.");
 		}
 	}
 }
