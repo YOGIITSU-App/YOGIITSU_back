@@ -56,6 +56,10 @@ dependencies {
 	// Jakarta 서블릿 API 추가
 	implementation 'jakarta.servlet:jakarta.servlet-api:5.0.0'
 
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+	implementation 'com.google.api-client:google-api-client:2.2.0'
+	implementation 'com.google.http-client:google-http-client-gson:1.43.3'
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 }
 
 tasks.named('test') {
