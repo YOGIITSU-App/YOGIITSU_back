@@ -6,6 +6,7 @@ import com.YOGIITSU.dto.ResponseDto.UserResponseDto;
 import com.YOGIITSU.service.GoogleAuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -31,7 +32,7 @@ public class GoogleAuthController {
 	)
 	@PostMapping("/google")
 	public ResponseEntity<Map<String, Object>> googleLogin(
-		@RequestBody GoogleLoginRequestDto requestDto
+		@Valid @RequestBody GoogleLoginRequestDto requestDto
 	) {
 		// 1. 서비스 호출을 통해 모든 정보가 담긴 TokenResponseDto를 받습니다.
 		TokenResponseDto tokenInfo = googleAuthService.verifyGoogleIdTokenAndLogin(
@@ -39,7 +40,7 @@ public class GoogleAuthController {
 
 		// 2. 토큰을 헤더에 담습니다. (기존 자체 로그인 방식과 동일)
 		HttpHeaders headers = new HttpHeaders();
-		headers.set("Authorization", "Bearer " + tokenInfo.getAccessToken());
+		headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + tokenInfo.getAccessToken());
 		headers.set("X-Refresh-Token", tokenInfo.getRefreshToken());
 
 		// 3. 응답 본문을 구성합니다. (기존 자체 로그인 방식과 동일)
