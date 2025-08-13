@@ -66,8 +66,10 @@ public class KakaoAuthService {
 			return jwtTokenProvider.generateToken(authentication);
 
 		} catch (WebClientResponseException e) {
-			logger.error("카카오 API 에러 발생! 상태 코드: {}, 응답: {}", e.getStatusCode(),
-				e.getResponseBodyAsString());
+			logger.error("카카오 API 에러 발생! 상태 코드: {}", e.getStatusCode(), e);
+			if (logger.isDebugEnabled()) {
+				logger.debug("카카오 API 응답 본문: {}", e.getResponseBodyAsString());
+			}
 			throw new RuntimeException("카카오 서버로부터 사용자 정보를 가져오는 데 실패했습니다.");
 		}
 	}
