@@ -28,7 +28,7 @@ public class GoogleAuthController {
 
 	@Operation(
 		summary = "구글 소셜 로그인",
-		description = "리액트 네이티브 앱에서 받은 구글 ID 토큰으로 로그인을 처리하고, 서비스의 자체 JWT를 발급합니다."
+		description = "리액트 네이티브 앱에서 받은 구글 ID 토큰으로 로그인을 처리하고, 자체 JWT를 발급합니다."
 	)
 	@PostMapping("/google")
 	public ResponseEntity<Map<String, Object>> googleLogin(
