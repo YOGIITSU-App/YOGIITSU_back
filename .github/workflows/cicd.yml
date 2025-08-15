@@ -10,38 +10,50 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
 
+    outputs:
+      EC2_IP: ${{ steps.setup_env.outputs.EC2_IP }}
+      BRANCH: ${{ steps.setup_env.outputs.BRANCH }}
+      CORS_ALLOWED_ORIGIN: ${{ steps.setup_env.outputs.CORS_ALLOWED_ORIGIN }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Setup SSH & Deploy
+      - name: Setup environment variables
+        id: setup_env
+        run: |
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            echo "BRANCH=main" >> $GITHUB_ENV
+            echo "EC2_IP=${{ secrets.EC2_IP }}" >> $GITHUB_ENV
+            echo "CORS_ALLOWED_ORIGIN=${{ secrets.CORS_ALLOWED_ORIGIN }}" >> $GITHUB_ENV
+            echo "CI: Set environment for 'main' branch."
+          else
+            echo "BRANCH=develop" >> $GITHUB_ENV
+            echo "EC2_IP=${{ secrets.DEV_EC2_IP }}" >> $GITHUB_ENV
+            echo "CORS_ALLOWED_ORIGIN=${{ secrets.CORS_ALLOWED_ORIGIN_DEV }}" >> $GITHUB_ENV
+            echo "CI: Set environment for 'develop' branch."
+          fi
+
+      - name: Deploy to EC2
         env:
+          EC2_IP: ${{ env.EC2_IP }}
+          BRANCH: ${{ env.BRANCH }}
+          CORS_ALLOWED_ORIGIN: ${{ env.CORS_ALLOWED_ORIGIN }}
           PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
         run: |
           echo "Setting up SSH"
           mkdir -p ~/.ssh
           echo "$PRIVATE_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-
-          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
-            echo "Start deploying the operational server"
-            export EC2_IP=${{ secrets.EC2_IP }}
-            export BRANCH=main
-            export CORS_ALLOWED_ORIGIN=${{ secrets.CORS_ALLOWED_ORIGIN }}
-          else
-            echo "Starting development server deployment"
-            export EC2_IP=${{ secrets.DEV_EC2_IP }}
-            export BRANCH=develop
-            export CORS_ALLOWED_ORIGIN=${{ secrets.CORS_ALLOWED_ORIGIN_DEV }}
-          fi
-
-          echo "Known Hosts Setup"
+          
+          echo "CI: Deploying branch [$BRANCH] to EC2 IP [$EC2_IP]"
+          
           ssh-keyscan -H $EC2_IP >> ~/.ssh/known_hosts
 
           echo "Connecting to EC2 and deploying"
           ssh ubuntu@$EC2_IP << EOF
-            export CORS_ALLOWED_ORIGIN=$CORS_ALLOWED_ORIGIN
-            export BRANCH=$BRANCH
+            export BRANCH='$BRANCH'
+            export CORS_ALLOWED_ORIGIN='$CORS_ALLOWED_ORIGIN'
             cd ~/YOGIITSU
             ./deploy.sh
           EOF
