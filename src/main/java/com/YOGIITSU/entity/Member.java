@@ -44,6 +44,9 @@ public class Member implements UserDetails {
     @Column(name = "join_at", nullable = false)
     private LocalDateTime joinAt; // 가입일
 
+    @Column(name = "provider", length = 20)
+    private String provider; // "local", "google", "kakao" 등을 저장
+
     @OneToMany(mappedBy = "member", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Inquiry> inquiries;
 
