@@ -23,7 +23,7 @@ public class UserService {
 		return memberRepository.findByEmail(email)
 			.orElseGet(() -> {
 				//이메일 도메인으로 소셜 타입을 구분
-				String provider = email.endsWith("@gmail.com") ? "google_" : "kakao_";
+				String provider = (email != null && email.endsWith("@gmail.com")) ? "google_" : "kakao_";
 				String memberId = provider + UUID.randomUUID().toString().substring(0, 8);
 
 				// 소셜 로그인 사용자는 비밀번호를 사용하지 않으므로, 임의의 값을 암호화하여 저장합니다.

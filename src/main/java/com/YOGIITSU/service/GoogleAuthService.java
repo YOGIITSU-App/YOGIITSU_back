@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.YOGIITSU.dto.ResponseDto.TokenResponseDto;
 
 @Service
+@lombok.extern.slf4j.Slf4j
 @RequiredArgsConstructor
 public class GoogleAuthService {
 
@@ -55,7 +56,10 @@ public class GoogleAuthService {
 			return jwtTokenProvider.generateToken(authentication);
 
 		} catch (Exception e) {
-			throw new RuntimeException("Google ID Token verification failed.", e);
+			log.warn("Google ID Token verification failed: {}", e.getMessage());
+			throw new org.springframework.security.authentication.AuthenticationServiceException(
+				"Google ID Token verification failed.", e
+			);
 		}
 	}
 }
