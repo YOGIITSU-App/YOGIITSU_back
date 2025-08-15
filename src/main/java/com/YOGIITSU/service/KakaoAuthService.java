@@ -46,7 +46,7 @@ public class KakaoAuthService {
 			String nickname = (String) profile.get("nickname");
 
 			// 3. UserService를 통해 사용자 조회 또는 신규 가입 처리
-			Member member = userService.processOAuthUser(email, nickname);
+			Member member = userService.processOAuthUser("kakao", email, nickname);
 
 			// 4. 자체 인증 토큰 생성을 위한 Authentication 객체 생성
 			CustomUserDetails userDetails = new CustomUserDetails(

@@ -37,7 +37,7 @@ public class GoogleAuthService {
 			String name = (String) payload.get("name");
 
 			// 3. UserService를 통해 사용자 조회 또는 신규 가입 처리
-			Member member = userService.processOAuthUser(email, name);
+			Member member = userService.processOAuthUser("google", email, name);
 
 			// 4. 우리 서비스의 인증 토큰 생성을 위한 Authentication 객체 생성
 			CustomUserDetails userDetails = new CustomUserDetails(
