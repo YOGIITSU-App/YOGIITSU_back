@@ -5,7 +5,6 @@ import com.YOGIITSU.config.handler.GlobalExceptionHandler.MissingTokenException;
 import com.YOGIITSU.dto.RequestDto.ChangePasswordRequestDto;
 import com.YOGIITSU.dto.RequestDto.MemberLoginRequestDto;
 import com.YOGIITSU.dto.RequestDto.FindMemberIdRequestDto;
-import com.YOGIITSU.dto.RequestDto.PasswordCheckRequestDto;
 import com.YOGIITSU.dto.RequestDto.PasswordResetRequestDto;
 import com.YOGIITSU.dto.ResponseDto.FindMemberIdResponseDto;
 import com.YOGIITSU.jwt.JwtTokenProvider;
@@ -79,13 +78,11 @@ public class MemberController {
 
 	/**
 	 * 회원 탈퇴 API
-	 *
-	 * @param request HTTP 요청 객체
+	 * @param httpRequest HTTP 요청 객체 (JWT 토큰 포함)
 	 */
-	@Operation(summary = "회원 탈퇴", description = "비밀번호 확인 후 JWT 토큰 기반으로 회원 탈퇴 처리합니다.")
+	@Operation(summary = "회원 탈퇴", description = "JWT 토큰 기반으로 현재 로그인된 회원을 탈퇴 처리합니다.")
 	@DeleteMapping("/delete")
-	public ResponseEntity<Map<String, String>> deleteMember(
-		@RequestBody PasswordCheckRequestDto request, HttpServletRequest httpRequest) {
+	public ResponseEntity<Map<String, String>> deleteMember(HttpServletRequest httpRequest) {
 		// 1. 요청에서 JWT 토큰 추출
 		String accessToken = jwtTokenProvider.resolveToken(httpRequest);
 
@@ -103,7 +100,7 @@ public class MemberController {
 		String memberId = jwtTokenProvider.getAuthentication(accessToken).getName();
 
 		// 5. 회원 탈퇴 처리
-		memberService.deleteMember(memberId, request.getPassword());
+		memberService.deleteMember(memberId);
 
 		// 6. 탈퇴 성공 메시지 반환
 		Map<String, String> response = new HashMap<>();
