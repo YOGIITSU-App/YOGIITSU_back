@@ -102,25 +102,20 @@ public class MemberService {
 	 * @param memberId 사용자의 아이디
 	 */
 	@Transactional
-	public void deleteMember(String memberId, String rawPassword) {
+	public void deleteMember(String memberId) {
 		// 1. 회원 조회
 		Member member = memberRepository.findByMemberId(memberId)
-			.orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
+			.orElseThrow(MemberNotFoundException::new);
 
-		// 2. 비밀번호 검증 (암호화된 비밀번호와 비교)
-		if (!passwordEncoder.matches(rawPassword, member.getPassword())) {
-			throw new PasswordMismatchException();
-		}
-
-		// 3. 회원 정보 삭제
+		// 2. 회원 정보 삭제
 		memberRepository.delete(member);
 
-		// 4. 회원 삭제 후 존재 여부 확인
+		// 3. 회원 삭제 후 존재 여부 확인
 		if (memberRepository.existsByMemberId(memberId)) {
 			throw new RuntimeException("회원 탈퇴 실패: 회원 정보가 삭제되지 않았습니다.");
 		}
 
-		// 5. 로그 기록
+		// 4. 로그 기록
 		logger.info("회원 탈퇴: {}", memberId);
 	}
 
