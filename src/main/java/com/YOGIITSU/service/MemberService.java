@@ -102,11 +102,10 @@ public class MemberService {
 	 * @param memberId 사용자의 아이디
 	 */
 	@Transactional
-	// 1. 파라미터에서 rawPassword 제거
 	public void deleteMember(String memberId) {
 		// 1. 회원 조회
 		Member member = memberRepository.findByMemberId(memberId)
-			.orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
+			.orElseThrow(MemberNotFoundException::new);
 
 		// 2. 회원 정보 삭제
 		memberRepository.delete(member);
