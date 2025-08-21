@@ -10,76 +10,74 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
 
-    outputs:
-      EC2_IP: ${{ steps.setup_env.outputs.EC2_IP }}
-      BRANCH: ${{ steps.setup_env.outputs.BRANCH }}
-      CORS_ALLOWED_ORIGIN: ${{ steps.setup_env.outputs.CORS_ALLOWED_ORIGIN }}
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Setup environment variables
-        id: setup_env
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew build -x test
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
+      - name: Add known_hosts
         run: |
           if [ "${{ github.ref_name }}" = "main" ]; then
-            echo "BRANCH=main" >> $GITHUB_ENV
-            echo "EC2_IP=${{ secrets.EC2_IP }}" >> $GITHUB_ENV
-            echo "CORS_ALLOWED_ORIGIN=${{ secrets.CORS_ALLOWED_ORIGIN }}" >> $GITHUB_ENV
-            echo "KNOWN_HOSTS=${{ secrets.KNOWN_HOSTS }}" >> $GITHUB_ENV
-            echo "CI: Set environment for 'main' branch."
+            KNOWN_HOSTS_VALUE="${{ secrets.KNOWN_HOSTS }}"
           else
-            echo "BRANCH=develop" >> $GITHUB_ENV
-            echo "EC2_IP=${{ secrets.DEV_EC2_IP }}" >> $GITHUB_ENV
-            echo "CORS_ALLOWED_ORIGIN=${{ secrets.CORS_ALLOWED_ORIGIN_DEV }}" >> $GITHUB_ENV
-            echo "KNOWN_HOSTS=${{ secrets.DEV_KNOWN_HOSTS }}" >> $GITHUB_ENV
-            echo "CI: Set environment for 'develop' branch."
+            KNOWN_HOSTS_VALUE="${{ secrets.DEV_KNOWN_HOSTS || secrets.KNOWN_HOSTS }}"
           fi
-
-      - name: Deploy to EC2
-        env:
-          EC2_IP: ${{ env.EC2_IP }}
-          BRANCH: ${{ env.BRANCH }}
-          CORS_ALLOWED_ORIGIN: ${{ env.CORS_ALLOWED_ORIGIN }}
-          KNOWN_HOSTS: ${{ env.KNOWN_HOSTS }}
-          PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
-          DB_URL: ${{ secrets.DB_URL }}
-          DB_USERNAME: ${{ secrets.DB_USERNAME }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-          MAIL_HOST: ${{ secrets.MAIL_HOST }}
-          MAIL_PORT: ${{ secrets.MAIL_PORT }}
-          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
-          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          JWT_ACCESS_EXPIRY: ${{ secrets.JWT_ACCESS_EXPIRY }}
-          JWT_REFRESH_EXPIRY: ${{ secrets.JWT_REFRESH_EXPIRY }}
-          SWAGGER_SERVER_URL: ${{ secrets.SWAGGER_SERVER_URL }}
-        run: |
-          echo "Setting up SSH"
           mkdir -p ~/.ssh
-          echo "$PRIVATE_KEY" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          echo "$KNOWN_HOSTS" >> ~/.ssh/known_hosts
-          
-          echo "CI: Deploying branch [$BRANCH] to EC2 IP [$EC2_IP]"
+          echo "$KNOWN_HOSTS_VALUE" >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
 
-          echo "Connecting to EC2 and deploying"
-          ssh ubuntu@$EC2_IP << EOF
+      - name: Transfer JAR to EC2
+        run: |
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            EC2_IP="${{ secrets.EC2_IP }}"
+          else
+            EC2_IP="${{ secrets.DEV_EC2_IP }}"
+          fi
+          scp build/libs/*.jar ubuntu@$EC2_IP:/home/ubuntu/YOGIITSU/
+
+      - name: Deploy on EC2
+        run: |
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            EC2_IP="${{ secrets.EC2_IP }}"
+            BRANCH="main"
+          else
+            EC2_IP="${{ secrets.DEV_EC2_IP }}"
+            BRANCH="develop"
+          fi
+          
+          ssh ubuntu@$EC2_IP "
             export BRANCH='$BRANCH'
-            export CORS_ALLOWED_ORIGIN='$CORS_ALLOWED_ORIGIN'
-            export DB_URL='$DB_URL'
-            export DB_USERNAME='$DB_USERNAME'
-            export DB_PASSWORD='$DB_PASSWORD'
-            export GOOGLE_CLIENT_ID='$GOOGLE_CLIENT_ID'
-            export MAIL_HOST='$MAIL_HOST'
-            export MAIL_PORT='$MAIL_PORT'
-            export MAIL_USERNAME='$MAIL_USERNAME'
-            export GMAIL_APP_PASSWORD='$GMAIL_APP_PASSWORD'
-            export JWT_SECRET='$JWT_SECRET'
-            export JWT_ACCESS_EXPIRY='$JWT_ACCESS_EXPIRY'
-            export JWT_REFRESH_EXPIRY='$JWT_REFRESH_EXPIRY'
-            export SWAGGER_SERVER_URL='$SWAGGER_SERVER_URL'
-            cd ~/YOGIITSU
+            export DB_URL='${{ secrets.DB_URL }}'
+            export DB_USERNAME='${{ secrets.DB_USERNAME }}'
+            export DB_PASSWORD='${{ secrets.DB_PASSWORD }}'
+            export GOOGLE_CLIENT_ID='${{ secrets.GOOGLE_CLIENT_ID }}'
+            export MAIL_HOST='${{ secrets.MAIL_HOST }}'
+            export MAIL_PORT='${{ secrets.MAIL_PORT }}'
+            export MAIL_USERNAME='${{ secrets.MAIL_USERNAME }}'
+            export GMAIL_APP_PASSWORD='${{ secrets.GMAIL_APP_PASSWORD }}'
+            export JWT_SECRET='${{ secrets.JWT_SECRET }}'
+            export JWT_ACCESS_EXPIRY='${{ secrets.JWT_ACCESS_EXPIRY }}'
+            export JWT_REFRESH_EXPIRY='${{ secrets.JWT_REFRESH_EXPIRY }}'
+            export SWAGGER_SERVER_URL='${{ secrets.SWAGGER_SERVER_URL }}'
+            export CORS_ALLOWED_ORIGIN='${{ secrets.CORS_ALLOWED_ORIGIN }}'
+            export CORS_ALLOWED_ORIGIN_DEV='${{ secrets.CORS_ALLOWED_ORIGIN_DEV }}'
+          
+            cd /home/ubuntu/YOGIITSU
             ./deploy.sh
-          EOF
+          "
