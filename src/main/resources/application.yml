@@ -72,3 +72,25 @@ email:
     - suwon.ac.kr
     - naver.com
     - gmail.com
+
+resilience4j:
+  retry:
+    instances:
+      gptRetry:
+        max-attempts: 3
+        wait-duration: 400ms
+        retry-exceptions:
+          - com.YOGIITSU.service.gpt.TooManyRequestsException
+        ignore-exceptions:
+          - com.YOGIITSU.service.gpt.InsufficientQuotaException
+  circuitbreaker:
+    instances:
+      gptBreaker:
+        sliding-window-size: 20
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+  ratelimiter:
+    instances:
+      gptRate:
+        limit-for-period: 5
+        limit-refresh-period: 1s
