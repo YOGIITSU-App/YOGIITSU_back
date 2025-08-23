@@ -139,7 +139,15 @@ public class GptServiceImpl implements GptService {
 				return new Result(rawInfo, false);
 			}
 
-			String content = resp.getChoices().get(0).getMessage().getContent();
+			// NPE / IndexOutOfBounds 방어
+			var first = resp.getChoices().getFirst(); // Java 21
+			var msg = first.getMessage();
+			if (msg == null) {
+				log.warn("[GPT] first choice message is null");
+				return new Result(rawInfo, false);
+			}
+
+			String content = msg.getContent();
 			if (content == null || content.isBlank()) {
 				log.warn("[GPT] empty content");
 				return new Result(rawInfo, false);
