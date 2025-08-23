@@ -36,7 +36,7 @@ public class ChatNodeResponseDto {
 	public static ChatNodeResponseDto optionsCustom(List<ChatOptionItemRequestDto> items) {
 		return ChatNodeResponseDto.builder()
 			.type("OPTIONS")
-			.options(items)
+			.options(items != null ? items : List.of())
 			.build();
 	}
 
