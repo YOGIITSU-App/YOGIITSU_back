@@ -36,10 +36,20 @@ public class FacilityHandler implements DynamicResponseHandler {
 				throw new IllegalArgumentException("잘못된 key 형식: " + key);
 			}
 
-			type = FacilityType.valueOf(parts[1]);
-			Long buildingId = (Long) ctx.get("buildingId");
-			if (buildingId == null) {
-				throw new IllegalArgumentException("buildingId가 필요합니다.");
+			try {
+				type = FacilityType.valueOf(parts[1]);
+			} catch (IllegalArgumentException e) {
+				throw new IllegalArgumentException("알 수 없는 시설 유형입니다: " + parts[1]);
+			}
+			Object bVal = (ctx != null ? ctx.get("buildingId") : null);
+			Long buildingId = null;
+			if (bVal instanceof Number num) {
+				buildingId = num.longValue();
+			} else if (bVal instanceof String s && !s.isBlank()) {
+				try { buildingId = Long.parseLong(s.trim()); } catch (NumberFormatException ignore) {}
+			}
+			if (buildingId == null || buildingId <= 0) {
+				throw new IllegalArgumentException("buildingId가 필요하며 양의 정수여야 합니다.");
 			}
 
 			// 대표 표기 + 접두어 정규식으로 조회
@@ -49,8 +59,7 @@ public class FacilityHandler implements DynamicResponseHandler {
 					ko.names(), ko.prefixPattern(), buildingId
 				);
 			} else if (ko.names().size() == 1) {
-				list = facilityRepository.findLocationsByNameAndBuilding(ko.names().get(0),
-					buildingId);
+				list = facilityRepository.findLocationsByNameAndBuilding(ko.names().getFirst(), buildingId);
 			} else {
 				list = facilityRepository.findLocationsByNamesAndBuilding(ko.names(), buildingId);
 			}
@@ -64,7 +73,7 @@ public class FacilityHandler implements DynamicResponseHandler {
 				list = facilityRepository.findLocationsByNamesOrPrefix(ko.names(),
 					ko.prefixPattern());
 			} else if (ko.names().size() == 1) {
-				list = facilityRepository.findLocationsByName(ko.names().get(0));
+				list = facilityRepository.findLocationsByName(ko.names().getFirst());
 			} else {
 				list = facilityRepository.findLocationsByNames(ko.names());
 			}
@@ -123,7 +132,6 @@ public class FacilityHandler implements DynamicResponseHandler {
 			case STUDY_ROOM -> "스터디룸";
 			case GYM -> "헬스장";
 			case DELIVERY_BOX -> "무인택배함";
-			default -> t.name();
 		};
 	}
 
