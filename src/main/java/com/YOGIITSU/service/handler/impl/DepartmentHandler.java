@@ -23,9 +23,19 @@ public class DepartmentHandler implements DynamicResponseHandler {
 	@Override
 	public String buildRawAnswer(Long nodeId, String key, Map<String, Object> ctx) {
 		// ID 우선 사용
-		Long deptId = (Long) ctx.get("deptId");
-		if (deptId == null) {
-			throw new IllegalArgumentException("deptId가 필요합니다.");
+		Long deptId = null;
+		Object idObj = ctx != null ? ctx.get("deptId") : null;
+		if (idObj instanceof Number n) {
+			deptId = n.longValue();
+		} else if (idObj instanceof String s) {
+			try {
+				deptId = Long.parseLong(s.trim());
+			} catch (NumberFormatException ignore) {
+				// fallthrough
+			}
+		}
+		if (deptId == null || deptId <= 0) {
+			throw new IllegalArgumentException("deptId가 필요하며 양의 정수여야 합니다.");
 		}
 
 		return switch (key) {
@@ -60,7 +70,8 @@ public class DepartmentHandler implements DynamicResponseHandler {
 			return "학과 대표전화를 찾지 못했습니다.";
 		}
 		return list.stream()
-			.map(v -> v.getDepartmentName() + " 대표전화는 " + v.getPhone() + "입니다.")
+			.map(v -> v.getDepartmentName() + " 대표전화는 " + (v.getPhone() != null ? v.getPhone()
+				: "전화 정보 없음") + "입니다.")
 			.collect(Collectors.joining(" "));
 	}
 
@@ -69,7 +80,8 @@ public class DepartmentHandler implements DynamicResponseHandler {
 			return "FAX 정보를 찾지 못했습니다.";
 		}
 		return list.stream()
-			.map(v -> v.getDepartmentName() + " FAX는 " + v.getFax() + "입니다.")
+			.map(v -> v.getDepartmentName() + " FAX는 " + (v.getFax() != null ? v.getFax()
+				: "FAX 정보 없음") + "입니다.")
 			.collect(Collectors.joining(" "));
 	}
 
@@ -78,7 +90,8 @@ public class DepartmentHandler implements DynamicResponseHandler {
 			return "업무시간 정보를 찾지 못했습니다.";
 		}
 		return list.stream()
-			.map(v -> v.getDepartmentName() + " 업무시간은 " + v.getOfficeHours() + "입니다.")
+			.map(v -> v.getDepartmentName() + " 업무시간은 " + (v.getOfficeHours() != null
+				? v.getOfficeHours() : "업무시간 정보 없음") + "입니다.")
 			.collect(Collectors.joining(" "));
 	}
 
