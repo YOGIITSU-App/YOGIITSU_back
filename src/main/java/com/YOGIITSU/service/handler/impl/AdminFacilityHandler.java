@@ -25,7 +25,7 @@ public class AdminFacilityHandler implements DynamicResponseHandler {
 	public String buildRawAnswer(Long nodeId, String key, Map<String, Object> ctx) {
 		log.debug("[AdminFacilityHandler] nodeId={}, key={}", nodeId, key);
 
-		ChatOption node = chatOptionRepository.findById(nodeId)
+		ChatOption node = chatOptionRepository.findByIdAndIsActiveTrue(nodeId)
 			.orElseThrow(() -> new IllegalArgumentException("행정·편의시설 노드를 찾을 수 없습니다."));
 
 		var type = node.getResponseType() == null ? ResponseType.STATIC : node.getResponseType();
