@@ -46,7 +46,10 @@ public class FacilityHandler implements DynamicResponseHandler {
 			if (bVal instanceof Number num) {
 				buildingId = num.longValue();
 			} else if (bVal instanceof String s && !s.isBlank()) {
-				try { buildingId = Long.parseLong(s.trim()); } catch (NumberFormatException ignore) {}
+				try {
+					buildingId = Long.parseLong(s.trim());
+				} catch (NumberFormatException ignore) {
+				}
 			}
 			if (buildingId == null || buildingId <= 0) {
 				throw new IllegalArgumentException("buildingId가 필요하며 양의 정수여야 합니다.");
@@ -59,7 +62,8 @@ public class FacilityHandler implements DynamicResponseHandler {
 					ko.names(), ko.prefixPattern(), buildingId
 				);
 			} else if (ko.names().size() == 1) {
-				list = facilityRepository.findLocationsByNameAndBuilding(ko.names().getFirst(), buildingId);
+				list = facilityRepository.findLocationsByNameAndBuilding(ko.names().getFirst(),
+					buildingId);
 			} else {
 				list = facilityRepository.findLocationsByNamesAndBuilding(ko.names(), buildingId);
 			}
