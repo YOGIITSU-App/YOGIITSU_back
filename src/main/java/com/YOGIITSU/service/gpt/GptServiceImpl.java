@@ -53,10 +53,10 @@ public class GptServiceImpl implements GptService {
 			return new Result(rawInfo, false);
 		}
 
-		//키/설정 가시 로그
 		log.debug("[GPT] model={}, timeoutSec={}, keyPresent={}",
 			props.getModel(), props.getTimeoutSeconds(),
 			props.getApiKey() != null && !props.getApiKey().isBlank());
+
 		if (props.getApiKey() == null || props.getApiKey().isBlank()) {
 			log.error("[GPT] API key is missing. Check openai.api-key / ${OPENAI_API_KEY}");
 			return new Result(rawInfo, false);
@@ -69,7 +69,6 @@ public class GptServiceImpl implements GptService {
 			- 건물명, 학과명, 위치(층/호수)는 원문 그대로 유지하세요.
 			- 1~2문장, 한국어 존댓말, 불필요한 수식어 금지.
 			""";
-
 		String user = "정보:\n" + rawInfo;
 
 		GptRequestDto req = new GptRequestDto(
@@ -81,91 +80,53 @@ public class GptServiceImpl implements GptService {
 			0.3
 		);
 
-		try {
-			GptResponseDto resp = client.post()
-				.bodyValue(req)
-				// ===== exchangeToMono로 상태별 분기 + 429 구분 =====
-				.exchangeToMono(res -> {
-					if (res.statusCode().is2xxSuccessful()) {
-						return res.bodyToMono(GptResponseDto.class);
-					}
-					return res.bodyToMono(String.class).flatMap(body -> {
-						int code = res.statusCode().value();
-						String bodySafe = body != null ? body : "";
-						if (code == 429) {
-							// Retry-After 헤더 추출 (있으면 로깅/힌트)
-							String ra = res.headers().asHttpHeaders().getFirst("Retry-After");
-							long retryAfterSec = parseLongSafe(ra);
-							if (bodySafe.contains("insufficient_quota")) {
-								log.error("[GPT] 429 insufficient_quota (quota exhausted). body={}",
-									bodySafe);
-								// 재시도 대상 아님
-								return Mono.error(new InsufficientQuotaException(bodySafe));
-							} else {
-								log.warn("[GPT] 429 rate-limited. Retry-After={}s, body={}",
-									retryAfterSec, bodySafe);
-								// 재시도 대상 (일시적 과다요청)
-								return Mono.error(
-									new TooManyRequestsException(bodySafe, retryAfterSec));
-							}
+		GptResponseDto resp = client.post()
+			.bodyValue(req)
+			.exchangeToMono(res -> {
+				if (res.statusCode().is2xxSuccessful()) {
+					return res.bodyToMono(GptResponseDto.class);
+				}
+				return res.bodyToMono(String.class).flatMap(body -> {
+					String b = body != null ? body : "";
+					int code = res.statusCode().value();
+
+					if (code == 429) {
+						String ra = res.headers().asHttpHeaders().getFirst("Retry-After");
+						long retryAfterSec = parseLongSafe(ra);
+
+						if (b.contains("insufficient_quota")) {
+							log.error("[GPT] 429 insufficient_quota (quota exhausted). body={}", b);
+							return Mono.error(new InsufficientQuotaException(b)); // 리트라이 X
 						}
-						log.error("[GPT] HTTP {} error: {}", res.statusCode(), bodySafe);
-						return Mono.error(
-							new RuntimeException("OpenAI error: " + res.statusCode()));
-					});
-				})
-				// ===== ADDED: Reactor 레벨 보조 백오프 (429/레이트 제한만) =====
-				.retryWhen(
-					reactor.util.retry.Retry.backoff(2, Duration.ofMillis(400))
-						.jitter(0.3)
-						.filter(ex -> ex instanceof TooManyRequestsException)
-						.doBeforeRetry(sig -> {
-							Throwable ex = sig.failure();
-							if (ex instanceof TooManyRequestsException t) {
-								if (t.retryAfterSeconds > 0) {
-									log.warn(
-										"[GPT] honoring Retry-After hint ~{}s (backoff is fixed but noted)",
-										t.retryAfterSeconds);
-								}
-							}
-						})
-				)
+						log.warn("[GPT] 429 rate-limited. Retry-After={}s, body={}", retryAfterSec,
+							b);
+						return Mono.error(new TooManyRequestsException(b, retryAfterSec)); // 리트라이 O
+					}
 
-				.doOnError(err -> log.error("[GPT] HTTP call failed", err))
-				.block(timeout != null ? timeout : Duration.ofSeconds(props.getTimeoutSeconds()));
+					log.error("[GPT] HTTP {} error: {}", res.statusCode(), b);
+					return Mono.error(new RuntimeException("OpenAI error: " + res.statusCode()));
+				});
+			})
+			.doOnError(err -> log.error("[GPT] HTTP call failed", err))
+			.block(timeout != null ? timeout : Duration.ofSeconds(props.getTimeoutSeconds()));
 
-			if (resp == null || resp.getChoices() == null || resp.getChoices().isEmpty()) {
-				log.warn("[GPT] empty response/choices");
-				return new Result(rawInfo, false);
-			}
-
-			// NPE / IndexOutOfBounds 방어
-			var first = resp.getChoices().getFirst(); // Java 21
-			var msg = first.getMessage();
-			if (msg == null) {
-				log.warn("[GPT] first choice message is null");
-				return new Result(rawInfo, false);
-			}
-
-			String content = msg.getContent();
-			if (content == null || content.isBlank()) {
-				log.warn("[GPT] empty content");
-				return new Result(rawInfo, false);
-			}
-
-			log.info("[GPT] call end: outLen={}", content.length());
-			return new Result(content, true);
-
-		} catch (InsufficientQuotaException e) { // ===== ADDED: 쿼터 소진 폴백 =====
-			log.error("[GPT] insufficient_quota: {}", e.getMessage());
-			return new Result(rawInfo, false);
-		} catch (Exception e) {
-			log.error("[GPT] call failed (caught)", e);
+		if (resp == null || resp.getChoices() == null || resp.getChoices().isEmpty()) {
+			log.warn("[GPT] empty response/choices");
 			return new Result(rawInfo, false);
 		}
+
+		var first = resp.getChoices().getFirst(); // Java 21
+		var msg = first.getMessage();
+		if (msg == null || msg.getContent() == null || msg.getContent().isBlank()) {
+			log.warn("[GPT] empty content");
+			return new Result(rawInfo, false);
+		}
+
+		String content = msg.getContent();
+		log.info("[GPT] call end: outLen={}", content.length());
+		return new Result(content, true);
 	}
 
-	//회로차단/재시도 초과 시 폴백 메서드 (Resilience4j)
 	@SuppressWarnings("unused")
 	private Result fallback(String rawInfo, Duration timeout, Throwable ex) {
 		log.warn("[GPT] fallback triggered: {}", ex.toString());
