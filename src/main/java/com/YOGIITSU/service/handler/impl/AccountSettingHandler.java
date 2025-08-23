@@ -22,7 +22,10 @@ public class AccountSettingHandler implements DynamicResponseHandler {
 
 	@Override
 	public String buildRawAnswer(Long nodeId, String key, Map<String, Object> ctx) {
-		ChatOption node = chatOptionRepository.findById(nodeId)
+		if (nodeId == null) {
+			throw new IllegalArgumentException("nodeId가 필요합니다.");
+		}
+		ChatOption node = chatOptionRepository.findByIdAndIsActiveTrue(nodeId)
 			.orElseThrow(() -> new IllegalArgumentException("계정·설정 노드를 찾을 수 없습니다."));
 
 		var type = node.getResponseType() == null ? ResponseType.STATIC : node.getResponseType();
