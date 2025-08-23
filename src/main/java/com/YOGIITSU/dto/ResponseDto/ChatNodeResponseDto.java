@@ -3,6 +3,8 @@ package com.YOGIITSU.dto.ResponseDto;
 import com.YOGIITSU.dto.RequestDto.ChatOptionItemRequestDto;
 import com.YOGIITSU.entity.ChatOption;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import java.util.Objects;
+import java.util.Optional;
 import lombok.Builder;
 import lombok.Getter;
 import java.util.HashMap;
@@ -20,9 +22,14 @@ public class ChatNodeResponseDto {
 	private Map<String, Object> meta;
 
 	public static ChatNodeResponseDto options(List<ChatOption> children) {
+		var items = Optional.ofNullable(children).orElseGet(List::of)
+			.stream()
+			.map(ChatOptionItemRequestDto::from)
+			.filter(Objects::nonNull)
+			.toList();
 		return ChatNodeResponseDto.builder()
 			.type("OPTIONS")
-			.options(children.stream().map(ChatOptionItemRequestDto::from).toList())
+			.options(items)
 			.build();
 	}
 
