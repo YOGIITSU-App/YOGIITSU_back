@@ -80,6 +80,7 @@ public class SignUpService {
 			.userName(dto.getUserName())
 			.role("USER")  // 반드시 ROLE_ 접두사
 			.joinAt(java.time.LocalDateTime.now())
+			.provider("local") // 로컬 회원가입을 나타내는 provider
 			.build();
 
 		// 9. DB 저장

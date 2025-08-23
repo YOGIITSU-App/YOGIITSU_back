@@ -6,8 +6,8 @@ services:
     container_name: yogiitsu-dev
     ports:
       - "8081:8080"
-    environment:
-      - CORS_ALLOWED_ORIGIN=https://dev.yogiitsu.com
+    env_file:
+      - ./.env
     volumes:
       - /var/log/yogiitsu/dev:/app/logs
     restart: always
@@ -19,8 +19,8 @@ services:
     container_name: yogiitsu-prod
     ports:
       - "8080:8080"
-    environment:
-      - CORS_ALLOWED_ORIGIN=https://yogiitsu.com
+    env_file:
+      - ./.env
     volumes:
       - /var/log/yogiitsu/prod:/app/logs
     restart: always

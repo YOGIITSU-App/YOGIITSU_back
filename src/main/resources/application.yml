@@ -1,0 +1,74 @@
+spring:
+  application:
+    name: YOGIITSU
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+
+  jpa:
+    hibernate:
+      ddl-auto: none  # 데이터베이스 스키마를 자동으로 업데이트 (개발용)
+    show-sql: true       # 실행되는 SQL 로그 출력
+    database-platform: org.hibernate.dialect.MySQL8Dialect # MySQL Dialect로 설정
+    properties:
+      hibernate:
+        format_sql: true  # SQL 쿼리 포맷팅 활성화
+    open-in-view: false  # 데이터베이스 쿼리가 뷰 렌더링 중에 실행되지 않도록 설정
+
+  jackson:
+    time-zone: Asia/Seoul
+    date-format: yyyy-MM-dd HH:mm:ss
+
+  jmx:
+    enabled: false  # JMX 비활성화
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${GMAIL_APP_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          timeout: 5000
+          starttls:
+            enable: true
+
+jwt:
+  secret: ${JWT_SECRET}
+  access-token-expiry: ${JWT_ACCESS_EXPIRY}
+  refresh-token-expiry: ${JWT_REFRESH_EXPIRY}
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    com.YOGIITSU: DEBUG
+
+server:
+  port: 8080   # API 서버 포트
+  address: 0.0.0.0   # 모든 IP에서 접근 가능하도록 설정
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+  server-url: ${SWAGGER_SERVER_URL}
+
+cors:
+  allowed-origin: ${CORS_ALLOWED_ORIGIN}
+
+email:
+  allowed-domains:
+    - suwon.ac.kr
+    - naver.com
+    - gmail.com
