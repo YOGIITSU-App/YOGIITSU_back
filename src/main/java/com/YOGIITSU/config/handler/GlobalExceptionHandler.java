@@ -3,8 +3,11 @@ package com.YOGIITSU.config.handler;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import com.YOGIITSU.exception.building.BuildingNotFoundException;
+import jakarta.validation.ConstraintViolationException;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -14,6 +17,7 @@ import org.springframework.mail.MailException;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -142,6 +146,32 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<Map<String, String>> handleSameEmailException(
 		SameEmailException e) {
 		return buildErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
+	}
+
+	// 챗봇 서비스 동작 중 처리할 수 없는 상태가 발생했을 때 호출
+	@ExceptionHandler(IllegalStateException.class)
+	public ResponseEntity<Map<String, String>> handleState(IllegalStateException e) {
+		log.error("[Chatbot] IllegalStateException 발생", e); // 예외 스택 로깅
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+			"message", "일시적으로 답변을 제공할 수 없습니다.",
+			"code", "CHATBOT_TEMPORARY_ERROR"
+		));
+	}
+
+	// 요청(쿼리/경로) 파라미터의 타입이 일치하지 않을 때 호출 (예: deptId=abc)
+	@ExceptionHandler(MethodArgumentTypeMismatchException.class)
+	public ResponseEntity<Map<String, String>> handleTypeMismatch(
+		MethodArgumentTypeMismatchException e) {
+		return buildErrorResponse(e.getName() + " 파라미터 형식이 올바르지 않습니다.", HttpStatus.BAD_REQUEST);
+	}
+
+	// 요청 파라미터가 유효성 제약(@Positive 등)을 위반했을 때 호출 (예: deptId=-1)
+	@ExceptionHandler(ConstraintViolationException.class)
+	public ResponseEntity<Map<String, String>> handleConstraintViolation(
+		ConstraintViolationException e) {
+		String msg = e.getConstraintViolations().stream()
+			.findFirst().map(v -> v.getMessage()).orElse("요청 파라미터가 올바르지 않습니다.");
+		return buildErrorResponse(msg, HttpStatus.BAD_REQUEST);
 	}
 
 	public static class PasswordMismatchException extends RuntimeException {
