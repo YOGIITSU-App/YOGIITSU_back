@@ -17,9 +17,8 @@ public class ShuttleService {
 		LocalTime.of(9, 10), LocalTime.of(9, 20),
 		LocalTime.of(10, 10), LocalTime.of(10, 20),
 		LocalTime.of(11, 10), LocalTime.of(11, 20),
-		LocalTime.of(12, 10), LocalTime.of(12, 20),
-		LocalTime.of(13, 20), LocalTime.of(14, 20),
-		LocalTime.of(15, 20)
+		LocalTime.of(12, 10), LocalTime.of(13, 20),
+		LocalTime.of(14, 20), LocalTime.of(15, 20)
 	);
 
 	private final List<String> route = Arrays.asList(
