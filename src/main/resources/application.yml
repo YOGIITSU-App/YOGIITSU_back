@@ -50,8 +50,8 @@ jwt:
 
 logging:
   level:
-    org.springframework.security: DEBUG
-    com.YOGIITSU: DEBUG
+    org.springframework.security: INFO
+    com.YOGIITSU: INFO
 
 server:
   port: 8080   # API 서버 포트
