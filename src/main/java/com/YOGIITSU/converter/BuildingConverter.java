@@ -58,6 +58,7 @@ public class BuildingConverter {
 				.map(facility -> FacilityResponseDto.builder()
 					.name(facility.getName())
 					.floor(facility.getFloor())
+					.type(facility.getType())
 					.build())
 				.collect(Collectors.toList()))
 			.build();
