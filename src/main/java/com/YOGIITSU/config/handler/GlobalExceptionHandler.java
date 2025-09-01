@@ -144,6 +144,13 @@ public class GlobalExceptionHandler {
 		return buildErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
 	}
 
+	// 셔틀 정류장 ID로 정류장을 찾을 수 없는 경우 예외 처리
+	@ExceptionHandler(ShuttleStopNotFoundException.class)
+	public ResponseEntity<Map<String, String>> handleShuttleStopNotFoundException(
+		ShuttleStopNotFoundException e) {
+		return buildErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND);
+	}
+
 	public static class PasswordMismatchException extends RuntimeException {
 
 		public PasswordMismatchException() {
@@ -226,6 +233,12 @@ public class GlobalExceptionHandler {
 
 		public SameEmailException() {
 			super("기존 이메일과 동일한 이메일로는 변경할 수 없습니다.");
+		}
+	}
+
+	public static class ShuttleStopNotFoundException extends RuntimeException {
+		public ShuttleStopNotFoundException(String stopId) {
+			super("요청하신 정류장 ID를 찾을 수 없습니다: " + stopId);
 		}
 	}
 }
