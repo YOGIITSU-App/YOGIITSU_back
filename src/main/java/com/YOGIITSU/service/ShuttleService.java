@@ -1,5 +1,6 @@
 package com.YOGIITSU.service;
 
+import com.YOGIITSU.config.handler.GlobalExceptionHandler.ShuttleStopNotFoundException;
 import com.YOGIITSU.dto.ResponseDto.ShuttleScheduleDetailResponseDto;
 import com.YOGIITSU.dto.ResponseDto.ShuttleScheduleResponseDto;
 import com.YOGIITSU.dto.ResponseDto.StopScheduleResponseDto;
@@ -160,6 +161,6 @@ public class ShuttleService {
 		return IntStream.range(0, route.size())
 			.filter(i -> route.get(i).id().equalsIgnoreCase(stopId))
 			.findFirst()
-			.orElseThrow(() -> new IllegalArgumentException("Invalid stop ID: " + stopId));
+			.orElseThrow(() -> new ShuttleStopNotFoundException(stopId));
 	}
 }
