@@ -40,7 +40,7 @@ public class ShuttleService {
 		new BusStop("STOP_03", "ICT 융합대학", Duration.ofMinutes(1)),
 		new BusStop("STOP_04", "음악대학", Duration.ofMinutes(3)),
 		new BusStop("STOP_05", "제1공학관", Duration.ofMinutes(1)),
-		new BusStop("STOP_06", "후문(제4공학관)", Duration.ofMinutes(1).plusSeconds(30)),
+		new BusStop("STOP_06", "후문(제4공학관)", Duration.ofMinutes(2)),
 		new BusStop("STOP_07", "미술대학(조형관)", Duration.ofMinutes(2)),
 		new BusStop("STOP_08", "인문대 하차", Duration.ZERO)
 	);
@@ -92,29 +92,32 @@ public class ShuttleService {
 		String stopName = route.get(stopIndex).name();
 
 		LocalTime now = LocalTime.now(ZoneId.of("Asia/Seoul"));
+
+		// DTO 생성을 위해 포맷팅된 전체 시간표를 미리 생성합니다.
 		List<List<StopScheduleResponseDto>> fullSchedule = generateFullSchedule();
 
-		// 지정한 정류장에 도착할 셔틀들을 찾습니다.
-		List<List<StopScheduleResponseDto>> upcomingSchedules = fullSchedule.stream()
-			.filter(schedule -> {
-				LocalTime arrivalTimeAtStop = LocalTime.parse(
-					schedule.get(stopIndex).estimatedArrivalTime());
-				return !arrivalTimeAtStop.isBefore(now);
-			})
+		// 정확한 도착 시간을 계산하여 다음 셔틀의 '인덱스'를 찾습니다.
+		List<Integer> upcomingIndices = IntStream.range(0, departureTimes.size())
+			.filter(i -> !estimateArrivalAtStop(departureTimes.get(i), stopIndex).isBefore(now))
+			.boxed()
 			.toList();
 
-		// 곧 도착할 셔틀 2개를 선택합니다. (오늘 남은 셔틀 + 내일 첫 셔틀)
-		List<List<StopScheduleResponseDto>> nextTwoSchedules = new ArrayList<>(upcomingSchedules);
-		if (nextTwoSchedules.size() < 2) {
-			nextTwoSchedules.addAll(fullSchedule.subList(0, 2 - nextTwoSchedules.size()));
+		// 인덱스를 기반으로 다음 셔틀 2개를 선택합니다.
+		List<Integer> nextTwoIndices = new ArrayList<>(upcomingIndices);
+		if (nextTwoIndices.size() < 2) {
+			int remaining = 2 - nextTwoIndices.size();
+			for (int i = 0; i < remaining; i++) {
+				nextTwoIndices.add(i);
+			}
 		}
-		nextTwoSchedules = nextTwoSchedules.subList(0, 2);
+		nextTwoIndices = nextTwoIndices.subList(0, 2);
 
-		// DTO 형태로 가공
-		List<UpcomingShuttleResponseDto> upcomingShuttles = nextTwoSchedules.stream()
-			.map(schedule -> {
-				List<StopScheduleResponseDto> remainingRoute = schedule.subList(stopIndex,
-					schedule.size());
+		// 찾아낸 인덱스를 사용해 최종 DTO를 가공합니다.
+		List<UpcomingShuttleResponseDto> upcomingShuttles = nextTwoIndices.stream()
+			.map(idx -> {
+				List<StopScheduleResponseDto> fullRouteForThisShuttle = fullSchedule.get(idx);
+				List<StopScheduleResponseDto> remainingRoute = fullRouteForThisShuttle.subList(
+					stopIndex, fullRouteForThisShuttle.size());
 				String arrivalTime = remainingRoute.get(0).estimatedArrivalTime();
 				return new UpcomingShuttleResponseDto(arrivalTime, remainingRoute);
 			})
@@ -155,7 +158,18 @@ public class ShuttleService {
 	}
 
 	/**
-	 * 정류장 이름으로 경로 목록에서 인덱스를 찾습니다.
+	 * 출발시각과 정류장 인덱스로 정확한 도착시각(초 단위 포함)을 계산합니다.
+	 */
+	private LocalTime estimateArrivalAtStop(LocalTime departureTime, int stopIndex) {
+		Duration cumulativeDuration = Duration.ZERO;
+		for (int i = 0; i < stopIndex; i++) {
+			cumulativeDuration = cumulativeDuration.plus(route.get(i).durationToNextStop());
+		}
+		return departureTime.plus(cumulativeDuration);
+	}
+
+	/**
+	 * 정류장 ID로 정류장 인덱스를 찾습니다. 없으면 예외를 던집니다.
 	 */
 	private int findStopIndexById(String stopId) {
 		return IntStream.range(0, route.size())
