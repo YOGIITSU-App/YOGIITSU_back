@@ -1,6 +1,7 @@
 package com.YOGIITSU.service;
 
 import com.YOGIITSU.config.handler.GlobalExceptionHandler.ShuttleStopNotFoundException;
+import com.YOGIITSU.dto.ResponseDto.RouteStopResponseDto;
 import com.YOGIITSU.dto.ResponseDto.ShuttleScheduleDetailResponseDto;
 import com.YOGIITSU.dto.ResponseDto.ShuttleScheduleResponseDto;
 import com.YOGIITSU.dto.ResponseDto.StopScheduleResponseDto;
@@ -128,13 +129,13 @@ public class ShuttleService {
 			.map(time -> time.format(timeFormatter))
 			.toList();
 
-		List<String> fullRouteString = route.stream()
-			.map(BusStop::name)
+		List<RouteStopResponseDto> fullRouteObjectList = route.stream()
+			.map(stop -> new RouteStopResponseDto(stop.id(), stop.name()))
 			.toList();
 
 		// 새로 만든 통합 DTO로 모든 정보를 담아 반환합니다.
-		return new ShuttleScheduleDetailResponseDto(stopName, upcomingShuttles, fullTimeTableString,
-			fullRouteString);
+		return new ShuttleScheduleDetailResponseDto(stopId, stopName, upcomingShuttles, fullTimeTableString,
+			fullRouteObjectList);
 	}
 
 	/**
@@ -148,7 +149,7 @@ public class ShuttleService {
 
 				for (BusStop stop : route) {
 					LocalTime arrivalTime = departureTime.plus(cumulativeDuration);
-					singleRunSchedule.add(new StopScheduleResponseDto(stop.name(),
+					singleRunSchedule.add(new StopScheduleResponseDto(stop.id(), stop.name(),
 						arrivalTime.format(timeFormatter)));
 					cumulativeDuration = cumulativeDuration.plus(stop.durationToNextStop());
 				}
