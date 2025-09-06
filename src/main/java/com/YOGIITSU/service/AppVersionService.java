@@ -6,6 +6,7 @@ import com.YOGIITSU.dto.ResponseDto.AppVersionResponseDto;
 import com.YOGIITSU.entity.AppVersion;
 import com.YOGIITSU.enums.Platform;
 import com.YOGIITSU.repository.AppVersionRepository;
+import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AppVersionService {
 
 	private final AppVersionRepository repository;
+	private static final Pattern VERSION_PATTERN = Pattern.compile("^\\d+(\\.\\d+)*$");
 
 	@Transactional(readOnly = true)
 	public AppVersionResponseDto getAppVersion(Platform platform, String currentVersion) {
@@ -55,8 +57,15 @@ public class AppVersionService {
 	 * @return v1 > v2 이면 1, v1 < v2 이면 -1, 같으면 0
 	 */
 	private int compareVersion(String v1, String v2) {
-		String[] parts1 = v1.split("\\.");
-		String[] parts2 = v2.split("\\.");
+		String s1 = v1 == null ? "" : v1.trim();
+		String s2 = v2 == null ? "" : v2.trim();
+
+		if (!VERSION_PATTERN.matcher(s1).matches() || !VERSION_PATTERN.matcher(s2).matches()) {
+			throw new IllegalArgumentException("버전 문자열 형식이 올바르지 않습니다.");
+		}
+		String[] parts1 = s1.split("\\.");
+		String[] parts2 = s2.split("\\.");
+
 		int length = Math.max(parts1.length, parts2.length);
 		for (int i = 0; i < length; i++) {
 			int num1 = i < parts1.length ? Integer.parseInt(parts1[i]) : 0;
