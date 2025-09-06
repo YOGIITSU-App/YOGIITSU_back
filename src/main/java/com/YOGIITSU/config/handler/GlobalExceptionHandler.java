@@ -25,6 +25,13 @@ public class GlobalExceptionHandler {
 		return ResponseEntity.status(status).body(errorResponse);
 	}
 
+	// 리소스를 찾을 수 없을 경우 예외 처리
+	@ExceptionHandler(ResourceNotFoundException.class)
+	public ResponseEntity<Map<String, String>> handleResourceNotFoundException(
+		ResourceNotFoundException e) {
+		return buildErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND);
+	}
+
 	// 토큰이 없을 경우 예외 클래스 정의
 	@ExceptionHandler(MissingTokenException.class)
 	public ResponseEntity<Map<String, String>> handleMissingTokenException(
@@ -237,8 +244,16 @@ public class GlobalExceptionHandler {
 	}
 
 	public static class ShuttleStopNotFoundException extends RuntimeException {
+
 		public ShuttleStopNotFoundException(String stopId) {
 			super("요청하신 정류장 ID를 찾을 수 없습니다: " + stopId);
+		}
+	}
+
+	public static class ResourceNotFoundException extends RuntimeException {
+
+		public ResourceNotFoundException(String platform) {
+			super("해당 플랫폼(" + platform + ")의 버전 정책을 찾을 수 없습니다.");
 		}
 	}
 }
