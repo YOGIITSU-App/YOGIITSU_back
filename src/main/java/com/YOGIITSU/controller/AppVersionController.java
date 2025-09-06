@@ -11,12 +11,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "앱 버전 체크 API", description = "클라이언트 앱의 버전을 서버의 최신 정책과 비교하여 업데이트 필요 여부를 반환합니다.")
 @RestController
 @RequestMapping("/app/version")
 @RequiredArgsConstructor
+@Validated
 public class AppVersionController {
 
 	private final AppVersionService service;
