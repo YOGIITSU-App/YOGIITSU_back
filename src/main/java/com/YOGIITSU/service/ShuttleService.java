@@ -125,8 +125,9 @@ public class ShuttleService {
 			.toList();
 
 		// 전체 시간표와 노선 정보를 가져옵니다.
-		List<String> fullTimeTableString = departureTimes.stream()
-			.map(time -> time.format(timeFormatter))
+		List<String> fullTimeTableForStop = departureTimes.stream()
+			.map(departureTime -> estimateArrivalAtStop(departureTime, stopIndex)) // 각 출발 시간에 대한 도착 시간 계산
+			.map(arrivalTime -> arrivalTime.format(timeFormatter))
 			.toList();
 
 		List<RouteStopResponseDto> fullRouteObjectList = route.stream()
@@ -134,7 +135,7 @@ public class ShuttleService {
 			.toList();
 
 		// 새로 만든 통합 DTO로 모든 정보를 담아 반환합니다.
-		return new ShuttleScheduleDetailResponseDto(stopId, stopName, upcomingShuttles, fullTimeTableString,
+		return new ShuttleScheduleDetailResponseDto(stopId, stopName, upcomingShuttles, fullTimeTableForStop,
 			fullRouteObjectList);
 	}
 
