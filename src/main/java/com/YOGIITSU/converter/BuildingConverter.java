@@ -143,7 +143,7 @@ public class BuildingConverter {
 				.collegeId(building.getCollegeId())
 				.collegeName(building.getCollegeName())
 				.imageUrl(building.getImageUrl())
-				.isFavorite(favoriteBuildingIds.contains(building.getBuildingId()))
+				.favorite(favoriteBuildingIds.contains(building.getBuildingId()))
 				.build())
 			.sorted(Comparator.comparing(BuildingListResponseDto::isFavorite)
 				.reversed()

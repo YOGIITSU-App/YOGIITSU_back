@@ -1,5 +1,6 @@
 package com.YOGIITSU.dto.ResponseDto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,5 +15,7 @@ public class BuildingListResponseDto {
 	private Long collegeId;
 	private String collegeName;
 	private String imageUrl;
-	private boolean isFavorite;
+	
+	@JsonProperty("isFavorite")
+	private boolean favorite;
 }
