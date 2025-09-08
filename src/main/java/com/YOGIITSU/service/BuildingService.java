@@ -7,7 +7,10 @@ import com.YOGIITSU.entity.Building;
 import com.YOGIITSU.exception.building.BuildingNotFoundException;
 import com.YOGIITSU.repository.BuildingRepository;
 import com.YOGIITSU.repository.FavoriteRepository;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +22,7 @@ public class BuildingService {
 	private final BuildingRepository buildingRepository;
 	private final FavoriteRepository favoriteRepository;
 	private final BuildingConverter buildingConverter;
+
 
 	/**
 	 * 건물 상세 정보를 조회하는 메서드
@@ -50,12 +54,17 @@ public class BuildingService {
 	}
 
 	/**
-	 * 모든 건물의 간단한 정보를 조회하는 메서드
+	 * 전체 건물 목록을 조회하는 메서드 (즐겨찾기 여부 포함)
 	 *
-	 * @return 모든 건물의 간단한 정보를 담은 BuildingListResponseDto 리스트
+	 * @param memberId 현재 로그인한 사용자의 ID
+	 * @return 건물 목록 정보를 담은 List<BuildingListResponseDto>
 	 */
 	@Transactional(readOnly = true)
-	public List<BuildingListResponseDto> getAllBuildings() {
-		return buildingRepository.findAllSimpleList();
+	public List<BuildingListResponseDto> getAllBuildings(Long memberId) {
+		List<BuildingListResponseDto> buildings = buildingRepository.findAllSimpleList();
+
+		Set<Long> favoriteBuildingIds = favoriteRepository.findBuildingIdsByMemberId(memberId);
+
+		return buildingConverter.convertToBuildingListResponseDto(buildings, favoriteBuildingIds);
 	}
 }

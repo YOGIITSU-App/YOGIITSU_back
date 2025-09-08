@@ -86,7 +86,10 @@ public class BuildingController {
 		description = "앱의 전체 단과대(건물) 스크롤 화면에 사용될 건물 목록 전체를 조회합니다."
 	)
 	@GetMapping
-	public List<BuildingListResponseDto> getAllBuildings() {
-		return buildingService.getAllBuildings();
+	public List<BuildingListResponseDto> getAllBuildings(
+		@Parameter(hidden = true) HttpServletRequest request
+	) {
+		Long memberId = jwtUtil.extractMemberId(request);
+		return buildingService.getAllBuildings(memberId);
 	}
 }

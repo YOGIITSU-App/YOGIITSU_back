@@ -23,7 +23,12 @@ public interface BuildingRepository extends JpaRepository<Building, Long> {
 	Optional<Building> findByIdWithAllRelations(@Param("id") Long id);
 
 	@Query("SELECT new com.YOGIITSU.dto.ResponseDto.BuildingListResponseDto(" +
-		"b.id, b.name, MIN(d.collegeId), MIN(d.collegeName), b.imageUrl) " +
+		"b.id, " +
+		"b.name, " +
+		"MIN(d.collegeId), " +
+		"MIN(d.collegeName), " +
+		"b.imageUrl, " +
+		"false) " +
 		"FROM Building b LEFT JOIN b.departments d " +
 		"GROUP BY b.id, b.name, b.imageUrl " +
 		"ORDER BY b.id")
