@@ -1,12 +1,14 @@
 package com.YOGIITSU.controller;
 
 import com.YOGIITSU.dto.ResponseDto.BuildingDetailResponseDto;
+import com.YOGIITSU.dto.ResponseDto.BuildingListResponseDto;
 import com.YOGIITSU.service.BuildingService;
 import com.YOGIITSU.util.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -77,5 +79,14 @@ public class BuildingController {
 
 		// 2. 서비스 호출 → 즐겨찾기 여부까지 포함해서 반환
 		return buildingService.getBuildingDetail(id, memberId);
+	}
+
+	@Operation(
+		summary = "전체 건물 목록 조회",
+		description = "앱의 전체 단과대(건물) 스크롤 화면에 사용될 건물 목록 전체를 조회합니다."
+	)
+	@GetMapping
+	public List<BuildingListResponseDto> getAllBuildings() {
+		return buildingService.getAllBuildings();
 	}
 }

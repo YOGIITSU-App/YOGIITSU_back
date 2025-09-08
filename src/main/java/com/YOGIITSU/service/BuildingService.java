@@ -2,10 +2,12 @@ package com.YOGIITSU.service;
 
 import com.YOGIITSU.converter.BuildingConverter;
 import com.YOGIITSU.dto.ResponseDto.BuildingDetailResponseDto;
+import com.YOGIITSU.dto.ResponseDto.BuildingListResponseDto;
 import com.YOGIITSU.entity.Building;
 import com.YOGIITSU.exception.building.BuildingNotFoundException;
 import com.YOGIITSU.repository.BuildingRepository;
 import com.YOGIITSU.repository.FavoriteRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,5 +47,15 @@ public class BuildingService {
 	private Building findBuildingById(Long buildingId) {
 		return buildingRepository.findByIdWithAllRelations(buildingId)
 			.orElseThrow(() -> new BuildingNotFoundException(buildingId));
+	}
+
+	/**
+	 * 모든 건물의 간단한 정보를 조회하는 메서드
+	 *
+	 * @return 모든 건물의 간단한 정보를 담은 BuildingListResponseDto 리스트
+	 */
+	@Transactional(readOnly = true)
+	public List<BuildingListResponseDto> getAllBuildings() {
+		return buildingRepository.findAllSimpleList();
 	}
 }

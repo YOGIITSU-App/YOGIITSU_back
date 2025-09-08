@@ -24,6 +24,9 @@ public class Department {
 	@JsonBackReference
 	private Building building;
 
+	@Column(name = "college_id")
+	private Long collegeId;
+
 	@Column(nullable = false)
 	private String collegeName;
 
