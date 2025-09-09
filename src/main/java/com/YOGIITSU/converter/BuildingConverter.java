@@ -2,6 +2,7 @@ package com.YOGIITSU.converter;
 
 import com.YOGIITSU.dto.ResponseDto.*;
 import com.YOGIITSU.entity.*;
+import java.util.Set;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -122,5 +123,31 @@ public class BuildingConverter {
 		} catch (NumberFormatException ignored) {
 		}
 		return Integer.MAX_VALUE; // 예외나 비정상 문자열도 마지막에 정렬
+	}
+
+	/**
+	 * Repository에서 조회한 건물 목록을 최종 API 응답 DTO 리스트로 변환 (즐겨찾기 여부 설정 및 정렬 포함)
+	 *
+	 * @param buildings           Repository에서 조회한 원본 건물 리스트
+	 * @param favoriteBuildingIds 사용자가 즐겨찾기한 건물 ID Set
+	 * @return 즐겨찾기 여부가 설정되고 정렬된 BuildingListResponseDto 리스트
+	 */
+	public List<BuildingListResponseDto> convertToBuildingListResponseDto(
+		List<BuildingListResponseDto> buildings,
+		Set<Long> favoriteBuildingIds) {
+
+		return buildings.stream()
+			.map(building -> BuildingListResponseDto.builder()
+				.buildingId(building.getBuildingId())
+				.buildingName(building.getBuildingName())
+				.collegeId(building.getCollegeId())
+				.collegeName(building.getCollegeName())
+				.imageUrl(building.getImageUrl())
+				.favorite(favoriteBuildingIds.contains(building.getBuildingId()))
+				.build())
+			.sorted(Comparator.comparing(BuildingListResponseDto::isFavorite)
+				.reversed()
+				.thenComparing(BuildingListResponseDto::getBuildingId))
+			.collect(Collectors.toList());
 	}
 }
