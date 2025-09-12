@@ -4,6 +4,7 @@ import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 import com.YOGIITSU.exception.building.BuildingNotFoundException;
+import com.YOGIITSU.exception.cafeteria.CafeteriaNotFoundForBuildingException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -123,6 +124,13 @@ public class GlobalExceptionHandler {
 			HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
+	@ExceptionHandler(CafeteriaNotFoundForBuildingException.class)
+	public ResponseEntity<Map<String, String>> handleCafeteriaNotFound(
+		CafeteriaNotFoundForBuildingException e) {
+		return ResponseEntity.status(HttpStatus.NOT_FOUND)
+			.body(Map.of("message", e.getMessage())); // "해당 건물에 식당이 없습니다."
+	}
+
 	// 기타 예외 (MimeMessage 생성 오류 포함) 처리
 	@ExceptionHandler(RuntimeException.class)
 	public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException e) {
@@ -156,20 +164,6 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<Map<String, String>> handleShuttleStopNotFoundException(
 		ShuttleStopNotFoundException e) {
 		return buildErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND);
-	}
-
-	// 건물은 있는데 그 건물에 식당이 없는 경우
-	@ExceptionHandler(CafeteriaNotFoundForBuildingException.class)
-	public ResponseEntity<Map<String, String>> handleCafeteriaNotFoundForBuilding(
-		CafeteriaNotFoundForBuildingException e) {
-		return buildErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND);
-	}
-
-	public static class CafeteriaNotFoundForBuildingException extends RuntimeException {
-
-		public CafeteriaNotFoundForBuildingException() {
-			super("해당 건물에는 식당이 없습니다.");
-		}
 	}
 
 	public static class PasswordMismatchException extends RuntimeException {

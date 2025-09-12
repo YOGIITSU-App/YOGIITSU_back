@@ -78,16 +78,33 @@ public class CafeteriaCrawler {
 	 */
 	public List<ParsedRow> fetchAll(LocalDate monday) {
 		List<ParsedRow> out = new ArrayList<>();
+		int maxRetries = 3;
 		for (Place p : PLACES) {
-			try {
-				List<ParsedRow> rows = fetchPlace(p, monday);
-				if (rows.isEmpty()) {
-					log.warn("[Crawler] {}-{} 결과 0건", p.building(), p.place());
+			int retryCount = 0;
+			while (retryCount < maxRetries) {
+				try {
+					List<ParsedRow> rows = fetchPlace(p, monday);
+					if (rows.isEmpty()) {
+						log.warn("[Crawler] {}-{} 결과 0건", p.building(), p.place());
+					}
+					out.addAll(rows);
+					break; // 성공 시 탈출
+				} catch (Exception e) {
+					retryCount++;
+					if (retryCount >= maxRetries) {
+						log.error("[Crawler] {}-{} 크롤 실패 ({}회 재시도)", p.building(), p.place(),
+							maxRetries, e);
+					} else {
+						log.warn("[Crawler] {}-{} 크롤 실패, 재시도 {}/{}", p.building(), p.place(),
+							retryCount, maxRetries);
+						try {
+							Thread.sleep(1000L * retryCount);
+						} catch (InterruptedException ie) {
+							Thread.currentThread().interrupt();
+							break;
+						}
+					}
 				}
-				out.addAll(rows);
-			} catch (Exception e) {
-				log.error("[Crawler] {}-{} 크롤 실패", p.building(), p.place(), e);
-				// 한 장소 실패해도 계속 진행
 			}
 		}
 
@@ -103,7 +120,11 @@ public class CafeteriaCrawler {
 	 * 장소별 테이블 파싱(코너/배너/rowspan 및 월~금 보정) - FIXED
 	 */
 	private List<ParsedRow> fetchPlace(Place place, LocalDate monday) throws Exception {
-		Document doc = Jsoup.connect(place.url()).userAgent(UA).timeout(TIMEOUT).get();
+		Document doc = Jsoup.connect(place.url())
+			.userAgent(UA)
+			.timeout(TIMEOUT)
+			.maxBodySize(0)  // 큰 HTML 페이지 대응
+			.get();
 		Element table;
 		try {
 			table = doc.selectFirst(place.selector());
@@ -139,8 +160,9 @@ public class CafeteriaCrawler {
 
 			// --- 이 행에서 '요일 블록' 시작 위치를 동적으로 계산 (rowspan 보정의 핵심)
 			int base = tds.size() - daysCount;
-			if (base < 0) {
-				continue; // 안전장치
+			if (base < 0 || base > tds.size()) {
+				log.debug("[Crawler] 예상치 못한 테이블 구조: tds={}, daysCount={}", tds.size(), daysCount);
+				continue;
 			}
 
 			// --- 요일 블록 앞쪽(0..base-1)의 모든 칸 텍스트 수집

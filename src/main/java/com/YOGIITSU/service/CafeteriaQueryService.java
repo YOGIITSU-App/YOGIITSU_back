@@ -1,11 +1,11 @@
 package com.YOGIITSU.service;
 
-import com.YOGIITSU.config.handler.GlobalExceptionHandler;
 import com.YOGIITSU.dto.ResponseDto.WeeklyCafeteriaResponseDto;
 import com.YOGIITSU.dto.ResponseDto.WeeklyCafeteriaResponseDto.CafeteriaMenuWithIndexDto;
 import com.YOGIITSU.entity.Cafeteria;
 import com.YOGIITSU.entity.CafeteriaMenu;
 import com.YOGIITSU.exception.building.BuildingNotFoundException;
+import com.YOGIITSU.exception.cafeteria.CafeteriaNotFoundForBuildingException;
 import com.YOGIITSU.repository.CafeteriaMenuRepository;
 import com.YOGIITSU.repository.CafeteriaRepository;
 import lombok.RequiredArgsConstructor;
@@ -179,7 +179,7 @@ public class CafeteriaQueryService {
 		// 이 건물의 식당 목록 (없으면 404)
 		List<Cafeteria> cafeterias = cafeteriaRepo.findByBuildingId(buildingId);
 		if (cafeterias.isEmpty()) {
-			throw new GlobalExceptionHandler.CafeteriaNotFoundForBuildingException();
+			throw new CafeteriaNotFoundForBuildingException();
 		}
 
 		Map<Long, Cafeteria> idToCafeteria = cafeterias.stream()

@@ -1,9 +1,7 @@
 package com.YOGIITSU.controller;
 
-import com.YOGIITSU.config.handler.GlobalExceptionHandler;
 import com.YOGIITSU.dto.ErrorResponse;
 import com.YOGIITSU.dto.ResponseDto.WeeklyCafeteriaResponseDto;
-import com.YOGIITSU.jwt.CustomUserDetails;
 import com.YOGIITSU.service.CafeteriaQueryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -13,7 +11,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -45,16 +42,8 @@ public class CafeteriaController {
 	@GetMapping("/menus/weekly")
 	public ResponseEntity<WeeklyCafeteriaResponseDto> getWeekly(
 		@Parameter(description = "건물 ID", example = "5")
-		@RequestParam(name = "buildingId") Long buildingId,
-		@AuthenticationPrincipal CustomUserDetails userDetails
+		@RequestParam(name = "buildingId") Long buildingId
 	) {
-		requireLogin(userDetails);
 		return ResponseEntity.ok(queryService.getWeeklyByBuilding(buildingId));
-	}
-
-	private void requireLogin(CustomUserDetails userDetails) {
-		if (userDetails == null) {
-			throw new GlobalExceptionHandler.UnauthenticatedAccessException();
-		}
 	}
 }

@@ -6,7 +6,7 @@ import lombok.*;
 @Entity
 @Table(
 	name = "cafeteria",
-	uniqueConstraints = @UniqueConstraint(name = "uq_cafeteria", columnNames = {"building_Id",
+	uniqueConstraints = @UniqueConstraint(name = "uq_cafeteria", columnNames = {"building_id",
 		"name"})
 )
 @Getter
