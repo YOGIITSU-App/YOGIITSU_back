@@ -144,6 +144,20 @@ public class GlobalExceptionHandler {
 		return buildErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
 	}
 
+	// 건물은 있는데 그 건물에 식당이 없는 경우
+	@ExceptionHandler(CafeteriaNotFoundForBuildingException.class)
+	public ResponseEntity<Map<String, String>> handleCafeteriaNotFoundForBuilding(
+		CafeteriaNotFoundForBuildingException e) {
+		return buildErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND);
+	}
+
+	public static class CafeteriaNotFoundForBuildingException extends RuntimeException {
+
+		public CafeteriaNotFoundForBuildingException() {
+			super("해당 건물에는 식당이 없습니다.");
+		}
+	}
+
 	public static class PasswordMismatchException extends RuntimeException {
 
 		public PasswordMismatchException() {
