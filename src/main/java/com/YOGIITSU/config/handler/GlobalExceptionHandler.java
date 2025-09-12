@@ -144,6 +144,27 @@ public class GlobalExceptionHandler {
 		return buildErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
 	}
 
+	// Apple identityToken이 유효하지 않을 경우 예외 처리
+	@ExceptionHandler(AppleTokenInvalidException.class)
+	public ResponseEntity<Map<String, String>> handleAppleTokenInvalid(
+		AppleTokenInvalidException e) {
+		return buildErrorResponse(e.getMessage(), UNAUTHORIZED);
+	}
+
+	// Apple 공개키를 찾을 수 없을 경우 예외 처리
+	@ExceptionHandler(ApplePublicKeyNotFoundException.class)
+	public ResponseEntity<Map<String, String>> handleAppleKeyNotFound(
+		ApplePublicKeyNotFoundException e) {
+		return buildErrorResponse(e.getMessage(), UNAUTHORIZED);
+	}
+
+	// Apple 토큰 검증 과정에서 내부 오류가 발생한 경우 예외 처리
+	@ExceptionHandler(AppleVerificationException.class)
+	public ResponseEntity<Map<String, String>> handleAppleVerificationError(
+		AppleVerificationException e) {
+		return buildErrorResponse(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+	}
+
 	public static class PasswordMismatchException extends RuntimeException {
 
 		public PasswordMismatchException() {
@@ -227,5 +248,20 @@ public class GlobalExceptionHandler {
 		public SameEmailException() {
 			super("기존 이메일과 동일한 이메일로는 변경할 수 없습니다.");
 		}
+	}
+
+	public static class AppleTokenInvalidException extends RuntimeException {
+
+        public AppleTokenInvalidException() { super("유효하지 않은 Apple identityToken 입니다."); }
+	}
+
+	public static class ApplePublicKeyNotFoundException extends RuntimeException {
+
+        public ApplePublicKeyNotFoundException() { super("Apple 공개키를 찾을 수 없습니다."); }
+	}
+
+	public static class AppleVerificationException extends RuntimeException {
+
+        public AppleVerificationException() { super("Apple 토큰 검증 중 오류가 발생했습니다."); }
 	}
 }
