@@ -4,6 +4,7 @@ import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 import com.YOGIITSU.exception.building.BuildingNotFoundException;
+import com.YOGIITSU.exception.cafeteria.CafeteriaNotFoundForBuildingException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -121,6 +122,13 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<Map<String, String>> handleMailException(MailException e) {
 		return buildErrorResponse("이메일 전송 중 오류가 발생했습니다: " + e.getMessage(),
 			HttpStatus.INTERNAL_SERVER_ERROR);
+	}
+
+	@ExceptionHandler(CafeteriaNotFoundForBuildingException.class)
+	public ResponseEntity<Map<String, String>> handleCafeteriaNotFound(
+		CafeteriaNotFoundForBuildingException e) {
+		return ResponseEntity.status(HttpStatus.NOT_FOUND)
+			.body(Map.of("message", e.getMessage())); // "해당 건물에 식당이 없습니다."
 	}
 
 	// 기타 예외 (MimeMessage 생성 오류 포함) 처리
