@@ -12,6 +12,8 @@ public class BuildingDetailResponseDto {
 
 	private List<DepartmentResponseDto> departments;
 
+	private List<FacilityResponseDto> facilities;
+
 	private List<FloorImageResponseDto> floorPlans;
 
 	private boolean isFavorite;
