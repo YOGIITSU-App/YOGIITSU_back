@@ -186,7 +186,7 @@ cd backend
 
 ---
 
-## 👨‍💻 저자 및 기여자
+## 👨‍💻 팀원 소
 - 컴퓨터SW학과 졸업 프로젝트 팀 (2025)
 - Frontend: [@jongmink0](https://github.com/jongmink0)
 - Backend: [@parksomii](https://github.com/parksomii)
