@@ -82,7 +82,7 @@
 - Python FastAPI
 - OpenAI GPT + LangChain
 - FAISS(Vector DB), ElasticSearch
-- Jsoup / BeautifulSoup 크롤링
+- Jsoup 크롤링
 
 ### Infra / DevOps
 - GitHub Actions (CI/CD)
