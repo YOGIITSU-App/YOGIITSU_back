@@ -30,6 +30,9 @@ public class ClientSecretProvider {
     @Value("${apple.private-key-path}")
     private String privateKeyPath;
 
+    /**
+     * Apple client_secret(JWT) 생성
+     */
     public String createClientSecret() {
         try {
             PrivateKey privateKey = loadPrivateKey(privateKeyPath);
@@ -49,6 +52,9 @@ public class ClientSecretProvider {
         }
     }
 
+    /**
+     * p8 키 파일에서 PrivateKey 로드
+     */
     private PrivateKey loadPrivateKey(String keyPath) throws Exception {
         InputStream is;
 
