@@ -104,7 +104,7 @@
 
 ### Frontend
 - React Native
-- Kakao Map API, Naver Map API
+- Kakao Map API
 - Tmap 도보 길찾기 API
 
 ### AI / Data
@@ -131,7 +131,7 @@ cd backend
 ---
 
 ## 📖 사용법 (Usage)
-- 앱 설치 후 회원가입 (학교 이메일 인증 필수)
+- 앱 설치 후 회원가입
 - 지도에서 원하는 건물/편의시설 검색
 - 오늘 학식 메뉴와 셔틀버스 시간 확인
 - 공지사항과 AI 챗봇으로 필요한 정보 탐색
