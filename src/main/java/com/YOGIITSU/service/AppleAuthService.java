@@ -57,6 +57,10 @@ public class AppleAuthService {
                 Map.class
             );
 
+            if (response.getBody() == null || response.getBody().get("id_token") == null) {
+                throw new IllegalArgumentException("Apple 토큰 응답이 비어있음");
+            }
+
             String idToken = (String) response.getBody().get("id_token");
             Map<String, Object> claims = AppleJwtUtil.verifyAndGetClaims(idToken);
 
