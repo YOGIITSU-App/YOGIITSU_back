@@ -61,18 +61,21 @@ public class AppleAuthService {
                 throw new IllegalArgumentException("Apple 토큰 응답이 비어있음");
             }
 
+            // 3. id_token 검증 및 claims 추출
             String idToken = (String) response.getBody().get("id_token");
             Map<String, Object> claims = AppleJwtUtil.verifyAndGetClaims(idToken);
 
             String sub = (String) claims.get("sub");
             String email = (String) claims.get("email");
 
+            // 4. 사용자 등록/갱신 처리
             Member member = userService.processOAuthUser(
                 "apple",
                 (email != null) ? email : sub + "@appleuser.com",
                 "AppleUser_" + sub.substring(0, 6)
             );
 
+            // 5. 인증 객체 생성
             CustomUserDetails userDetails = new CustomUserDetails(
                 member.getId(),
                 member.getMemberId(),
@@ -87,7 +90,9 @@ public class AppleAuthService {
                 userDetails, null, userDetails.getAuthorities()
             );
 
+            // 6. JWT 발급
             return jwtTokenProvider.generateToken(authentication);
+            
         } catch (Exception e) {
             log.error("Apple 로그인 실패 : {}", e.getMessage());
             throw new org.springframework.security.authentication.AuthenticationServiceException(
