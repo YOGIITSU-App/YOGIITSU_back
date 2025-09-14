@@ -106,6 +106,16 @@
 
 ## 🛠️ 기술 스택 (Tech Stack)
 
+### 🏗️ 서비스 아키텍처
+<p align="center">
+  <img width="800" height="600" alt="KakaoTalk_20250915_011455983" src="https://github.com/user-attachments/assets/6a38383c-fcbd-4f4a-af8d-0625c570ed70" />
+</p>
+
+### 🗄️ 데이터베이스 ERD
+<p align="center">
+  <img width="1787" height="1004" alt="데이터베이스_ERD" src="https://github.com/user-attachments/assets/37c88bc3-90cc-4e11-a1f4-cbbd51fe7240" />
+</p>
+
 ###  📱 Frontend
 
 - **프레임워크:** React Native
