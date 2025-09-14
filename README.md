@@ -19,8 +19,9 @@
 
 <p align="center">
   <a href="https://play.google.com/store/apps/details?id=com.yogiitsuapp&hl=ko">
-    <img src="https://img.shields.io/badge/요기있수%20다운로드-3DDC84?style=for-the-badge&logo=android&logoColor=white"
-         alt="요기있수 다운로드" />
+    <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"
+         alt="요기있수 다운로드"
+         height="80"/>
   </a>
 </p>
 
@@ -200,7 +201,7 @@ cd backend
 |                    김종민                     |
 |:------------------------------------------:|
 | ![](https://github.com/jongmink0.png?size=120) | 
-|      [@jongmink0](https://github.com/parksomii)      |  
+|      [@jongmink0](https://github.com/jongmink0)      |  
 
 ### **Backend Team**
 
