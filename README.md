@@ -7,15 +7,13 @@
 
 <h1 align="center">YOGIITSU · 요기있수</h1>
 
-<p align="center">📱 **수원대학교 전용 스마트캠퍼스 애플리케이션** </p>
+<p align="center">📱 수원대학교 전용 스마트캠퍼스 애플리케이션 </p>
 <p align="center">
   수원대학교 학우들의 캠퍼스 생활을 더 편리하게 하기 위해 개발된 통합 플랫폼입니다.<br/>
   지도, 학식, 셔틀버스, 지름길, AI 챗봇 등 교내 생활 필수 기능을 한 곳에서 제공합니다.
 </p>
 
 <p align="center">
-  <a href="https://www.notion.so/YOGIITSU-f87e8607fa8e43c89efe8729ea8c76c7">📒 노션</a> |
-  <a href="https://www.figma.com/design/EYZAnnDTNxiYO1J8cCs4Xv/%EC%9A%94%EA%B8%B0%EC%9E%88%EC%88%98?node-id=0-1&p=f">🎨 피그마</a> |
   <a href="https://www.youtube.com/watch?v=uGwNB6_aN9s">🎬 시연 영상</a> |
 </p>
 
@@ -53,7 +51,7 @@
   
 
 ### 📅 개발 기간
-- **2024.09 ~ 현재 (졸업 프로젝트)**  
+- **2025.01 ~ 현재 (졸업 프로젝트)**  
 
 
 ### 🔔 서비스 배경
@@ -63,7 +61,7 @@
 수원대학교 학생들은 학교 시스템이나 지도만으로는 필요한 정보를 충분히 얻기 어려워  
 여전히 커뮤니티나 익명 게시판에 의존할 수밖에 없는 상황입니다.  
 
-이에 따라 학생들에게 꼭 필요한 정보를 한눈에 확인할 수 있는 **스마트캠퍼스 앱 ‘요기있수’**를 기획하게 되었습니다.  
+이에 따라 학생들에게 꼭 필요한 정보를 한눈에 확인할 수 있는 스마트캠퍼스 앱 ‘요기있수’를 기획하게 되었습니다.  
 지도 기반으로 학내 시설, 셔틀버스, 학식, 지름길 경로 등 캠퍼스 생활 필수 기능을 제공하여  
 학생들의 불편을 해소하고 더 편리한 학교 생활을 지원합니다.  
 
@@ -109,7 +107,7 @@
 ## 🛠 기술 스택
 
 ### Backend
-- Java 17, Spring Boot
+- Java 21, Spring Boot
 - Spring Security + JWT
 - JPA (Hibernate) + MySQL
 - Gradle, Swagger(OpenAPI)
@@ -128,7 +126,7 @@
 ### Infra / DevOps
 - GitHub Actions (CI/CD)
 - Docker / Docker Compose
-- AWS (EC2, RDS, S3)
+- AWS (EC2, RDS, S3, CloudFront, CloudWatch)
 
 ---
 
@@ -193,7 +191,6 @@ cd backend
 - Backend: [@parksomii](https://github.com/parksomii)
 - Backend: [@gayoung228](https://github.com/gayoung228)
 - Backend: [@joyes0ng](https://github.com/joyes0ng)
-- Design: @design-lead
 
 ---
 
