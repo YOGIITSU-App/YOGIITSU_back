@@ -13,6 +13,20 @@
   지도, 학식, 셔틀버스, 지름길, AI 챗봇 등 교내 생활 필수 기능을 한 곳에서 제공합니다.
 </p>
 
+<p align="center">
+  <a href="https://www.notion.so/YOGIITSU-f87e8607fa8e43c89efe8729ea8c76c7">📒 노션</a> |
+  <a href="https://www.figma.com/design/EYZAnnDTNxiYO1J8cCs4Xv/%EC%9A%94%EA%B8%B0%EC%9E%88%EC%88%98?node-id=0-1&p=f">🎨 피그마</a> |
+  <a href="https://www.youtube.com/watch?v=uGwNB6_aN9s">🎬 시연 영상</a> |
+</p>
+
+<p align="center">
+  <a href="https://play.google.com/store/apps/details?id=com.yogiitsuapp&hl=ko">
+    <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"
+         alt="Get it on Google Play"
+         height="80"/>
+  </a>
+</p>
+
 ---
 
 ## 📑 목차
@@ -35,16 +49,14 @@
 - 프로젝트명: **요기있수 (YOGIITSU)**  
 - 카테고리: **스마트 캠퍼스 앱**  
 - 목적: 수원대학교 학우들의 교내 생활 필수 정보를 **한눈에, 한 손에** 제공하는 서비스  
-- 플랫폼: Android, iOS  
+- 플랫폼: Android, iOS
+  
 
----
-
-## 📅 개발 기간
+### 📅 개발 기간
 - **2024.09 ~ 현재 (졸업 프로젝트)**  
 
----
 
-## 🔔 서비스 배경
+### 🔔 서비스 배경
 > “처음 가는 건물은 위치가 헷갈리고, 프린터기나 셔틀버스 위치를 물어보는 글이 늘 올라오고,  
 > 지름길이 있는 줄 모르고 멀리 돌아간 경험… 저희도 새내기 때 이런 경험을 많이 했습니다.”
 
@@ -56,7 +68,7 @@
 학생들의 불편을 해소하고 더 편리한 학교 생활을 지원합니다.  
 
 
-## 👩‍🎓 서비스 대상
+### 👩‍🎓 서비스 대상
 - **신입생**: 건물 위치, 시설 이용, 셔틀버스 정보가 필요한 학생  
 - **편의시설을 빠르게 찾고 싶은 학우**: 프린터기, 카페, 편의점, 식당 등  
 - **효율적으로 이동하고 싶은 학우**: 지름길 안내를 통해 불필요한 이동을 줄이고 싶은 학생  
