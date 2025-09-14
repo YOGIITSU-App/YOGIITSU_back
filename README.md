@@ -1,4 +1,4 @@
-[<p align="center">
+<p align="center">
   <picture>
     <!-- 다크/라이트 모드 배너를 따로 쓰고 싶으면 source 한 줄을 더 추가하세요 -->
     <img width="1024" height="500" alt="Readme_pic" src="https://github.com/user-attachments/assets/5c781bcb-83db-4495-ac32-ad66e8609741" />
@@ -7,16 +7,14 @@
 
 <h1 align="center">YOGIITSU · 요기있수</h1>
 
-<p align="center">📱 **수원대학교 전용 스마트캠퍼스 애플리케이션** </p>
+<p align="center">📱 수원대학교 전용 스마트캠퍼스 애플리케이션 </p>
 <p align="center">
   수원대학교 학우들의 캠퍼스 생활을 더 편리하게 하기 위해 개발된 통합 플랫폼입니다.<br/>
   지도, 학식, 셔틀버스, 지름길, AI 챗봇 등 교내 생활 필수 기능을 한 곳에서 제공합니다.
 </p>
 
 <p align="center">
-  <a href="https://www.notion.so/YOGIITSU-f87e8607fa8e43c89efe8729ea8c76c7">📒 노션</a> |
-  <a href="https://www.figma.com/design/EYZAnnDTNxiYO1J8cCs4Xv/%EC%9A%94%EA%B8%B0%EC%9E%88%EC%88%98?node-id=0-1&p=f">🎨 피그마</a> |
-  <a href="https://www.youtube.com/watch?v=uGwNB6_aN9s">🎬 시연 영상</a> |
+  <a href="https://www.youtube.com/watch?v=uGwNB6_aN9s">🎬 시연 영상</a>
 </p>
 
 <p align="center">
@@ -52,7 +50,7 @@
   
 
 ### 📅 개발 기간
-- **2024.09 ~ 현재 (졸업 프로젝트)**  
+- **2025.01 ~ 현재 (졸업 프로젝트)**  
 
 
 ### 🔔 서비스 배경
@@ -62,7 +60,7 @@
 수원대학교 학생들은 학교 시스템이나 지도만으로는 필요한 정보를 충분히 얻기 어려워  
 여전히 커뮤니티나 익명 게시판에 의존할 수밖에 없는 상황입니다.  
 
-이에 따라 학생들에게 꼭 필요한 정보를 한눈에 확인할 수 있는 **스마트캠퍼스 앱 ‘요기있수’**를 기획하게 되었습니다.  
+이에 따라 학생들에게 꼭 필요한 정보를 한눈에 확인할 수 있는 스마트캠퍼스 앱 ‘요기있수’를 기획하게 되었습니다.  
 지도 기반으로 학내 시설, 셔틀버스, 학식, 지름길 경로 등 캠퍼스 생활 필수 기능을 제공하여  
 학생들의 불편을 해소하고 더 편리한 학교 생활을 지원합니다.  
 
@@ -105,29 +103,39 @@
 
 ---
 
-## 🛠 기술 스택
+## 🛠️ 기술 스택 (Tech Stack)
 
-### Backend
-- Java 17, Spring Boot
-- Spring Security + JWT
-- JPA (Hibernate) + MySQL
-- Gradle, Swagger(OpenAPI)
+###  📱 Frontend
 
-### Frontend
-- React Native
-- Kakao Map API
-- Tmap 도보 길찾기 API
+- **프레임워크:** React Native
+- **API:** Kakao Map API, TMap 보행자 경로 탐색 API
 
-### AI / Data
-- Python FastAPI
-- OpenAI GPT + LangChain
-- FAISS(Vector DB), ElasticSearch
-- Jsoup 크롤링
+###  🖥️ Backend
 
-### Infra / DevOps
-- GitHub Actions (CI/CD)
-- Docker / Docker Compose
-- AWS (EC2, RDS, S3)
+- **언어 및 프레임워크:** Java 21, Spring Boot
+- **보안:** Spring Security, JWT (JSON Web Token)
+- **데이터베이스 및 ORM:** MySQL, JPA (Hibernate)
+- **빌드 도구:** Gradle
+- **문서화:** Swagger (OpenAPI)
+- **API:** TMap API, Kakao Map API
+
+
+###  🚀 배포 및 인프라 (Deployment & Infrastructure)
+
+- **클라우드 서비스:** AWS (Amazon Web Services)
+    - **컴퓨팅:** EC2 (Elastic Compute Cloud)
+
+    - **데이터베이스:** RDS (Relational Database Service)
+    - **스토리지:** S3 (Simple Storage Service)
+    - **콘텐츠 전송 네트워크 (CDN):** CloudFront
+    - **모니터링:** CloudWatch
+
+- **컨테이너:** Docker, Docker Compose
+- **웹 서버:** Nginx
+- **도메인 관리:** Route 53
+- **SSL/TLS:** Certbot
+- **CI/CD:** GitHub Actions
+- **버전 관리:** Git, GitHub
 
 ---
 
@@ -186,35 +194,21 @@ cd backend
 
 ---
 
-## 👨‍💻 팀원 소
-- 컴퓨터SW학과 졸업 프로젝트 팀 (2025)
-- Frontend: [@jongmink0](https://github.com/jongmink0)
-- Backend: [@parksomii](https://github.com/parksomii)
-- Backend: [@gayoung228](https://github.com/gayoung228)
-- Backend: [@joyes0ng](https://github.com/joyes0ng)
-- Design: @design-lead
 
+## 🧑‍🤝‍🧑 프로젝트 팀원
+### **Frontend Team**
+|                    김종민                     |
+|:------------------------------------------:|
+| ![](https://github.com/jongmink0.png?size=120) | 
+|      [@jongmink0](https://github.com/parksomii)      |  
 
-<table>
-  <tr>
-    <td align="center"><b>K001 김종민</b></td>
-    <td align="center"><b>K002 박소미</b></td>
-    <td align="center"><b>K003 이가영</b></td>
-    <td align="center"><b>K004 조예성</b></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="https://avatars.githubusercontent.com/u/000000?v=4" width="150px;" alt="김종민"/></td>
-    <td align="center"><img src="https://avatars.githubusercontent.com/u/000000?v=4" width="150px;" alt="박소미"/></td>
-    <td align="center"><img src="https://avatars.githubusercontent.com/u/000000?v=4" width="150px;" alt="이가영"/></td>
-    <td align="center"><img src="https://avatars.githubusercontent.com/u/000000?v=4" width="150px;" alt="조예송"/></td>
-  </tr>
-  <tr>
-    <td align="center"><a href="https://github.com/jongmink0">@jongmink0</a></td>
-    <td align="center"><a href="https://github.com/parksomii">@parksomii</a></td>
-    <td align="center"><a href="https://github.com/gayoung228">@gayoung228</a></td>
-    <td align="center"><a href="https://github.com/joyes0ng">@joyes0ng</a></td>
-  </tr>
-</table>
+### **Backend Team**
+
+|                    박소미                     |                     이가영                      |                      조예성                       |
+|:------------------------------------------:|:--------------------------------------------:|:----------------------------------------------:|
+| ![](https://github.com/parksomii.png?size=120) | ![](https://github.com/gayoung228.png?size=120) | ![](https://github.com/joyes0ng.png?size=120) |
+|      [@parksomii](https://github.com/parksomii)      |    [@gayoung228](https://github.com/gayoung228)    |   [@joyes0ng](https://github.com/joyes0ng)   |
+
 
 ---
 
@@ -224,5 +218,3 @@ cd backend
 - 향후 계획:
   - iOS 버전 정식 배포 (App Store)
   - 다국어 지원 (영어, 중국어)
-
-](https://avatars.githubusercontent.com/u/000000?v=4)
