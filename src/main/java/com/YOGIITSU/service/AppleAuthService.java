@@ -9,11 +9,14 @@ import com.YOGIITSU.util.ClientSecretProvider;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -30,7 +33,15 @@ public class AppleAuthService {
     private final UserService userService;
     private final JwtTokenProvider jwtTokenProvider;
     private final ClientSecretProvider clientSecretProvider;
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
+
+    @Bean
+    public RestTemplate restTemplate() {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(5000); // 연결 타임아웃 5초
+        factory.setReadTimeout(10000);   // 응답 타임아웃 10초
+        return new RestTemplate(factory);
+    }
 
     @Transactional
     public TokenResponseDto loginWithApple(String authorizationCode) {
@@ -92,7 +103,7 @@ public class AppleAuthService {
 
             // 6. JWT 발급
             return jwtTokenProvider.generateToken(authentication);
-            
+
         } catch (Exception e) {
             log.error("Apple 로그인 실패 : {}", e.getMessage());
             throw new org.springframework.security.authentication.AuthenticationServiceException(
