@@ -101,6 +101,8 @@ public class SecurityConfig {
 		configuration.setExposedHeaders(Arrays.asList("Authorization", "verify")); // 노출할 응답 헤더
 		configuration.setAllowCredentials(true); // 자격 증명 허용
 
+		configuration.setExposedHeaders(Arrays.asList("Authorization", "verify", "X-Refresh-Token"));
+
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		source.registerCorsConfiguration("/**", configuration);
 		return source;
