@@ -43,7 +43,7 @@ public class CafeteriaScheduler {
 
 	// 월요일 09:00 ~ 13:00 매시 정각 (총 5번 실행)
 	@Scheduled(cron = "0 0 9-13 ? * MON", zone = "Asia/Seoul")
-	@SchedulerLock(name = "cafeteria.syncMondayHourly", lockAtLeastFor = "PT10S", lockAtMostFor = "PT50M")
+	@SchedulerLock(name = "cafeteria.syncMondayHourly", lockAtLeastFor = "PT10S", lockAtMostFor = "PT70M")
 	public void syncMondayHourly() {
 		runSync("monday-hourly");
 	}
