@@ -159,27 +159,6 @@ public class GlobalExceptionHandler {
 		return buildErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
 	}
 
-	// Apple identityToken이 유효하지 않을 경우 예외 처리
-	@ExceptionHandler(AppleTokenInvalidException.class)
-	public ResponseEntity<Map<String, String>> handleAppleTokenInvalid(
-		AppleTokenInvalidException e) {
-		return buildErrorResponse(e.getMessage(), UNAUTHORIZED);
-	}
-
-	// Apple 공개키를 찾을 수 없을 경우 예외 처리
-	@ExceptionHandler(ApplePublicKeyNotFoundException.class)
-	public ResponseEntity<Map<String, String>> handleAppleKeyNotFound(
-		ApplePublicKeyNotFoundException e) {
-		return buildErrorResponse(e.getMessage(), UNAUTHORIZED);
-	}
-
-	// Apple 토큰 검증 과정에서 내부 오류가 발생한 경우 예외 처리
-	@ExceptionHandler(AppleVerificationException.class)
-	public ResponseEntity<Map<String, String>> handleAppleVerificationError(
-		AppleVerificationException e) {
-		return buildErrorResponse(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-	}
-
 	// 셔틀 정류장 ID로 정류장을 찾을 수 없는 경우 예외 처리
 	@ExceptionHandler(ShuttleStopNotFoundException.class)
 	public ResponseEntity<Map<String, String>> handleShuttleStopNotFoundException(
