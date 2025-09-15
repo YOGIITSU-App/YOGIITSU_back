@@ -1,5 +1,6 @@
 package com.YOGIITSU.repository;
 
+import com.YOGIITSU.dto.ResponseDto.BuildingListResponseDto;
 import com.YOGIITSU.entity.Building;
 import java.util.List;
 import java.util.Optional;
@@ -20,4 +21,16 @@ public interface BuildingRepository extends JpaRepository<Building, Long> {
 		"LEFT JOIN FETCH b.departments " +
 		"WHERE b.id = :id")
 	Optional<Building> findByIdWithAllRelations(@Param("id") Long id);
+
+	@Query("SELECT new com.YOGIITSU.dto.ResponseDto.BuildingListResponseDto(" +
+		"b.id, " +
+		"b.name, " +
+		"MIN(d.collegeId), " +
+		"MIN(d.collegeName), " +
+		"b.imageUrl, " +
+		"false) " +
+		"FROM Building b LEFT JOIN b.departments d " +
+		"GROUP BY b.id, b.name, b.imageUrl " +
+		"ORDER BY b.id")
+	List<BuildingListResponseDto> findAllSimpleList();
 }

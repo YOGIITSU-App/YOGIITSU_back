@@ -4,6 +4,7 @@ import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 import com.YOGIITSU.exception.building.BuildingNotFoundException;
+import com.YOGIITSU.exception.cafeteria.CafeteriaNotFoundForBuildingException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,13 @@ public class GlobalExceptionHandler {
 		Map<String, String> errorResponse = new HashMap<>();
 		errorResponse.put("message", message);
 		return ResponseEntity.status(status).body(errorResponse);
+	}
+
+	// 리소스를 찾을 수 없을 경우 예외 처리
+	@ExceptionHandler(ResourceNotFoundException.class)
+	public ResponseEntity<Map<String, String>> handleResourceNotFoundException(
+		ResourceNotFoundException e) {
+		return buildErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND);
 	}
 
 	// 토큰이 없을 경우 예외 클래스 정의
@@ -116,6 +124,13 @@ public class GlobalExceptionHandler {
 			HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
+	@ExceptionHandler(CafeteriaNotFoundForBuildingException.class)
+	public ResponseEntity<Map<String, String>> handleCafeteriaNotFound(
+		CafeteriaNotFoundForBuildingException e) {
+		return ResponseEntity.status(HttpStatus.NOT_FOUND)
+			.body(Map.of("message", e.getMessage())); // "해당 건물에 식당이 없습니다."
+	}
+
 	// 기타 예외 (MimeMessage 생성 오류 포함) 처리
 	@ExceptionHandler(RuntimeException.class)
 	public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException e) {
@@ -163,6 +178,13 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<Map<String, String>> handleAppleVerificationError(
 		AppleVerificationException e) {
 		return buildErrorResponse(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+	}
+
+	// 셔틀 정류장 ID로 정류장을 찾을 수 없는 경우 예외 처리
+	@ExceptionHandler(ShuttleStopNotFoundException.class)
+	public ResponseEntity<Map<String, String>> handleShuttleStopNotFoundException(
+		ShuttleStopNotFoundException e) {
+		return buildErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND);
 	}
 
 	public static class PasswordMismatchException extends RuntimeException {
@@ -264,8 +286,23 @@ public class GlobalExceptionHandler {
 	}
 
 	public static class AppleVerificationException extends RuntimeException {
+
 		public AppleVerificationException() {
 			super("Apple 토큰 검증 중 오류가 발생했습니다.");
+		}
+	}
+
+	public static class ShuttleStopNotFoundException extends RuntimeException {
+
+		public ShuttleStopNotFoundException(String stopId) {
+			super("요청하신 정류장 ID를 찾을 수 없습니다: " + stopId);
+		}
+	}
+
+	public static class ResourceNotFoundException extends RuntimeException {
+
+		public ResourceNotFoundException(String platform) {
+			super("해당 플랫폼(" + platform + ")의 버전 정책을 찾을 수 없습니다.");
 		}
 	}
 }
