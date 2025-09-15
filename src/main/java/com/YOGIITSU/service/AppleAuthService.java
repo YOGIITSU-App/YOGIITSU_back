@@ -75,6 +75,21 @@ public class AppleAuthService {
             // 3. id_token 검증 및 claims 추출
             String idToken = (String) response.getBody().get("id_token");
             Map<String, Object> claims = AppleJwtUtil.verifyAndGetClaims(idToken);
+            
+            String iss = (String) claims.get("iss");
+            if (!"https://appleid.apple.com".equals(iss)) {
+                throw new com.YOGIITSU.config.handler.GlobalExceptionHandler.AppleVerificationException();
+            }
+
+            String aud = (String) claims.get("aud");
+            if (!clientSecretProvider.getClientId().equals(aud)) {
+                throw new com.YOGIITSU.config.handler.GlobalExceptionHandler.AppleTokenInvalidException();
+            }
+
+            Number exp = (Number) claims.get("exp");
+            if (exp == null || System.currentTimeMillis() >= exp.longValue() * 1000L) {
+                throw new com.YOGIITSU.config.handler.GlobalExceptionHandler.AppleTokenInvalidException();
+            }
 
             String sub = (String) claims.get("sub");
             String email = (String) claims.get("email");
