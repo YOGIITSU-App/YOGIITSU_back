@@ -36,6 +36,12 @@ public class CafeteriaScheduler {
 		runSync("daily-retry");
 	}
 
+	// 월요일 09:00 ~ 13:00 매시 정각 (총 5번 실행)
+	@Scheduled(cron = "0 0 9-13 ? * MON", zone = "Asia/Seoul")
+	public void syncMondayHourly() {
+		runSync("monday-hourly");
+	}
+
 	private void runSync(String tag) {
 		try {
 			LocalDate monday = CafeteriaCrawler.mondayOf(LocalDate.now(KST));
