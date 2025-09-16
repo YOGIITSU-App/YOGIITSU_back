@@ -13,6 +13,12 @@ spring:
         registration:
           google:
             client-id: ${GOOGLE_CLIENT_ID}
+        provider:
+          apple:
+            authorization-uri: https://appleid.apple.com/auth/authorize
+            token-uri: https://appleid.apple.com/auth/token
+            jwk-set-uri: https://appleid.apple.com/auth/keys
+            user-name-attribute: sub
 
   jpa:
     hibernate:
@@ -72,3 +78,9 @@ email:
     - suwon.ac.kr
     - naver.com
     - gmail.com
+
+apple:
+  client-id: ${APPLE_CLIENT_ID}
+  team-id: ${APPLE_TEAM_ID}
+  key-id: ${APPLE_KEY_ID}
+  private-key-path: ${APPLE_PRIVATE_KEY_PATH}

@@ -251,6 +251,26 @@ public class GlobalExceptionHandler {
 		}
 	}
 
+	// Apple 관련 예외 클래스
+	public static class AppleTokenInvalidException extends RuntimeException {
+		public AppleTokenInvalidException() {
+			super("유효하지 않은 Apple identityToken 입니다.");
+		}
+	}
+
+	public static class ApplePublicKeyNotFoundException extends RuntimeException {
+		public ApplePublicKeyNotFoundException() {
+			super("Apple 공개키를 찾을 수 없습니다.");
+		}
+	}
+
+	public static class AppleVerificationException extends RuntimeException {
+
+		public AppleVerificationException() {
+			super("Apple 토큰 검증 중 오류가 발생했습니다.");
+		}
+	}
+
 	public static class ShuttleStopNotFoundException extends RuntimeException {
 
 		public ShuttleStopNotFoundException(String stopId) {
