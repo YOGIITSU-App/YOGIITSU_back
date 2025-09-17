@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
     <!-- 다크/라이트 모드 배너를 따로 쓰고 싶으면 source 한 줄을 더 추가하세요 -->
-    <img width="1024" height="500" alt="Readme_pic" src="https://github.com/user-attachments/assets/5c781bcb-83db-4495-ac32-ad66e8609741" />
+    <img style="max-width: 1024px; width: 100%; height: auto;" alt="Readme_pic" src="https://github.com/user-attachments/assets/5c781bcb-83db-4495-ac32-ad66e8609741" />
   </picture>
 </p>
 
@@ -51,7 +51,7 @@
   
 
 ### 📅 개발 기간
-- **2025.01 ~ 현재 (졸업 프로젝트)**  
+- **2025.01 ~ 현재**  
 
 
 ### 🔔 서비스 배경
@@ -124,10 +124,10 @@
 ###  🖥️ Backend
 
 - **언어 및 프레임워크:** Java 21, Spring Boot
-- **보안:** Spring Security, JWT (JSON Web Token)
-- **데이터베이스 및 ORM:** MySQL, JPA (Hibernate)
+- **보안:** Spring Security, JWT
+- **데이터베이스 및 ORM:** MySQL, JPA
 - **빌드 도구:** Gradle
-- **문서화:** Swagger (OpenAPI)
+- **문서화:** Swagger, Notion
 - **API:** TMap API, Kakao Map API
 
 
@@ -231,5 +231,3 @@ cd backend
   - 학식 서비스 추가
   - 애플 로그인 추가
   - 다국어 지원 (영어, 중국어)
-
-<!-- redeploy trigger -->
