@@ -228,4 +228,6 @@ cd backend
   - 안드로이드 배포 완료 (Google Play Store)
 - 향후 계획:
   - iOS 버전 정식 배포 (App Store)
+  - 학식 서비스 추가
+  - 애플 로그인 추가
   - 다국어 지원 (영어, 중국어)
