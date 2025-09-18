@@ -2,13 +2,15 @@ package com.YOGIITSU.scheduler;
 
 import com.YOGIITSU.service.CafeteriaCrawler;
 import com.YOGIITSU.service.CafeteriaSyncService;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import java.time.ZoneId;
 import java.time.LocalDate;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 
 @Slf4j
 @Component
@@ -19,21 +21,31 @@ public class CafeteriaScheduler {
 	private final CafeteriaSyncService sync;
 	private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
-	@PostConstruct
+	@EventListener(ApplicationReadyEvent.class)
+	@SchedulerLock(name = "cafeteria.startup", lockAtLeastFor = "PT10S", lockAtMostFor = "PT15M")
 	public void init() {
-		runSync("manual");
+		runSync("startup");
 	}
 
 	// 매주 월요일 06:05
 	@Scheduled(cron = "0 5 6 ? * MON", zone = "Asia/Seoul")
+	@SchedulerLock(name = "cafeteria.syncWeekly", lockAtLeastFor = "PT10S", lockAtMostFor = "PT15M")
 	public void syncWeekly() {
 		runSync("weekly");
 	}
 
 	// 평일 08:00 보정 실행
 	@Scheduled(cron = "0 0 8 ? * MON-FRI", zone = "Asia/Seoul")
+	@SchedulerLock(name = "cafeteria.syncDailyRetry", lockAtLeastFor = "PT10S", lockAtMostFor = "PT15M")
 	public void syncDailyRetry() {
 		runSync("daily-retry");
+	}
+
+	// 월요일 09:00 ~ 13:00 매시 정각 (총 5번 실행)
+	@Scheduled(cron = "0 0 9-13 ? * MON", zone = "Asia/Seoul")
+	@SchedulerLock(name = "cafeteria.syncMondayHourly", lockAtLeastFor = "PT10S", lockAtMostFor = "PT70M")
+	public void syncMondayHourly() {
+		runSync("monday-hourly");
 	}
 
 	private void runSync(String tag) {
