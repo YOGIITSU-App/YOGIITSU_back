@@ -35,14 +35,6 @@ public class AppleAuthService {
     private final ClientSecretProvider clientSecretProvider;
     private final RestTemplate restTemplate;
 
-    @Bean
-    public RestTemplate restTemplate() {
-        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-        factory.setConnectTimeout(5000); // 연결 타임아웃 5초
-        factory.setReadTimeout(10000);   // 응답 타임아웃 10초
-        return new RestTemplate(factory);
-    }
-
     @Transactional
     public TokenResponseDto loginWithApple(String authorizationCode) {
         try {
