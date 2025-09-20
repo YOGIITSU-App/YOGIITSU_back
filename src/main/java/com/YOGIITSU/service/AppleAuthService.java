@@ -38,8 +38,11 @@ public class AppleAuthService {
     @Transactional
     public TokenResponseDto loginWithApple(String authorizationCode) {
         try {
+            log.info("[AppleAuthService] 애플 로그인 시작 - authorizationCode: {}", authorizationCode);
+
             // 1. client_secret 생성
             String clientSecret = clientSecretProvider.createClientSecret();
+            log.info("[AppleAuthService] client_secret 생성 완료");
 
             // 2. Apple 서버 토큰 교환 요청
             HttpHeaders headers = new HttpHeaders();
@@ -53,38 +56,47 @@ public class AppleAuthService {
 
             HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
 
+            log.info("[AppleAuthService] Apple 서버에 토큰 교환 요청 시작");
             ResponseEntity<Map> response = restTemplate.exchange(
                 "https://appleid.apple.com/auth/token",
                 HttpMethod.POST,
                 request,
                 Map.class
             );
+            log.info("AppleAuthService] Apple 서버 응답 수신: {}", response.getStatusCode());
 
             if (response.getBody() == null || response.getBody().get("id_token") == null) {
+                log.error("[AppleAuthService] Apple 토큰 응답이 비어 있음");
                 throw new IllegalArgumentException("Apple 토큰 응답이 비어있음");
             }
 
             // 3. id_token 검증 및 claims 추출
             String idToken = (String) response.getBody().get("id_token");
+            log.info("[AppleAuthService] id_token 추출 완료");
             Map<String, Object> claims = AppleJwtUtil.verifyAndGetClaims(idToken);
+            log.info("[AppleAuthService] claims 추출 완료: {}", claims);
             
             String iss = (String) claims.get("iss");
             if (!"https://appleid.apple.com".equals(iss)) {
+                log.error("[AppleAuthService] iss 검증 실패: {}", iss);
                 throw new com.YOGIITSU.config.handler.GlobalExceptionHandler.AppleVerificationException();
             }
 
             String aud = (String) claims.get("aud");
             if (!clientSecretProvider.getClientId().equals(aud)) {
+                log.error("[AppleAuthService] aud 검증 실패: {}", aud);
                 throw new com.YOGIITSU.config.handler.GlobalExceptionHandler.AppleTokenInvalidException();
             }
 
             Number exp = (Number) claims.get("exp");
             if (exp == null || System.currentTimeMillis() >= exp.longValue() * 1000L) {
+                log.error("[AppleAuthService] 토큰 만료됨");
                 throw new com.YOGIITSU.config.handler.GlobalExceptionHandler.AppleTokenInvalidException();
             }
 
             String sub = (String) claims.get("sub");
             String email = (String) claims.get("email");
+            log.info("[AppleAuthService] sub: {}, email: {}", sub, email);
 
             // 4. 사용자 등록/갱신 처리
             Member member = userService.processOAuthUser(
@@ -92,6 +104,7 @@ public class AppleAuthService {
                 (email != null) ? email : sub + "@appleuser.com",
                 "AppleUser_" + sub.substring(0, 6)
             );
+            log.info("[AppleAuthService] 사용자 등록/갱신 완료 - memberId: {}", member.getId());
 
             // 5. 인증 객체 생성
             CustomUserDetails userDetails = new CustomUserDetails(
@@ -107,9 +120,13 @@ public class AppleAuthService {
             Authentication authentication = new UsernamePasswordAuthenticationToken(
                 userDetails, null, userDetails.getAuthorities()
             );
+            log.info("[AppleAuthService] 인증 객체 생성 완료");
 
             // 6. JWT 발급
-            return jwtTokenProvider.generateToken(authentication);
+            TokenResponseDto tokenResponse = jwtTokenProvider.generateToken(authentication);
+            log.info("[AppleAuthService] JWT 발급 완료 - accessToken: {}", tokenResponse.getAccessToken());
+
+            return tokenResponse;
 
         } catch (Exception e) {
             log.error("Apple 로그인 실패 : {}", e.getMessage());
