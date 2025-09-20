@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/auth")
+@Slf4j
 public class AppleAuthController {
 
     private final AppleAuthService appleAuthService;
@@ -31,6 +33,9 @@ public class AppleAuthController {
     @PostMapping("/apple")
     public ResponseEntity<Map<String, Object>> loginWithApple(
         @RequestBody AppleLoginRequestDto requestDto) {
+
+        log.debug("[AppleAuthController] 애플 로그인 요청 받음");
+
         // 1. 서비스 호출 → 자체 JWT 발급
         TokenResponseDto tokenInfo = appleAuthService.loginWithApple(
             requestDto.getAuthorizationCode());
@@ -46,6 +51,9 @@ public class AppleAuthController {
         responseBody.put("message", "로그인 성공");
         responseBody.put("userId", userDto.getId());
         responseBody.put("role", userDto.getRole());
+
+        log.info("[AppleAuthController] 로그인 성공 - userId={}, role={}",
+            userDto.getId(), userDto.getRole());
 
         // 4. 최종 응답 반환
         return ResponseEntity.ok()
