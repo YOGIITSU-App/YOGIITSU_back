@@ -34,8 +34,7 @@ public class AppleAuthController {
     public ResponseEntity<Map<String, Object>> loginWithApple(
         @RequestBody AppleLoginRequestDto requestDto) {
 
-        log.info("[AppleAuthController] 애플 로그인 요청 받음 - authorizationCode={}",
-            requestDto.getAuthorizationCode());
+        log.debug("[AppleAuthController] 애플 로그인 요청 받음");
 
         // 1. 서비스 호출 → 자체 JWT 발급
         TokenResponseDto tokenInfo = appleAuthService.loginWithApple(
