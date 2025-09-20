@@ -38,7 +38,7 @@ public class AppleAuthService {
     @Transactional
     public TokenResponseDto loginWithApple(String authorizationCode) {
         try {
-            log.info("[AppleAuthService] 애플 로그인 시작 - authorizationCode: {}", authorizationCode);
+            log.info("[AppleAuthService] 애플 로그인 시작 ");
 
             // 1. client_secret 생성
             String clientSecret = clientSecretProvider.createClientSecret();
@@ -74,8 +74,8 @@ public class AppleAuthService {
             String idToken = (String) response.getBody().get("id_token");
             log.info("[AppleAuthService] id_token 추출 완료");
             Map<String, Object> claims = AppleJwtUtil.verifyAndGetClaims(idToken);
-            log.info("[AppleAuthService] claims 추출 완료: {}", claims);
-            
+            log.debug("[AppleAuthService] claims 추출 완료 - keys: {}", claims.keySet());
+
             String iss = (String) claims.get("iss");
             if (!"https://appleid.apple.com".equals(iss)) {
                 log.error("[AppleAuthService] iss 검증 실패: {}", iss);
@@ -96,7 +96,7 @@ public class AppleAuthService {
 
             String sub = (String) claims.get("sub");
             String email = (String) claims.get("email");
-            log.info("[AppleAuthService] sub: {}, email: {}", sub, email);
+            log.debug("[AppleAuthService] 사용자 정보 추출 완료");
 
             // 4. 사용자 등록/갱신 처리
             Member member = userService.processOAuthUser(
@@ -124,7 +124,7 @@ public class AppleAuthService {
 
             // 6. JWT 발급
             TokenResponseDto tokenResponse = jwtTokenProvider.generateToken(authentication);
-            log.info("[AppleAuthService] JWT 발급 완료 - accessToken: {}", tokenResponse.getAccessToken());
+            log.info("[AppleAuthService] JWT 발급 완료");
 
             return tokenResponse;
 
