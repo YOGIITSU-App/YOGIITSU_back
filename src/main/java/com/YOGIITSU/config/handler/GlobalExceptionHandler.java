@@ -3,11 +3,13 @@ package com.YOGIITSU.config.handler;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
+import com.YOGIITSU.exception.apple.AppleExchangeException;
 import com.YOGIITSU.exception.building.BuildingNotFoundException;
 import com.YOGIITSU.exception.cafeteria.CafeteriaNotFoundForBuildingException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -249,6 +251,34 @@ public class GlobalExceptionHandler {
 		public SameEmailException() {
 			super("기존 이메일과 동일한 이메일로는 변경할 수 없습니다.");
 		}
+	}
+
+	@ExceptionHandler(AuthenticationServiceException.class)
+	public ResponseEntity<Map<String, Object>> handleAppleAuthServiceException(
+		AuthenticationServiceException e) {
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+			.body(Map.of(
+				"code", "APPLE_AUTH_FAIL",
+				"detail", e.getMessage()
+			));
+	}
+
+	@ExceptionHandler({ AppleTokenInvalidException.class, AppleVerificationException.class })
+	public ResponseEntity<Map<String, Object>> handleAppleTokenInvalid(RuntimeException e) {
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+			.body(Map.of(
+				"code", "APPLE_TOKEN_INVALID",
+				"detail", e.getMessage()
+			));
+	}
+
+	@ExceptionHandler(AppleExchangeException.class)
+	public ResponseEntity<Map<String, Object>> handleAppleExchange(AppleExchangeException e) {
+		return ResponseEntity.status(e.getStatus())
+			.body(Map.of(
+				"code", "APPLE_TOKEN_ERR",
+				"detail", e.getAppleBody()
+			));
 	}
 
 	// Apple 관련 예외 클래스
