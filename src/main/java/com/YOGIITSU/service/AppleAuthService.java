@@ -9,14 +9,11 @@ import com.YOGIITSU.util.ClientSecretProvider;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -71,18 +68,18 @@ public class AppleAuthService {
             }
 
             // 3. id_token 검증 및 claims 추출
-            String idToken = (String) response.getBody().get("id_token");
+            String idToken = response.getBody().get("id_token").toString();
             log.info("[AppleAuthService] id_token 추출 완료");
             Map<String, Object> claims = AppleJwtUtil.verifyAndGetClaims(idToken);
             log.debug("[AppleAuthService] claims 추출 완료 - keys: {}", claims.keySet());
 
-            String iss = (String) claims.get("iss");
+            String iss = getClaimAsString(claims, "iss");
             if (!"https://appleid.apple.com".equals(iss)) {
                 log.error("[AppleAuthService] iss 검증 실패: {}", iss);
                 throw new com.YOGIITSU.config.handler.GlobalExceptionHandler.AppleVerificationException();
             }
 
-            String aud = (String) claims.get("aud");
+            String aud = getClaimAsString(claims, "aud");
             if (!clientSecretProvider.getClientId().equals(aud)) {
                 log.error("[AppleAuthService] aud 검증 실패: {}", aud);
                 throw new com.YOGIITSU.config.handler.GlobalExceptionHandler.AppleTokenInvalidException();
@@ -94,8 +91,8 @@ public class AppleAuthService {
                 throw new com.YOGIITSU.config.handler.GlobalExceptionHandler.AppleTokenInvalidException();
             }
 
-            String sub = (String) claims.get("sub");
-            String email = (String) claims.get("email");
+            String sub = getClaimAsString(claims, "sub");
+            String email = getClaimAsString(claims, "email");
             log.debug("[AppleAuthService] 사용자 정보 추출 완료");
 
             // 4. 사용자 등록/갱신 처리
@@ -134,5 +131,18 @@ public class AppleAuthService {
                 "Apple 로그인 실패", e
             );
         }
+    }
+
+    /**
+     * Claim을 안전하게 String으로 변환
+     */
+    private String getClaimAsString(Map<String, Object> claims, String key) {
+        Object value = claims.get(key);
+        if (value instanceof String) {
+            return (String) value;
+        } else if (value instanceof java.util.List) {
+            return ((java.util.List<?>) value).isEmpty() ? null : value.toString().replaceAll("[\\[\\]]", "");
+        }
+        return null;
     }
 }
