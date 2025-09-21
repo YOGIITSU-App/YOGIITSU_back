@@ -61,6 +61,8 @@ jobs:
             BRANCH="develop"
           fi
           
+          APPLE_KEY_CONTENT_ONELINE=$(echo "${{ secrets.APPLE_PRIVATE_KEY_CONTENT }}" | tr -d '\n' | tr -d '\r')
+
           ssh ubuntu@$EC2_IP "
             export BRANCH='$BRANCH'
             export DB_URL='${{ secrets.DB_URL }}'
