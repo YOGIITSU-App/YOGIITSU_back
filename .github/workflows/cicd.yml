@@ -77,6 +77,10 @@ jobs:
             export SWAGGER_SERVER_URL='${{ secrets.SWAGGER_SERVER_URL }}'
             export CORS_ALLOWED_ORIGIN='${{ secrets.CORS_ALLOWED_ORIGIN }}'
             export CORS_ALLOWED_ORIGIN_DEV='${{ secrets.CORS_ALLOWED_ORIGIN_DEV }}'
+            export APPLE_CLIENT_ID='${{ secrets.APPLE_CLIENT_ID }}'
+            export APPLE_TEAM_ID='${{ secrets.APPLE_TEAM_ID }}'
+            export APPLE_KEY_ID='${{ secrets.APPLE_KEY_ID }}'
+            export APPLE_PRIVATE_KEY_PATH='${{ secrets.APPLE_PRIVATE_KEY_PATH }}'
           
             cd /home/ubuntu/YOGIITSU
             ./deploy.sh
