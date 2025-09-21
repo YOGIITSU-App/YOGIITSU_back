@@ -82,7 +82,7 @@ jobs:
             export APPLE_CLIENT_ID='${{ secrets.APPLE_CLIENT_ID }}'
             export APPLE_TEAM_ID='${{ secrets.APPLE_TEAM_ID }}'
             export APPLE_KEY_ID='${{ secrets.APPLE_KEY_ID }}'
-            export APPLE_PRIVATE_KEY_CONTENT='${{ secrets.APPLE_PRIVATE_KEY_CONTENT }}'
+            export APPLE_PRIVATE_KEY_CONTENT='$APPLE_KEY_CONTENT_ONELINE'
           
             cd /home/ubuntu/YOGIITSU
             ./deploy.sh
