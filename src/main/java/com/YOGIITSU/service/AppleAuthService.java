@@ -6,6 +6,7 @@ import com.YOGIITSU.jwt.CustomUserDetails;
 import com.YOGIITSU.jwt.JwtTokenProvider;
 import com.YOGIITSU.util.AppleJwtUtil;
 import com.YOGIITSU.util.ClientSecretProvider;
+import java.util.Date;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -85,8 +86,19 @@ public class AppleAuthService {
                 throw new com.YOGIITSU.config.handler.GlobalExceptionHandler.AppleTokenInvalidException();
             }
 
-            Number exp = (Number) claims.get("exp");
-            if (exp == null || System.currentTimeMillis() >= exp.longValue() * 1000L) {
+            // exp 검증 (Number / Date 모두 처리)
+            Object expObj = claims.get("exp");
+            long expTimeMillis;
+            if (expObj instanceof Number) {
+                expTimeMillis = ((Number) expObj).longValue() * 1000L;
+            } else if (expObj instanceof Date) {
+                expTimeMillis = ((Date) expObj).getTime();
+            } else {
+                log.error("[AppleAuthService] exp 클레임 타입 예외: {}", expObj);
+                throw new com.YOGIITSU.config.handler.GlobalExceptionHandler.AppleTokenInvalidException();
+            }
+
+            if (System.currentTimeMillis() >= expTimeMillis) {
                 log.error("[AppleAuthService] 토큰 만료됨");
                 throw new com.YOGIITSU.config.handler.GlobalExceptionHandler.AppleTokenInvalidException();
             }
@@ -141,7 +153,8 @@ public class AppleAuthService {
         if (value instanceof String) {
             return (String) value;
         } else if (value instanceof java.util.List) {
-            return ((java.util.List<?>) value).isEmpty() ? null : value.toString().replaceAll("[\\[\\]]", "");
+            return ((java.util.List<?>) value).isEmpty() ? null
+                : value.toString().replaceAll("[\\[\\]]", "");
         }
         return null;
     }
