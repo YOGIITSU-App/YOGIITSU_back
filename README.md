@@ -128,7 +128,7 @@
 
 ###  🖥️ Backend
 
-- **언어 및 프레임워크:** Java 21, Spring Boot
+- **언어 및 프레임워크:** Java 21, Spring Boot (3.3.1)
 - **보안:** Spring Security, JWT
 - **데이터베이스 및 ORM:** MySQL, JPA
 - **빌드 도구:** Gradle
