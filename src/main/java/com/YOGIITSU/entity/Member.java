@@ -38,6 +38,9 @@ public class Member implements UserDetails {
     @Column(name = "user_name", length = 50)
     private String userName; // 사용자 이름
 
+    @Column(name = "profile_image_url", length = 255)
+    private String profileImageUrl;
+
     @Column(name = "role", length = 50)
     private String role; // 유저 or 관리자
 
