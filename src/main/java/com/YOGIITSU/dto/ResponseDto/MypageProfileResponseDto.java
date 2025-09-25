@@ -12,5 +12,4 @@ public class MypageProfileResponseDto {
     private String userName;  // 사용자 이름
     private String email;  // 이메일
     private String memberId;  // 로그인 ID
-    private String provider;  // 가입 경로 (local, google, kakao, apple 등)
 }
