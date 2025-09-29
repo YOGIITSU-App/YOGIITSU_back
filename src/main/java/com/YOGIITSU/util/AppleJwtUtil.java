@@ -1,8 +1,8 @@
 package com.YOGIITSU.util;
 
-import com.YOGIITSU.config.handler.GlobalExceptionHandler.ApplePublicKeyNotFoundException;
-import com.YOGIITSU.config.handler.GlobalExceptionHandler.AppleTokenInvalidException;
-import com.YOGIITSU.config.handler.GlobalExceptionHandler.AppleVerificationException;
+import com.YOGIITSU.exception.external.ApplePublicKeyNotFoundException;
+import com.YOGIITSU.exception.external.AppleTokenInvalidException;
+import com.YOGIITSU.exception.external.AppleVerificationException;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jose.jwk.JWK;

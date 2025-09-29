@@ -1,8 +1,8 @@
 package com.YOGIITSU.util;
 
 import com.YOGIITSU.jwt.JwtTokenProvider;
-import com.YOGIITSU.config.handler.GlobalExceptionHandler.MissingTokenException;
-import com.YOGIITSU.config.handler.GlobalExceptionHandler.InvalidTokenException;
+import com.YOGIITSU.exception.auth.MissingTokenException;
+import com.YOGIITSU.exception.auth.InvalidTokenException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
