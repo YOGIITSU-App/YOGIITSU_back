@@ -3,10 +3,13 @@ package com.YOGIITSU.service;
 import com.YOGIITSU.entity.Favorite;
 import com.YOGIITSU.entity.Member;
 import com.YOGIITSU.entity.Building;
+import com.YOGIITSU.exception.resource.FavoriteNotFoundException;
 import com.YOGIITSU.repository.FavoriteRepository;
 import com.YOGIITSU.repository.MemberRepository;
 import com.YOGIITSU.repository.BuildingRepository;
-import jakarta.persistence.EntityNotFoundException;
+import com.YOGIITSU.exception.resource.FavoriteAlreadyExistsException;
+import com.YOGIITSU.exception.user.MemberNotFoundException;
+import com.YOGIITSU.exception.building.BuildingNotFoundException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,12 +32,12 @@ public class FavoriteService {
 	@Transactional
 	public void addFavorite(String memberId, Long buildingId) {
 		Member member = memberRepository.findByMemberId(memberId)
-			.orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
+			.orElseThrow(() -> new MemberNotFoundException(memberId));
 		Building building = buildingRepository.findById(buildingId)
-			.orElseThrow(() -> new EntityNotFoundException("건물을 찾을 수 없습니다."));
+			.orElseThrow(() -> new BuildingNotFoundException(buildingId));
 
 		if (favoriteRepository.existsByMemberAndBuilding(member, building)) {
-			throw new IllegalArgumentException("이미 즐겨찾기에 추가된 건물입니다.");
+			throw new FavoriteAlreadyExistsException();
 		}
 
 		Favorite favorite = Favorite.builder()
@@ -53,12 +56,12 @@ public class FavoriteService {
 	@Transactional
 	public void removeFavorite(String memberId, Long buildingId) {
 		Member member = memberRepository.findByMemberId(memberId)
-			.orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
+			.orElseThrow(() -> new MemberNotFoundException(memberId));
 		Building building = buildingRepository.findById(buildingId)
-			.orElseThrow(() -> new EntityNotFoundException("건물을 찾을 수 없습니다."));
+			.orElseThrow(() -> new BuildingNotFoundException(buildingId));
 
 		if (!favoriteRepository.existsByMemberAndBuilding(member, building)) {
-			throw new IllegalArgumentException("즐겨찾기에 없는 건물입니다.");
+			throw new FavoriteNotFoundException();
 		}
 
 		favoriteRepository.deleteByMemberAndBuilding(member, building);
@@ -72,7 +75,7 @@ public class FavoriteService {
 	 */
 	public List<Favorite> getFavorites(String memberId) {
 		Member member = memberRepository.findByMemberId(memberId)
-			.orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
+			.orElseThrow(() -> new MemberNotFoundException(memberId));
 
 		return favoriteRepository.findByMember(member);
 	}

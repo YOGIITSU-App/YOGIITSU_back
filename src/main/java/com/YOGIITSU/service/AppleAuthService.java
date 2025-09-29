@@ -4,6 +4,7 @@ import com.YOGIITSU.dto.ResponseDto.TokenResponseDto;
 import com.YOGIITSU.entity.Member;
 import com.YOGIITSU.jwt.CustomUserDetails;
 import com.YOGIITSU.jwt.JwtTokenProvider;
+import com.YOGIITSU.exception.validation.InvalidArgumentException;
 import com.YOGIITSU.util.AppleJwtUtil;
 import com.YOGIITSU.util.ClientSecretProvider;
 import java.util.Date;
@@ -65,7 +66,7 @@ public class AppleAuthService {
 
             if (response.getBody() == null || response.getBody().get("id_token") == null) {
                 log.error("[AppleAuthService] Apple 토큰 응답이 비어 있음");
-                throw new IllegalArgumentException("Apple 토큰 응답이 비어있음");
+                throw new InvalidArgumentException("Apple 토큰 응답이 비어있음");
             }
 
             // 3. id_token 검증 및 claims 추출
@@ -77,13 +78,13 @@ public class AppleAuthService {
             String iss = getClaimAsString(claims, "iss");
             if (!"https://appleid.apple.com".equals(iss)) {
                 log.error("[AppleAuthService] iss 검증 실패: {}", iss);
-                throw new com.YOGIITSU.config.handler.GlobalExceptionHandler.AppleVerificationException();
+                throw new com.YOGIITSU.exception.external.AppleVerificationException();
             }
 
             String aud = getClaimAsString(claims, "aud");
             if (!clientSecretProvider.getClientId().equals(aud)) {
                 log.error("[AppleAuthService] aud 검증 실패: {}", aud);
-                throw new com.YOGIITSU.config.handler.GlobalExceptionHandler.AppleTokenInvalidException();
+                throw new com.YOGIITSU.exception.external.AppleTokenInvalidException();
             }
 
             // exp 검증 (Number / Date 모두 처리)
@@ -95,12 +96,12 @@ public class AppleAuthService {
                 expTimeMillis = ((Date) expObj).getTime();
             } else {
                 log.error("[AppleAuthService] exp 클레임 타입 예외: {}", expObj);
-                throw new com.YOGIITSU.config.handler.GlobalExceptionHandler.AppleTokenInvalidException();
+                throw new com.YOGIITSU.exception.external.AppleTokenInvalidException();
             }
 
             if (System.currentTimeMillis() >= expTimeMillis) {
                 log.error("[AppleAuthService] 토큰 만료됨");
-                throw new com.YOGIITSU.config.handler.GlobalExceptionHandler.AppleTokenInvalidException();
+                throw new com.YOGIITSU.exception.external.AppleTokenInvalidException();
             }
 
             String sub = getClaimAsString(claims, "sub");

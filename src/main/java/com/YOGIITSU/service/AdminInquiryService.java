@@ -7,7 +7,10 @@ import com.YOGIITSU.entity.Inquiry;
 import com.YOGIITSU.entity.InquiryState;
 import com.YOGIITSU.jwt.CustomUserDetails;
 import com.YOGIITSU.repository.InquiryRepository;
-import jakarta.persistence.EntityNotFoundException;
+import com.YOGIITSU.exception.resource.InquiryNotFoundException;
+import com.YOGIITSU.exception.validation.InvalidArgumentException;
+import com.YOGIITSU.exception.auth.AdminAccessDeniedException;
+import com.YOGIITSU.exception.auth.UnauthorizedException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -35,11 +38,11 @@ public class AdminInquiryService {
         checkAdminRole();
 
         Inquiry inquiry = inquiryRepository.findById(inquiryId)
-            .orElseThrow(() -> new EntityNotFoundException("해당 문의가 존재하지 않습니다."));
+            .orElseThrow(() -> new InquiryNotFoundException(inquiryId));
 
         // 이미 답변 완료된 경우 예외 처리
         if (inquiry.getInquiryState() == InquiryState.COMPLETED) {
-            throw new IllegalArgumentException("이미 답변이 등록된 문의입니다.");
+            throw new InvalidArgumentException("이미 답변이 등록된 문의입니다.");
         }
 
         inquiry.createAnswer(
@@ -65,18 +68,18 @@ public class AdminInquiryService {
         checkAdminRole();
 
         Inquiry inquiry = inquiryRepository.findById(inquiryId)
-            .orElseThrow(() -> new EntityNotFoundException("해당 문의가 존재하지 않습니다."));
+            .orElseThrow(() -> new InquiryNotFoundException(inquiryId));
 
         // 답변이 등록되지 않은 경우 수정 불가
         if (inquiry.getInquiryState() != InquiryState.COMPLETED) {
-            throw new IllegalArgumentException("아직 답변이 등록되지 않아 수정할 수 없습니다.");
+            throw new InvalidArgumentException("아직 답변이 등록되지 않아 수정할 수 없습니다.");
         }
 
         String title = requestDto.getAnswerTitle();
         String content = requestDto.getAnswerContent();
 
         if ((title == null || title.isBlank()) && (content == null || content.isBlank())) {
-            throw new IllegalArgumentException("수정할 답변 제목 또는 내용을 입력하세요.");
+            throw new InvalidArgumentException("수정할 답변 제목 또는 내용을 입력하세요.");
         }
 
         inquiry.updateAnswer(title, content);
@@ -96,7 +99,7 @@ public class AdminInquiryService {
         checkAdminRole();
 
         Inquiry inquiry = inquiryRepository.findById(inquiryId)
-            .orElseThrow(() -> new EntityNotFoundException("해당 문의가 존재하지 않습니다."));
+            .orElseThrow(() -> new InquiryNotFoundException(inquiryId));
 
         inquiryRepository.delete(inquiry);
     }
@@ -105,11 +108,11 @@ public class AdminInquiryService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
         if (!(auth.getPrincipal() instanceof CustomUserDetails userDetails)) {
-            throw new SecurityException("잘못된 사용자 정보입니다.");
+            throw new UnauthorizedException();
         }
 
         if (!"ADMIN".equals(userDetails.getRole())) {
-            throw new SecurityException("관리자만 접근할 수 있습니다.");
+            throw new AdminAccessDeniedException();
         }
 
     }

@@ -1,6 +1,8 @@
 package com.YOGIITSU.service;
 
-import com.YOGIITSU.config.handler.GlobalExceptionHandler;
+import com.YOGIITSU.exception.auth.AdminAccessDeniedException;
+import com.YOGIITSU.exception.resource.NoticeNotFoundException;
+import com.YOGIITSU.exception.user.AdminNotFoundException;
 import com.YOGIITSU.dto.RequestDto.NoticeRequestDto;
 import com.YOGIITSU.dto.ResponseDto.NoticeDetailResponseDto;
 import com.YOGIITSU.dto.ResponseDto.NoticeListResponseDto;
@@ -24,20 +26,20 @@ public class NoticeService {
     // 관리자 권한이 있는지 확인
     private void validateAdmin(Member member) {
         if (!"ADMIN".equalsIgnoreCase(member.getRole())) {
-            throw new GlobalExceptionHandler.AdminAccessDeniedException();
+            throw new AdminAccessDeniedException();
         }
     }
 
     // 공지사항 ID로 공지사항을 조회
     private Notice getNoticeOrThrow(Long id) {
-        return noticeRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("해당 공지사항이 존재하지 않습니다."));
+		return noticeRepository.findById(id)
+			.orElseThrow(() -> new NoticeNotFoundException(id));
     }
 
     // 사용자 ID로 회원 정보를 조회
     private Member getMemberOrThrow(Long memberId) {
         return memberRepository.findById(memberId)
-            .orElseThrow(() -> new IllegalArgumentException("해당 관리자 계정을 찾을 수 없습니다."));
+            .orElseThrow(() -> new AdminNotFoundException(memberId));
     }
 
     // 공지사항 등록

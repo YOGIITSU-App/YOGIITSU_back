@@ -8,7 +8,8 @@ import com.YOGIITSU.entity.RecentSearch;
 import com.YOGIITSU.repository.BuildingAliasRepository;
 import com.YOGIITSU.repository.MemberRepository;
 import com.YOGIITSU.repository.RecentSearchRepository;
-import jakarta.persistence.EntityNotFoundException;
+import com.YOGIITSU.exception.user.MemberNotFoundException;
+import com.YOGIITSU.exception.validation.InvalidArgumentException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,7 +28,7 @@ public class RecentSearchService {
 	@Transactional
 	public void saveSearchKeyword(String memberId, String keyword) {
 		Member member = memberRepository.findByMemberId(memberId)
-			.orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
+			.orElseThrow(() -> new MemberNotFoundException(memberId));
 
 		// 기존에 같은 검색어가 있으면 삭제
 		recentSearchRepository.deleteByMemberAndKeyword(member, keyword);
@@ -60,7 +61,7 @@ public class RecentSearchService {
 	@Transactional(readOnly = true)
 	public List<RecentSearchResponseDto> getRecentSearches(String memberId) {
 		Member member = memberRepository.findByMemberId(memberId)
-			.orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
+			.orElseThrow(() -> new MemberNotFoundException(memberId));
 
 		return recentSearchRepository.findByMemberOrderBySearchedAtDesc(member)
 			.stream()
@@ -72,12 +73,12 @@ public class RecentSearchService {
 	@Transactional
 	public void deleteSearchKeywordByBuildingId(String memberId, Long buildingId) {
 		Member member = memberRepository.findByMemberId(memberId)
-			.orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
+			.orElseThrow(() -> new MemberNotFoundException(memberId));
 
 		List<RecentSearch> searchList = recentSearchRepository.findByMemberAndBuildingId(member,
 			buildingId);
 		if (searchList.isEmpty()) {
-			throw new EntityNotFoundException("해당 건물과 연결된 검색어가 없습니다.");
+			throw new InvalidArgumentException("해당 건물과 연결된 검색어가 없습니다.");
 		}
 
 		// 가장 최근 항목 하나만 삭제
@@ -88,7 +89,7 @@ public class RecentSearchService {
 	@Transactional
 	public void deleteAllSearchKeywords(String memberId) {
 		Member member = memberRepository.findByMemberId(memberId)
-			.orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
+			.orElseThrow(() -> new MemberNotFoundException(memberId));
 		recentSearchRepository.deleteByMember(member);
 	}
 }

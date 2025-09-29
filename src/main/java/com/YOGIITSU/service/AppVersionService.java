@@ -1,7 +1,8 @@
 package com.YOGIITSU.service;
 
 
-import com.YOGIITSU.config.handler.GlobalExceptionHandler.ResourceNotFoundException;
+import com.YOGIITSU.exception.resource.ResourceNotFoundException;
+import com.YOGIITSU.exception.validation.InvalidArgumentException;
 import com.YOGIITSU.dto.ResponseDto.AppVersionResponseDto;
 import com.YOGIITSU.entity.AppVersion;
 import com.YOGIITSU.enums.Platform;
@@ -61,7 +62,7 @@ public class AppVersionService {
 		String s2 = v2 == null ? "" : v2.trim();
 
 		if (!VERSION_PATTERN.matcher(s1).matches() || !VERSION_PATTERN.matcher(s2).matches()) {
-			throw new IllegalArgumentException("버전 문자열 형식이 올바르지 않습니다.");
+			throw new InvalidArgumentException("버전 문자열 형식이 올바르지 않습니다.");
 		}
 		String[] parts1 = s1.split("\\.");
 		String[] parts2 = s2.split("\\.");
