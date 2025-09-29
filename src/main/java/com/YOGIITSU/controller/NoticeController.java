@@ -1,6 +1,6 @@
 package com.YOGIITSU.controller;
 
-import com.YOGIITSU.config.handler.GlobalExceptionHandler;
+import com.YOGIITSU.exception.auth.UnauthorizedException;
 import com.YOGIITSU.dto.RequestDto.NoticeRequestDto;
 import com.YOGIITSU.dto.ResponseDto.NoticeDetailResponseDto;
 import com.YOGIITSU.dto.ResponseDto.NoticeListResponseDto;
@@ -87,7 +87,7 @@ public class NoticeController {
 
     private void requireLogin(CustomUserDetails userDetails) {
         if (userDetails == null) {
-            throw new GlobalExceptionHandler.UnauthenticatedAccessException();
+            throw new UnauthorizedException();
         }
     }
 }
