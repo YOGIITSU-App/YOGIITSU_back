@@ -139,7 +139,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleAppleAuthServiceException(AuthenticationServiceException e) {
         log.warn("Apple authentication service exception occurred: {}", e.getMessage(), e);
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(ErrorResponse.of(ErrorCode.APPLE_AUTH_FAIL, e.getMessage()));
+                .body(ErrorResponse.of(ErrorCode.APPLE_AUTH_FAIL, null));
     }
 
     /**
@@ -149,7 +149,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleEntityNotFoundException(EntityNotFoundException e) {
         log.warn("Entity not found exception occurred: {}", e.getMessage(), e);
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ErrorResponse.of(ErrorCode.MEMBER_NOT_FOUND, e.getMessage()));
+                .body(ErrorResponse.of(ErrorCode.MEMBER_NOT_FOUND, null));
     }
 
     /**
@@ -159,8 +159,20 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException e) {
         log.warn("Validation exception occurred: {}", e.getMessage(), e);
         
-        // 첫 번째 오류 메시지만 추출하여 반환
-        String errorMessage = e.getBindingResult().getAllErrors().get(0).getDefaultMessage();
+        // 안전한 오류 메시지 추출
+        String errorMessage = "요청 값이 유효하지 않습니다.";
+        if (e.getBindingResult() != null && e.getBindingResult().hasErrors()) {
+            var errors = e.getBindingResult().getAllErrors();
+            if (!errors.isEmpty()) {
+                var firstError = errors.get(0);
+                String fieldName = "";
+                if (firstError instanceof org.springframework.validation.FieldError fieldError) {
+                    fieldName = fieldError.getField() + ": ";
+                }
+                errorMessage = fieldName + firstError.getDefaultMessage();
+            }
+        }
+        
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ErrorResponse.of(ErrorCode.VALIDATION_ERROR, errorMessage));
     }
@@ -170,7 +182,6 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler({
             ValidationException.class,
-            InvalidArgumentException.class,
             MissingRequiredFieldException.class,
             EmailAlreadyExistsException.class,
             UsernameAlreadyExistsException.class,
@@ -183,13 +194,23 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * 잘못된 인수 예외 처리
+     */
+    @ExceptionHandler(InvalidArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidArgumentException(InvalidArgumentException e) {
+        log.warn("Invalid argument exception occurred: {}", e.getMessage(), e);
+        return ResponseEntity.status(e.getErrorCode().getHttpStatus())
+                .body(ErrorResponse.of(e.getErrorCode(), null));
+    }
+
+    /**
      * 잘못된 인수 예외 처리 (기존 IllegalArgumentException)
      */
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException e) {
         log.warn("Illegal argument exception occurred: {}", e.getMessage(), e);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ErrorResponse.of(ErrorCode.INVALID_ARGUMENT, e.getMessage()));
+                .body(ErrorResponse.of(ErrorCode.INVALID_ARGUMENT, null));
     }
 
     /**
@@ -199,7 +220,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleMailException(MailException e) {
         log.error("Mail exception occurred: {}", e.getMessage(), e);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ErrorResponse.of(ErrorCode.EMAIL_SEND_FAIL, e.getMessage()));
+                .body(ErrorResponse.of(ErrorCode.EMAIL_SEND_FAIL, null));
     }
 
     /**
@@ -222,7 +243,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException e) {
         log.error("Runtime exception occurred: {}", e.getMessage(), e);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ErrorResponse.of(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage()));
+                .body(ErrorResponse.of(ErrorCode.INTERNAL_SERVER_ERROR, null));
     }
 
     /**

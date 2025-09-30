@@ -32,7 +32,7 @@ public record ErrorResponse(
 		return ErrorResponse.builder()
 			.code(errorCode.getCode())
 			.message(errorCode.getMessage())
-			.detail(errorCode.getMessage())
+			.detail(null)
 			.timestamp(LocalDateTime.now())
 			.status(errorCode.getHttpStatus().value())
 			.build();
