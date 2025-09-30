@@ -56,7 +56,6 @@
 - **시스템 관련 예외** (`com.YOGIITSU.exception.system`)
   - `SystemException`: 시스템 관련 기본 예외
   - `DatabaseException`: 데이터베이스 오류
-  - `ExternalServiceException`: 외부 서비스 오류
 
 ## 사용 방법
 
