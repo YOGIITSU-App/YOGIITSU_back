@@ -107,6 +107,10 @@ public class AdminInquiryService {
     private void checkAdminRole() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new UnauthorizedException();
+        }
+
         if (!(auth.getPrincipal() instanceof CustomUserDetails userDetails)) {
             throw new UnauthorizedException();
         }
@@ -114,6 +118,5 @@ public class AdminInquiryService {
         if (!"ADMIN".equals(userDetails.getRole())) {
             throw new AdminAccessDeniedException();
         }
-
     }
 }
