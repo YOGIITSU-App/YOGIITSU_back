@@ -14,4 +14,8 @@ public class AppleVerificationException extends ExternalServiceException {
     public AppleVerificationException(String detailMessage) {
         super(ErrorCode.APPLE_VERIFICATION_FAIL, detailMessage);
     }
+    
+    public AppleVerificationException(String detailMessage, Throwable cause) {
+        super(ErrorCode.APPLE_VERIFICATION_FAIL, detailMessage, cause);
+    }
 }

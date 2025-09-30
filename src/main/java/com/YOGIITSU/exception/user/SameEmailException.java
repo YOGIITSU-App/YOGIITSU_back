@@ -7,11 +7,17 @@ import com.YOGIITSU.exception.ErrorCode;
  */
 public class SameEmailException extends UserException {
     
+    private static final long serialVersionUID = 1L;
+    
     public SameEmailException() {
         super(ErrorCode.SAME_EMAIL);
     }
     
     public SameEmailException(String detailMessage) {
         super(ErrorCode.SAME_EMAIL, detailMessage);
+    }
+    
+    public SameEmailException(String detailMessage, Throwable cause) {
+        super(ErrorCode.SAME_EMAIL, detailMessage, cause);
     }
 }

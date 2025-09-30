@@ -7,11 +7,17 @@ import com.YOGIITSU.exception.ErrorCode;
  */
 public class MemberNotFoundException extends UserException {
     
+    private static final long serialVersionUID = 1L;
+    
     public MemberNotFoundException() {
         super(ErrorCode.MEMBER_NOT_FOUND);
     }
     
     public MemberNotFoundException(String detailMessage) {
         super(ErrorCode.MEMBER_NOT_FOUND, detailMessage);
+    }
+    
+    public MemberNotFoundException(String detailMessage, Throwable cause) {
+        super(ErrorCode.MEMBER_NOT_FOUND, detailMessage, cause);
     }
 }
