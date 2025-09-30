@@ -6,6 +6,13 @@ import com.YOGIITSU.jwt.EmailVerificationJwtProvider;
 import com.YOGIITSU.jwt.JwtTokenProvider;
 import com.YOGIITSU.repository.EmailMessageRepository;
 import com.YOGIITSU.repository.MemberRepository;
+import com.YOGIITSU.exception.auth.EmailVerificationNotApprovedException;
+import com.YOGIITSU.exception.auth.UnauthorizedException;
+import com.YOGIITSU.exception.validation.EmailAlreadyExistsException;
+import com.YOGIITSU.exception.validation.EmailRequiredException;
+import com.YOGIITSU.exception.user.SameEmailException;
+import com.YOGIITSU.exception.validation.InvalidArgumentException;
+import com.YOGIITSU.exception.external.EmailSendException;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import java.security.SecureRandom;
@@ -24,7 +31,12 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import java.time.LocalDateTime;
 import com.YOGIITSU.entity.Member;
 import com.YOGIITSU.entity.EmailPurpose;
-import com.YOGIITSU.config.handler.GlobalExceptionHandler.SameEmailException;
+import com.YOGIITSU.exception.user.SameEmailException;
+import com.YOGIITSU.exception.validation.EmailRequiredException;
+import com.YOGIITSU.exception.validation.EmailAlreadyExistsException;
+import com.YOGIITSU.exception.auth.UnauthorizedException;
+import com.YOGIITSU.exception.validation.InvalidArgumentException;
+import com.YOGIITSU.exception.external.EmailSendException;
 
 @Slf4j
 @Service
@@ -56,7 +68,7 @@ public class EmailService {
 	public void sendMail(EmailMessage emailMessage, String type) {
 		// 도메인 제한 체크
 		if (!isAllowedEmailDomain(emailMessage.getEmail())) {
-			throw new IllegalArgumentException(
+			throw new InvalidArgumentException(
 				"suwon.ac.kr, naver.com, gmail.com 도메인만 인증할 수 있습니다.");
 		}
 
@@ -68,7 +80,7 @@ public class EmailService {
 
 		} catch (MailException e) {
 			log.error("메일 전송 실패: {}", e.getMessage());
-			throw new RuntimeException("메일 전송 중 오류가 발생했습니다: " + e.getMessage(), e);
+			throw new EmailSendException("메일 전송 중 오류가 발생했습니다: " + e.getMessage());
 		}
 	}
 
@@ -92,7 +104,7 @@ public class EmailService {
 
 			return mimeMessageHelper;
 		} catch (Exception e) {
-			throw new RuntimeException("MimeMessage 생성 중 오류 발생: " + e.getMessage(), e);
+			throw new EmailSendException("MimeMessage 생성 중 오류 발생: " + e.getMessage());
 		}
 	}
 
@@ -108,11 +120,11 @@ public class EmailService {
 	// 인증 목적에 따른 이메일 유효성 검사
 	public void validateEmailRequest(String email, EmailPurpose purpose, Authentication auth) {
 		if (email == null || email.trim().isEmpty()) {
-			throw new IllegalArgumentException("이메일 주소는 필수입니다.");
+			throw new EmailRequiredException();
 		}
 
 		if (!isAllowedEmailDomain(email)) {
-			throw new IllegalArgumentException(
+			throw new InvalidArgumentException(
 				"suwon.ac.kr, naver.com, gmail.com 도메인만 인증할 수 있습니다.");
 		}
 
@@ -140,7 +152,7 @@ public class EmailService {
 			}
 
 			if (memberRepository.existsByEmail(email)) {
-				throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+				throw new EmailAlreadyExistsException();
 			}
 		}
 	}
@@ -148,7 +160,7 @@ public class EmailService {
 	// 인증이 필요한 요청에 대해 인증 여부 검사
 	public void checkAuthentication(Authentication auth) {
 		if (auth == null || !auth.isAuthenticated()) {
-			throw new IllegalArgumentException("로그인이 필요한 요청입니다.");
+			throw new UnauthorizedException("로그인이 필요한 요청입니다.");
 		}
 	}
 
@@ -164,7 +176,7 @@ public class EmailService {
 
 		// 3. 입력한 이메일이 로그인된 사용자의 현재 이메일과 일치하는지 확인
 		if (!member.getEmail().equals(email)) {
-			throw new IllegalArgumentException("이메일 정보가 일치하지 않습니다.");
+			throw new InvalidArgumentException("이메일 정보가 일치하지 않습니다.");
 		}
 	}
 
@@ -180,7 +192,7 @@ public class EmailService {
 		// 1. AccessToken 추출 및 유효성 검사
 		String accessToken = jwtTokenProvider.resolveToken(request);
 		if (accessToken == null || !jwtTokenProvider.validateToken(accessToken)) {
-			throw new IllegalArgumentException("유효하지 않은 로그인 토큰입니다.");
+			throw new UnauthorizedException("유효하지 않은 로그인 토큰입니다.");
 		}
 
 		// 2. 인증 객체 획득
@@ -188,7 +200,7 @@ public class EmailService {
 
 		// 3. JWT 토큰 파싱하여 새 이메일 및 인증 코드 추출
 		Claims claims = emailJwtProvider.parseEmailToken(token)
-			.orElseThrow(() -> new IllegalArgumentException("유효하지 않은 인증 토큰입니다."));
+			.orElseThrow(() -> new InvalidArgumentException("유효하지 않은 인증 토큰입니다."));
 
 		String newEmail = claims.getSubject();
 		String code = claims.get("code", String.class);
@@ -209,7 +221,7 @@ public class EmailService {
 
 		// 7. 새 이메일 중복 여부 검사
 		if (memberRepository.existsByEmail(newEmail)) {
-			throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+			throw new EmailAlreadyExistsException();
 		}
 
 		// 8. 사용자 이메일 변경
@@ -222,7 +234,7 @@ public class EmailService {
 	public EmailMessage verifyEmailCode(String email, String code) {
 		EmailMessage message = findEmailMessage(email, code);
 		if (message.getExpiresAt().isBefore(LocalDateTime.now())) {
-			throw new IllegalArgumentException("인증 코드가 만료되었습니다.");
+			throw new InvalidArgumentException("인증 코드가 만료되었습니다.");
 		}
 		return message;
 	}
@@ -230,7 +242,7 @@ public class EmailService {
 	// 이메일과 코드로 EmailMessage 조회
 	private EmailMessage findEmailMessage(String email, String code) {
 		return emailMessageRepository.findByEmailAndCode(email, code)
-			.orElseThrow(() -> new IllegalArgumentException("인증 코드가 만료되었습니다. 인증 코드를 재전송해 주세요."));
+			.orElseThrow(() -> new InvalidArgumentException("인증 코드가 만료되었습니다. 인증 코드를 재전송해 주세요."));
 	}
 
 	// 인증 승인 처리 및 저장
@@ -242,7 +254,7 @@ public class EmailService {
 	// 이메일 존재 여부 확인
 	private void checkEmailExists(String email) {
 		if (!memberRepository.existsByEmail(email)) {
-			throw new IllegalArgumentException("해당 이메일로 가입된 계정이 존재하지 않습니다.");
+			throw new InvalidArgumentException("해당 이메일로 가입된 계정이 존재하지 않습니다.");
 		}
 	}
 }

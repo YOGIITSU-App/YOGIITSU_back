@@ -1,6 +1,6 @@
 package com.YOGIITSU.service;
 
-import com.YOGIITSU.config.handler.GlobalExceptionHandler.MemberNotFoundException;
+import com.YOGIITSU.exception.user.MemberNotFoundException;
 import com.YOGIITSU.dto.ResponseDto.MypageProfileResponseDto;
 import com.YOGIITSU.entity.Member;
 import com.YOGIITSU.repository.MemberRepository;

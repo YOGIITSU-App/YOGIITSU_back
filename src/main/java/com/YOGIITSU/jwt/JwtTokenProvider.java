@@ -1,6 +1,6 @@
 package com.YOGIITSU.jwt;
 
-import com.YOGIITSU.config.handler.GlobalExceptionHandler.InvalidTokenException;
+import com.YOGIITSU.exception.auth.InvalidTokenException;
 import com.YOGIITSU.dto.ResponseDto.TokenResponseDto;
 import com.YOGIITSU.dto.ResponseDto.UserResponseDto;
 import io.jsonwebtoken.*;

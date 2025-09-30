@@ -1,12 +1,18 @@
 package com.YOGIITSU.exception.cafeteria;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import com.YOGIITSU.exception.resource.ResourceException;
+import com.YOGIITSU.exception.ErrorCode;
 
-@ResponseStatus(HttpStatus.NOT_FOUND)
-public class CafeteriaNotFoundForBuildingException extends RuntimeException {
+/**
+ * 건물에 식당이 없는 예외
+ */
+public class CafeteriaNotFoundForBuildingException extends ResourceException {
 
 	public CafeteriaNotFoundForBuildingException() {
-		super("해당 건물에 식당이 없습니다.");
+		super(ErrorCode.CAFETERIA_NOT_FOUND);
+	}
+	
+	public CafeteriaNotFoundForBuildingException(String detailMessage) {
+		super(ErrorCode.CAFETERIA_NOT_FOUND, detailMessage);
 	}
 }

@@ -1,6 +1,6 @@
 package com.YOGIITSU.service;
 
-import com.YOGIITSU.config.handler.GlobalExceptionHandler.ShuttleStopNotFoundException;
+import com.YOGIITSU.exception.resource.ShuttleStopNotFoundException;
 import com.YOGIITSU.dto.ResponseDto.RouteStopResponseDto;
 import com.YOGIITSU.dto.ResponseDto.ShuttleScheduleDetailResponseDto;
 import com.YOGIITSU.dto.ResponseDto.ShuttleScheduleResponseDto;

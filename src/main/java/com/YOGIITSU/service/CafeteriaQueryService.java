@@ -6,6 +6,7 @@ import com.YOGIITSU.entity.Cafeteria;
 import com.YOGIITSU.entity.CafeteriaMenu;
 import com.YOGIITSU.exception.building.BuildingNotFoundException;
 import com.YOGIITSU.exception.cafeteria.CafeteriaNotFoundForBuildingException;
+import com.YOGIITSU.exception.validation.InvalidArgumentException;
 import com.YOGIITSU.repository.CafeteriaMenuRepository;
 import com.YOGIITSU.repository.CafeteriaRepository;
 import lombok.RequiredArgsConstructor;
@@ -164,7 +165,7 @@ public class CafeteriaQueryService {
 	@Transactional(readOnly = true)
 	public WeeklyCafeteriaResponseDto getWeeklyByBuilding(Long buildingId) {
 		if (buildingId == null || buildingId <= 0) {
-			throw new IllegalArgumentException("buildingId는 양수여야 합니다.");
+			throw new InvalidArgumentException("buildingId는 양수여야 합니다.");
 		}
 
 		// 건물명 확인

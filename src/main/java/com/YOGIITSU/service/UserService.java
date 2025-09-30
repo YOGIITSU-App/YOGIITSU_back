@@ -2,6 +2,7 @@ package com.YOGIITSU.service;
 
 import com.YOGIITSU.entity.Member;
 import com.YOGIITSU.repository.MemberRepository;
+import com.YOGIITSU.exception.validation.InvalidArgumentException;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -30,7 +31,7 @@ public class UserService {
 			// 3. 저장된 provider와 현재 로그인하려는 provider가 다른지 확인
 			if (member.getProvider() != null && !member.getProvider().equals(provider)) {
 				// provider가 다르면, 계정 탈취 위험이 있으므로 에러를 발생시킵니다.
-				throw new RuntimeException(
+				throw new InvalidArgumentException(
 					"이미 " + member.getProvider() + " 계정으로 가입된 이메일입니다. 해당 방식으로 로그인해주세요.");
 			}
 			// provider가 같으면, 기존 사용자이므로 그대로 반환합니다.

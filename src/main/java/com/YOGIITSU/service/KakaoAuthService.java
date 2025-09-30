@@ -4,6 +4,7 @@ import com.YOGIITSU.dto.ResponseDto.TokenResponseDto;
 import com.YOGIITSU.entity.Member;
 import com.YOGIITSU.jwt.CustomUserDetails;
 import com.YOGIITSU.jwt.JwtTokenProvider;
+import com.YOGIITSU.exception.validation.InvalidArgumentException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
@@ -70,7 +71,7 @@ public class KakaoAuthService {
 			if (logger.isDebugEnabled()) {
 				logger.debug("카카오 API 응답 본문: {}", e.getResponseBodyAsString());
 			}
-			throw new RuntimeException("카카오 서버로부터 사용자 정보를 가져오는 데 실패했습니다.");
+			throw new InvalidArgumentException("카카오 서버로부터 사용자 정보를 가져오는 데 실패했습니다.");
 		}
 	}
 

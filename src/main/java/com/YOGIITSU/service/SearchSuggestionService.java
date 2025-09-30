@@ -10,7 +10,7 @@ import com.YOGIITSU.repository.BuildingAliasRepository;
 import com.YOGIITSU.repository.BuildingRepository;
 import com.YOGIITSU.repository.FavoriteRepository;
 import com.YOGIITSU.repository.MemberRepository;
-import jakarta.persistence.EntityNotFoundException;
+import com.YOGIITSU.exception.user.MemberNotFoundException;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +43,7 @@ public class SearchSuggestionService {
 
 	private Member findMemberById(String memberId) {
 		return memberRepository.findByMemberId(memberId)
-			.orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
+			.orElseThrow(() -> new MemberNotFoundException(memberId));
 	}
 
 	private List<Building> findBookmarkedBuildings(Member member, String query) {
@@ -112,5 +112,4 @@ public class SearchSuggestionService {
 			.limit(6)
 			.collect(Collectors.toList());
 	}
-
 }

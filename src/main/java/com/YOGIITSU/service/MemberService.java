@@ -1,11 +1,14 @@
 package com.YOGIITSU.service;
 
-import com.YOGIITSU.config.handler.GlobalExceptionHandler.EmailVerificationNotApprovedException;
-import com.YOGIITSU.config.handler.GlobalExceptionHandler.InvalidLoginException;
-import com.YOGIITSU.config.handler.GlobalExceptionHandler.MemberNotFoundException;
-import com.YOGIITSU.config.handler.GlobalExceptionHandler.PasswordMismatchException;
-import com.YOGIITSU.config.handler.GlobalExceptionHandler.PasswordNotEqualsException;
-import com.YOGIITSU.config.handler.GlobalExceptionHandler.SamePasswordException;
+import com.YOGIITSU.exception.auth.EmailVerificationNotApprovedException;
+import com.YOGIITSU.exception.auth.InvalidLoginException;
+import com.YOGIITSU.exception.user.MemberNotFoundException;
+import com.YOGIITSU.exception.user.PasswordMismatchException;
+import com.YOGIITSU.exception.user.PasswordNotEqualsException;
+import com.YOGIITSU.exception.user.SamePasswordException;
+import com.YOGIITSU.exception.validation.InvalidArgumentException;
+import com.YOGIITSU.exception.system.SystemException;
+import com.YOGIITSU.exception.ErrorCode;
 import com.YOGIITSU.dto.RequestDto.PasswordResetRequestDto;
 import com.YOGIITSU.dto.ResponseDto.TokenResponseDto;
 import com.YOGIITSU.entity.EmailMessage;
@@ -112,7 +115,7 @@ public class MemberService {
 
 		// 3. 회원 삭제 후 존재 여부 확인
 		if (memberRepository.existsByMemberId(memberId)) {
-			throw new RuntimeException("회원 탈퇴 실패: 회원 정보가 삭제되지 않았습니다.");
+			throw new SystemException(ErrorCode.DATABASE_ERROR, "회원 탈퇴 실패: 회원 정보가 삭제되지 않았습니다.");
 		}
 
 		// 4. 로그 기록

@@ -1,7 +1,6 @@
 package com.YOGIITSU.service;
 
-import com.YOGIITSU.config.handler.GlobalExceptionHandler;
-import com.YOGIITSU.config.handler.GlobalExceptionHandler.InvalidLoginException;
+import com.YOGIITSU.exception.auth.InvalidLoginException;
 import com.YOGIITSU.dto.ResponseDto.TokenResponseDto;
 import com.YOGIITSU.entity.Member;
 import com.YOGIITSU.jwt.CustomUserDetails;

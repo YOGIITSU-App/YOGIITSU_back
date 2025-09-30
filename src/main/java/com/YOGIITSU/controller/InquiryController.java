@@ -1,8 +1,8 @@
 package com.YOGIITSU.controller;
 
-import com.YOGIITSU.config.handler.GlobalExceptionHandler.InvalidTokenException;
-import com.YOGIITSU.config.handler.GlobalExceptionHandler.MemberNotFoundException;
-import com.YOGIITSU.config.handler.GlobalExceptionHandler.MissingTokenException;
+import com.YOGIITSU.exception.auth.InvalidTokenException;
+import com.YOGIITSU.exception.user.MemberNotFoundException;
+import com.YOGIITSU.exception.auth.MissingTokenException;
 import com.YOGIITSU.dto.RequestDto.InquiryRequestDto;
 import com.YOGIITSU.dto.ResponseDto.InquiryListResponseDto;
 import com.YOGIITSU.dto.ResponseDto.InquiryResponseDto;

@@ -1,12 +1,31 @@
 package com.YOGIITSU.config.handler;
 
-import static org.springframework.http.HttpStatus.FORBIDDEN;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
-
+import com.YOGIITSU.dto.ErrorResponse;
+import com.YOGIITSU.exception.BaseException;
+import com.YOGIITSU.exception.ErrorCode;
 import com.YOGIITSU.exception.apple.AppleExchangeException;
+import com.YOGIITSU.exception.auth.*;
 import com.YOGIITSU.exception.building.BuildingNotFoundException;
 import com.YOGIITSU.exception.cafeteria.CafeteriaNotFoundForBuildingException;
+import com.YOGIITSU.exception.user.*;
+import com.YOGIITSU.exception.resource.ResourceException;
+import com.YOGIITSU.exception.resource.NoticeNotFoundException;
+import com.YOGIITSU.exception.resource.InquiryNotFoundException;
+import com.YOGIITSU.exception.resource.FavoriteNotFoundException;
+import com.YOGIITSU.exception.validation.EmailAlreadyExistsException;
+import com.YOGIITSU.exception.validation.UsernameAlreadyExistsException;
+import com.YOGIITSU.exception.validation.EmailRequiredException;
+import com.YOGIITSU.exception.external.ExternalServiceException;
+import com.YOGIITSU.exception.external.GoogleAuthException;
+import com.YOGIITSU.exception.external.KakaoAuthException;
+import com.YOGIITSU.exception.external.EmailSendException;
+import com.YOGIITSU.exception.validation.ValidationException;
+import com.YOGIITSU.exception.validation.InvalidArgumentException;
+import com.YOGIITSU.exception.validation.MissingRequiredFieldException;
+import com.YOGIITSU.exception.system.SystemException;
+import com.YOGIITSU.exception.system.DatabaseException;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationServiceException;
@@ -14,304 +33,226 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.mail.MailException;
-import java.util.HashMap;
-import java.util.Map;
 
+
+/**
+ * 전역 예외 처리 핸들러
+ * 모든 예외를 일관된 형식으로 처리하여 클라이언트에게 반환
+ */
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-	// 공통적인 예외 응답을 반환하는 메서드
-	private ResponseEntity<Map<String, String>> buildErrorResponse(String message,
-		HttpStatus status) {
-		Map<String, String> errorResponse = new HashMap<>();
-		errorResponse.put("message", message);
-		return ResponseEntity.status(status).body(errorResponse);
-	}
+    /**
+     * 커스텀 예외 처리 (BaseException을 상속받은 모든 예외)
+     */
+    @ExceptionHandler(BaseException.class)
+    public ResponseEntity<ErrorResponse> handleBaseException(BaseException e) {
+        log.warn("Custom exception occurred: {}", e.getMessage(), e);
+        return ResponseEntity.status(e.getErrorCode().getHttpStatus())
+                .body(ErrorResponse.of(e.getErrorCode(), e.getDetailMessage()));
+    }
 
-	// 리소스를 찾을 수 없을 경우 예외 처리
-	@ExceptionHandler(ResourceNotFoundException.class)
-	public ResponseEntity<Map<String, String>> handleResourceNotFoundException(
-		ResourceNotFoundException e) {
-		return buildErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND);
-	}
+    /**
+     * 인증 관련 예외 처리
+     */
+    @ExceptionHandler({
+            UnauthorizedException.class,
+            InvalidTokenException.class,
+            MissingTokenException.class,
+            InvalidLoginException.class,
+            EmailVerificationNotApprovedException.class
+    })
+    public ResponseEntity<ErrorResponse> handleAuthenticationException(BaseException e) {
+        log.warn("Authentication exception occurred: {}", e.getMessage(), e);
+        return ResponseEntity.status(e.getErrorCode().getHttpStatus())
+                .body(ErrorResponse.of(e.getErrorCode(), e.getDetailMessage()));
+    }
 
-	// 토큰이 없을 경우 예외 클래스 정의
-	@ExceptionHandler(MissingTokenException.class)
-	public ResponseEntity<Map<String, String>> handleMissingTokenException(
-		MissingTokenException e) {
-		return buildErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
-	}
+    /**
+     * 권한 관련 예외 처리
+     */
+    @ExceptionHandler({
+            AccessDeniedException.class,
+            AdminAccessDeniedException.class
+    })
+    public ResponseEntity<ErrorResponse> handleAuthorizationException(BaseException e) {
+        log.warn("Authorization exception occurred: {}", e.getMessage(), e);
+        return ResponseEntity.status(e.getErrorCode().getHttpStatus())
+                .body(ErrorResponse.of(e.getErrorCode(), e.getDetailMessage()));
+    }
 
-	// 유효하지 않은 토큰일 경우 예외 클래스 정의
-	@ExceptionHandler(InvalidTokenException.class)
-	public ResponseEntity<Map<String, String>> handleInvalidTokenException(
-		InvalidTokenException e) {
-		return buildErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
-	}
+    /**
+     * 사용자 관련 예외 처리
+     */
+    @ExceptionHandler({
+            MemberNotFoundException.class,
+            MemberAlreadyExistsException.class,
+            PasswordMismatchException.class,
+            PasswordNotEqualsException.class,
+            SamePasswordException.class,
+            SameEmailException.class
+    })
+    public ResponseEntity<ErrorResponse> handleUserException(BaseException e) {
+        log.warn("User exception occurred: {}", e.getMessage(), e);
+        return ResponseEntity.status(e.getErrorCode().getHttpStatus())
+                .body(ErrorResponse.of(e.getErrorCode(), e.getDetailMessage()));
+    }
 
-	// 관리자 권한이 없을 경우 예외 클래스 정의
-	@ExceptionHandler(AdminAccessDeniedException.class)
-	public ResponseEntity<Map<String, String>> handleAdminAccessDeniedException(
-		AdminAccessDeniedException e) {
-		return buildErrorResponse(e.getMessage(), FORBIDDEN);
-	}
+    /**
+     * 리소스 관련 예외 처리
+     */
+    @ExceptionHandler({
+            BuildingNotFoundException.class,
+            CafeteriaNotFoundForBuildingException.class,
+            NoticeNotFoundException.class,
+            InquiryNotFoundException.class,
+            FavoriteNotFoundException.class,
+            ResourceException.class
+    })
+    public ResponseEntity<ErrorResponse> handleResourceException(BaseException e) {
+        log.warn("Resource exception occurred: {}", e.getMessage(), e);
+        return ResponseEntity.status(e.getErrorCode().getHttpStatus())
+                .body(ErrorResponse.of(e.getErrorCode(), e.getDetailMessage()));
+    }
 
-	// 로그인 실패 (잘못된 아이디/비밀번호)
-	@ExceptionHandler(InvalidLoginException.class)
-	public ResponseEntity<Map<String, String>> handleInvalidLoginException(
-		InvalidLoginException e) {
-		return buildErrorResponse(e.getMessage(), UNAUTHORIZED);
-	}
+    /**
+     * 외부 서비스 관련 예외 처리
+     */
+    @ExceptionHandler({
+            AppleExchangeException.class,
+            GoogleAuthException.class,
+            KakaoAuthException.class,
+            EmailSendException.class,
+            ExternalServiceException.class
+    })
+    public ResponseEntity<ErrorResponse> handleExternalServiceException(BaseException e) {
+        log.warn("External service exception occurred: {}", e.getMessage(), e);
+        return ResponseEntity.status(e.getErrorCode().getHttpStatus())
+                .body(ErrorResponse.of(e.getErrorCode(), e.getDetailMessage()));
+    }
 
-	// 사용자를 찾을 수 없을 경우 예외 클래스 정의
-	@ExceptionHandler(MemberNotFoundException.class)
-	public ResponseEntity<Map<String, String>> handleMemberNotFoundException(
-		MemberNotFoundException e) {
-		return buildErrorResponse(e.getMessage(), FORBIDDEN);
-	}
+    /**
+     * Apple 인증 서비스 예외 처리
+     */
+    @ExceptionHandler(AuthenticationServiceException.class)
+    public ResponseEntity<ErrorResponse> handleAppleAuthServiceException(AuthenticationServiceException e) {
+        log.warn("Apple authentication service exception occurred: {}", e.getMessage(), e);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ErrorResponse.of(ErrorCode.APPLE_AUTH_FAIL, null));
+    }
 
-	// 비밀번호가 일치하지 않을 경우 예외 처리
-	@ExceptionHandler(PasswordMismatchException.class)
-	public ResponseEntity<Map<String, String>> handlePasswordMismatchException(
-		PasswordMismatchException e) {
-		return buildErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
-	}
+    /**
+     * JPA EntityNotFoundException 처리
+     */
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleEntityNotFoundException(EntityNotFoundException e) {
+        log.warn("Entity not found exception occurred: {}", e.getMessage(), e);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ErrorResponse.of(ErrorCode.MEMBER_NOT_FOUND, null));
+    }
 
-	// 새 비밀번호와 확인 비밀번호가 일치하지 않을 경우 예외 처리
-	@ExceptionHandler(PasswordNotEqualsException.class)
-	public ResponseEntity<Map<String, String>> handlePasswordNotEqualsException(
-		PasswordNotEqualsException e) {
-		return buildErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
-	}
+    /**
+     * 유효성 검사 예외 처리
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException e) {
+        log.warn("Validation exception occurred: {}", e.getMessage(), e);
+        
+        // 안전한 오류 메시지 추출
+        String errorMessage = "요청 값이 유효하지 않습니다.";
+        if (e.getBindingResult() != null && e.getBindingResult().hasErrors()) {
+            var errors = e.getBindingResult().getAllErrors();
+            if (!errors.isEmpty()) {
+                var firstError = errors.get(0);
+                String fieldName = "";
+                if (firstError instanceof org.springframework.validation.FieldError fieldError) {
+                    fieldName = fieldError.getField() + ": ";
+                }
+                errorMessage = fieldName + firstError.getDefaultMessage();
+            }
+        }
+        
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ErrorResponse.of(ErrorCode.VALIDATION_ERROR, errorMessage));
+    }
 
-	// 이메일 인증이 승인되지 않은 경우 예외 처리
-	@ExceptionHandler(EmailVerificationNotApprovedException.class)
-	public ResponseEntity<Map<String, String>> handleNotApproved(
-		EmailVerificationNotApprovedException e) {
-		return ResponseEntity.status(UNAUTHORIZED)
-			.body(Map.of("message", e.getMessage()));
-	}
+    /**
+     * 유효성 검사 관련 예외 처리
+     */
+    @ExceptionHandler({
+            ValidationException.class,
+            MissingRequiredFieldException.class,
+            EmailAlreadyExistsException.class,
+            UsernameAlreadyExistsException.class,
+            EmailRequiredException.class
+    })
+    public ResponseEntity<ErrorResponse> handleValidationException(BaseException e) {
+        log.warn("Validation exception occurred: {}", e.getMessage(), e);
+        return ResponseEntity.status(e.getErrorCode().getHttpStatus())
+                .body(ErrorResponse.of(e.getErrorCode(), e.getDetailMessage()));
+    }
 
-	// 즐겨찾기 관련 예외 처리 추가
-	@ExceptionHandler(EntityNotFoundException.class)
-	public ResponseEntity<Map<String, String>> handleEntityNotFoundException(
-		EntityNotFoundException e) {
-		return buildErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND);
-	}
+    /**
+     * 잘못된 인수 예외 처리
+     */
+    @ExceptionHandler(InvalidArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidArgumentException(InvalidArgumentException e) {
+        log.warn("Invalid argument exception occurred: {}", e.getMessage(), e);
+        return ResponseEntity.status(e.getErrorCode().getHttpStatus())
+                .body(ErrorResponse.of(e.getErrorCode(), null));
+    }
 
-	// 회원가입 유효성 검사 예외 처리 추가
-	@ExceptionHandler(MethodArgumentNotValidException.class)
-	public ResponseEntity<Map<String, String>> handleValidationException(
-		MethodArgumentNotValidException e) {
-		Map<String, String> errorResponse = new HashMap<>();
+    /**
+     * 잘못된 인수 예외 처리 (기존 IllegalArgumentException)
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException e) {
+        log.warn("Illegal argument exception occurred: {}", e.getMessage(), e);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ErrorResponse.of(ErrorCode.INVALID_ARGUMENT, null));
+    }
 
-		// 첫 번째 오류 메시지만 추출하여 반환
-		String errorMessage = e.getBindingResult().getAllErrors().get(0).getDefaultMessage();
-		errorResponse.put("message", errorMessage);
+    /**
+     * 이메일 전송 실패 예외 처리
+     */
+    @ExceptionHandler(MailException.class)
+    public ResponseEntity<ErrorResponse> handleMailException(MailException e) {
+        log.error("Mail exception occurred: {}", e.getMessage(), e);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ErrorResponse.of(ErrorCode.EMAIL_SEND_FAIL, null));
+    }
 
-		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
-	}
+    /**
+     * 시스템 관련 예외 처리
+     */
+    @ExceptionHandler({
+            SystemException.class,
+            DatabaseException.class
+    })
+    public ResponseEntity<ErrorResponse> handleSystemException(BaseException e) {
+        log.error("System exception occurred: {}", e.getMessage(), e);
+        return ResponseEntity.status(e.getErrorCode().getHttpStatus())
+                .body(ErrorResponse.of(e.getErrorCode(), e.getDetailMessage()));
+    }
 
-	//IllegalArgumentException 발생 시 처리
-	@ExceptionHandler(IllegalArgumentException.class)
-	public ResponseEntity<Map<String, String>> handleIllegalArgumentException(
-		IllegalArgumentException e) {
-		return buildErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
-	}
+    /**
+     * 기타 런타임 예외 처리
+     */
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException e) {
+        log.error("Runtime exception occurred: {}", e.getMessage(), e);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ErrorResponse.of(ErrorCode.INTERNAL_SERVER_ERROR, null));
+    }
 
-	// 이메일 전송 실패 예외 처리
-	@ExceptionHandler(MailException.class)
-	public ResponseEntity<Map<String, String>> handleMailException(MailException e) {
-		return buildErrorResponse("이메일 전송 중 오류가 발생했습니다: " + e.getMessage(),
-			HttpStatus.INTERNAL_SERVER_ERROR);
-	}
-
-	@ExceptionHandler(CafeteriaNotFoundForBuildingException.class)
-	public ResponseEntity<Map<String, String>> handleCafeteriaNotFound(
-		CafeteriaNotFoundForBuildingException e) {
-		return ResponseEntity.status(HttpStatus.NOT_FOUND)
-			.body(Map.of("message", e.getMessage())); // "해당 건물에 식당이 없습니다."
-	}
-
-	// 기타 예외 (MimeMessage 생성 오류 포함) 처리
-	@ExceptionHandler(RuntimeException.class)
-	public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException e) {
-		return buildErrorResponse("서버 내부 오류 발생: " + e.getMessage(),
-			HttpStatus.INTERNAL_SERVER_ERROR);
-	}
-
-	// 건물 ID로 건물을 찾을 수 없는 경우 예외 처리
-	@ExceptionHandler(BuildingNotFoundException.class)
-	public ResponseEntity<Map<String, String>> handleBuildingNotFoundException(
-		BuildingNotFoundException e) {
-		return buildErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND);
-	}
-
-	// 비밀번호 변경 시 기존 비밀번호와 동일한 비밀번호로 변경하려는 경우 예외 처리
-	@ExceptionHandler(SamePasswordException.class)
-	public ResponseEntity<Map<String, String>> handleSamePasswordException(
-		SamePasswordException e) {
-		return buildErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
-	}
-
-	// 이메일 변경 시 기존 이메일과 동일한 이메일로 변경하려는 경우 예외 처리
-	@ExceptionHandler(SameEmailException.class)
-	public ResponseEntity<Map<String, String>> handleSameEmailException(
-		SameEmailException e) {
-		return buildErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
-	}
-
-	// 셔틀 정류장 ID로 정류장을 찾을 수 없는 경우 예외 처리
-	@ExceptionHandler(ShuttleStopNotFoundException.class)
-	public ResponseEntity<Map<String, String>> handleShuttleStopNotFoundException(
-		ShuttleStopNotFoundException e) {
-		return buildErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND);
-	}
-
-	public static class PasswordMismatchException extends RuntimeException {
-
-		public PasswordMismatchException() {
-			super("비밀번호가 일치하지 않습니다.");
-		}
-	}
-
-	public static class MissingTokenException extends RuntimeException {
-
-		public MissingTokenException() {
-			super("요청에 토큰이 포함되어 있지 않습니다.");
-		}
-	}
-
-	public static class InvalidTokenException extends RuntimeException {
-
-		public InvalidTokenException() {
-			super("유효하지 않은 토큰입니다.");
-		}
-	}
-
-	public static class AdminAccessDeniedException extends RuntimeException {
-
-		public AdminAccessDeniedException() {
-			super("관리자 계정이 아닙니다.");
-		}
-	}
-
-	public static class MemberNotFoundException extends RuntimeException {
-
-		public MemberNotFoundException() {
-			super("존재하지 않는 계정입니다.");
-		}
-	}
-
-	public static class PasswordNotEqualsException extends RuntimeException {
-
-		public PasswordNotEqualsException() {
-			super("새 비밀번호와 확인 비밀번호가 일치하지 않습니다.");
-		}
-	}
-
-	public static class EmailVerificationNotApprovedException extends RuntimeException {
-
-		public EmailVerificationNotApprovedException() {
-			super("이메일 인증이 완료되지 않았습니다.");
-		}
-	}
-
-	public static class InvalidLoginException extends RuntimeException {
-
-		public InvalidLoginException() {
-			super("아이디 또는 비밀번호가 잘못되었습니다.");
-		}
-	}
-
-	//로그인 여부 확인
-	@ExceptionHandler(UnauthenticatedAccessException.class)
-	public ResponseEntity<Map<String, String>> handleUnauthenticatedAccess(
-		UnauthenticatedAccessException e) {
-		return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-			.body(Map.of("message", e.getMessage()));
-	}
-
-	public static class UnauthenticatedAccessException extends RuntimeException {
-
-		public UnauthenticatedAccessException() {
-			super("로그인된 사용자만 접근 가능합니다.");
-		}
-	}
-
-	public static class SamePasswordException extends RuntimeException {
-
-		public SamePasswordException() {
-			super("기존 비밀번호와 동일한 비밀번호로는 변경할 수 없습니다.");
-		}
-	}
-
-	public static class SameEmailException extends RuntimeException {
-
-		public SameEmailException() {
-			super("기존 이메일과 동일한 이메일로는 변경할 수 없습니다.");
-		}
-	}
-
-	@ExceptionHandler(AuthenticationServiceException.class)
-	public ResponseEntity<Map<String, Object>> handleAppleAuthServiceException(
-		AuthenticationServiceException e) {
-		return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-			.body(Map.of(
-				"code", "APPLE_AUTH_FAIL",
-				"detail", e.getMessage()
-			));
-	}
-
-	@ExceptionHandler({ AppleTokenInvalidException.class, AppleVerificationException.class })
-	public ResponseEntity<Map<String, Object>> handleAppleTokenInvalid(RuntimeException e) {
-		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-			.body(Map.of(
-				"code", "APPLE_TOKEN_INVALID",
-				"detail", e.getMessage()
-			));
-	}
-
-	@ExceptionHandler(AppleExchangeException.class)
-	public ResponseEntity<Map<String, Object>> handleAppleExchange(AppleExchangeException e) {
-		return ResponseEntity.status(e.getStatus())
-			.body(Map.of(
-				"code", "APPLE_TOKEN_ERR",
-				"detail", e.getAppleBody()
-			));
-	}
-
-	// Apple 관련 예외 클래스
-	public static class AppleTokenInvalidException extends RuntimeException {
-		public AppleTokenInvalidException() {
-			super("유효하지 않은 Apple identityToken 입니다.");
-		}
-	}
-
-	public static class ApplePublicKeyNotFoundException extends RuntimeException {
-		public ApplePublicKeyNotFoundException() {
-			super("Apple 공개키를 찾을 수 없습니다.");
-		}
-	}
-
-	public static class AppleVerificationException extends RuntimeException {
-
-		public AppleVerificationException() {
-			super("Apple 토큰 검증 중 오류가 발생했습니다.");
-		}
-	}
-
-	public static class ShuttleStopNotFoundException extends RuntimeException {
-
-		public ShuttleStopNotFoundException(String stopId) {
-			super("요청하신 정류장 ID를 찾을 수 없습니다: " + stopId);
-		}
-	}
-
-	public static class ResourceNotFoundException extends RuntimeException {
-
-		public ResourceNotFoundException(String platform) {
-			super("해당 플랫폼(" + platform + ")의 버전 정책을 찾을 수 없습니다.");
-		}
-	}
+    /**
+     * 예상치 못한 모든 예외 처리
+     */
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleException(Exception e) {
+        log.error("Unexpected exception occurred: {}", e.getMessage(), e);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ErrorResponse.of(ErrorCode.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다."));
+    }
 }

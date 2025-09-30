@@ -1,6 +1,7 @@
 package com.YOGIITSU.service;
 
-import com.YOGIITSU.config.handler.GlobalExceptionHandler;
+import com.YOGIITSU.exception.user.MemberNotFoundException;
+import com.YOGIITSU.exception.validation.InvalidArgumentException;
 import com.YOGIITSU.dto.RequestDto.InquiryRequestDto;
 import com.YOGIITSU.dto.ResponseDto.InquiryListResponseDto;
 import com.YOGIITSU.dto.ResponseDto.InquiryResponseDto;
@@ -9,7 +10,7 @@ import com.YOGIITSU.entity.InquiryState;
 import com.YOGIITSU.entity.Member;
 import com.YOGIITSU.repository.InquiryRepository;
 import com.YOGIITSU.repository.MemberRepository;
-import jakarta.persistence.EntityNotFoundException;
+import com.YOGIITSU.exception.resource.InquiryNotFoundException;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -45,10 +46,10 @@ public class InquiryService {
 
         // 2. 입력값 유효성 검사
         if (requestDto.getInquiryTitle() == null || requestDto.getInquiryTitle().isEmpty()) {
-            throw new IllegalArgumentException("문의 제목을 입력해주세요.");
+            throw new InvalidArgumentException("문의 제목을 입력해주세요.");
         }
         if (requestDto.getInquiryContent() == null || requestDto.getInquiryContent().isEmpty()) {
-            throw new IllegalArgumentException("문의 내용을 입력해주세요.");
+            throw new InvalidArgumentException("문의 내용을 입력해주세요.");
         }
 
         Inquiry inquiry = Inquiry.builder()
@@ -113,7 +114,7 @@ public class InquiryService {
 
         // 3. 관리자 답변이 있는 경우 수정 불가
         if (inquiry.getInquiryState() == InquiryState.COMPLETED) {
-            throw new IllegalArgumentException("답변 완료된 문의는 수정할 수 없습니다.");
+            throw new InvalidArgumentException("답변 완료된 문의는 수정할 수 없습니다.");
         }
 
         // 4. 문의 업데이트
@@ -140,7 +141,7 @@ public class InquiryService {
 
         // 3. 답변이 이미 완료된 경우 삭제 불가
         if (inquiry.getInquiryState() == InquiryState.COMPLETED) {
-            throw new IllegalArgumentException("답변 완료된 문의는 삭제할 수 없습니다.");
+            throw new InvalidArgumentException("답변 완료된 문의는 삭제할 수 없습니다.");
         }
 
         // 4. 문의 삭제
@@ -155,7 +156,7 @@ public class InquiryService {
      */
     private Member findMember(Long memberId) {
         return memberRepository.findById(memberId)
-            .orElseThrow(GlobalExceptionHandler.MemberNotFoundException::new);
+            .orElseThrow(MemberNotFoundException::new);
     }
 
     /**
@@ -166,7 +167,7 @@ public class InquiryService {
      */
     private Inquiry findInquiry(Long inquiryId) {
         return inquiryRepository.findById(inquiryId)
-            .orElseThrow(() -> new EntityNotFoundException("해당 문의는 존재하지 않습니다."));
+			.orElseThrow(() -> new InquiryNotFoundException(inquiryId));
     }
 
     /**
@@ -174,7 +175,7 @@ public class InquiryService {
      */
     private void validateOwnership(Inquiry inquiry, Long memberId) {
         if (!inquiry.getMember().getId().equals(memberId)) {
-            throw new IllegalArgumentException("본인이 작성한 문의만 수정 또는 삭제할 수 있습니다.");
+            throw new InvalidArgumentException("본인이 작성한 문의만 수정 또는 삭제할 수 있습니다.");
         }
     }
 
