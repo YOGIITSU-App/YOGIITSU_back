@@ -1,10 +1,8 @@
 package com.YOGIITSU.controller;
 
-import com.YOGIITSU.exception.auth.InvalidTokenException;
-import com.YOGIITSU.exception.auth.MissingTokenException;
 import com.YOGIITSU.dto.ResponseDto.SearchSuggestionResponseDto;
-import com.YOGIITSU.jwt.JwtTokenProvider;
 import com.YOGIITSU.service.SearchSuggestionService;
+import com.YOGIITSU.util.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,7 +21,7 @@ import java.util.List;
 public class SearchSuggestionController {
 
 	private final SearchSuggestionService searchSuggestionService;
-	private final JwtTokenProvider jwtTokenProvider;
+	private final JwtUtil jwtUtil;
 
 	/**
 	 * 자동완성 검색어 추천 API
@@ -33,8 +31,11 @@ public class SearchSuggestionController {
 	 */
 	@Operation(
 		summary = "검색어 자동완성 추천",
-		description = "사용자가 입력한 query 값을 기준으로 자동완성 검색어 리스트를 반환합니다. (JWT 인증 필요)\n" +
-			"※ 즐겨찾기한 검색어가 있을 경우, 우선적으로 상단에 배치되어 반환됩니다."
+		description = """
+			사용자가 입력한 query 값을 기준으로 자동완성 검색어 리스트를 반환합니다. <br>
+			로그인한 사용자의 경우 즐겨찾기한 검색어가 우선적으로 상단에 배치됩니다. <br>
+			비회원의 경우 일반 검색 결과만 반환됩니다.
+		"""
 	)
 	@GetMapping("/suggestions")
 	public ResponseEntity<List<SearchSuggestionResponseDto>> getSearchSuggestions(
@@ -42,24 +43,16 @@ public class SearchSuggestionController {
 		@RequestParam(required = false) String query,
 		HttpServletRequest httpRequest) {
 
-		// 1. JWT 토큰 검증
-		String accessToken = jwtTokenProvider.resolveToken(httpRequest);
-		if (accessToken == null) {
-			throw new MissingTokenException();
-		}
-		if (!jwtTokenProvider.validateToken(accessToken)) {
-			throw new InvalidTokenException();
-		}
-
-		// 2. 검색어가 없거나 공백만 있는 경우 빈 리스트 반환
+		// 1. 검색어가 없거나 공백만 있는 경우 빈 리스트 반환
 		if (query == null || query.isBlank()) {
 			return ResponseEntity.ok(Collections.emptyList());
 		}
 
-		// 3. 사용자 ID 추출
-		String memberId = jwtTokenProvider.getAuthentication(accessToken).getName();
+		// 2. 토큰이 있으면 MemberId 추출, 없으면 null
+		Long memberIdLong = jwtUtil.extractMemberIdSafely(httpRequest);
+		String memberId = memberIdLong != null ? memberIdLong.toString() : null;
 
-		// 4. 자동완성 검색어 반환
+		// 3. 자동완성 검색어 반환
 		return ResponseEntity.ok(searchSuggestionService.getSearchSuggestions(query, memberId));
 	}
 }
