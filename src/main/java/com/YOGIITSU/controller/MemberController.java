@@ -2,6 +2,7 @@ package com.YOGIITSU.controller;
 
 import com.YOGIITSU.exception.auth.InvalidTokenException;
 import com.YOGIITSU.exception.auth.MissingTokenException;
+import com.YOGIITSU.exception.user.EmailNotRegisteredException;
 import com.YOGIITSU.dto.RequestDto.ChangePasswordRequestDto;
 import com.YOGIITSU.dto.RequestDto.MemberLoginRequestDto;
 import com.YOGIITSU.dto.RequestDto.FindMemberIdRequestDto;
@@ -12,10 +13,10 @@ import com.YOGIITSU.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,7 +33,6 @@ public class MemberController {
 	private final MemberService memberService;
 	private final JwtTokenProvider jwtTokenProvider;
 
-	private static final String NO_EMAIL_FOUND = "가입 이력이 없는 이메일입니다.";
 	private static final String EMAIL_MATCH_FOUND = "이메일 정보와 일치하는 아이디가 있습니다.";
 	private static final String MEMBER_DELETION_SUCCESS = "님의 회원 탈퇴가 완료되었습니다.";
 
@@ -62,18 +62,20 @@ public class MemberController {
 	@Operation(summary = "아이디 찾기", description = "이메일을 기반으로 등록된 아이디를 조회합니다.")
 	@PostMapping("/find-id")
 	public ResponseEntity<FindMemberIdResponseDto> findId(
-		@RequestBody FindMemberIdRequestDto request) {
+		@RequestBody @Valid FindMemberIdRequestDto request) {
 		String email = request.getEmail();
 		String memberId = memberService.findIdByEmail(email);
 
+		if (memberId == null) {
+			throw new EmailNotRegisteredException();
+		}
+
 		FindMemberIdResponseDto response = FindMemberIdResponseDto.builder()
-			.status(memberId != null ? "success" : "error")
+			.message(EMAIL_MATCH_FOUND)
 			.id(memberId)
-			.message(memberId == null ? NO_EMAIL_FOUND : EMAIL_MATCH_FOUND)
 			.build();
 
-		return memberId == null ? ResponseEntity.status(HttpStatus.NOT_FOUND).body(response)
-			: ResponseEntity.ok(response);
+		return ResponseEntity.ok(response);
 	}
 
 	/**
