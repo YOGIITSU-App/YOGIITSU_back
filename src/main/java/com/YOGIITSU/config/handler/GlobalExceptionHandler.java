@@ -32,6 +32,7 @@ import org.springframework.security.authentication.AuthenticationServiceExceptio
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.mail.MailException;
 
 
@@ -91,7 +92,8 @@ public class GlobalExceptionHandler {
             PasswordMismatchException.class,
             PasswordNotEqualsException.class,
             SamePasswordException.class,
-            SameEmailException.class
+            SameEmailException.class,
+            EmailNotRegisteredException.class
     })
     public ResponseEntity<ErrorResponse> handleUserException(BaseException e) {
         log.warn("User exception occurred: {}", e.getMessage(), e);
@@ -150,6 +152,16 @@ public class GlobalExceptionHandler {
         log.warn("Entity not found exception occurred: {}", e.getMessage(), e);
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ErrorResponse.of(ErrorCode.MEMBER_NOT_FOUND, null));
+    }
+
+    /**
+     * JSON 파싱 예외 처리
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
+        log.warn("JSON parsing exception occurred: {}", e.getMessage(), e);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ErrorResponse.of(ErrorCode.VALIDATION_ERROR, "요청 형식이 올바르지 않습니다. JSON 형식을 확인해주세요."));
     }
 
     /**
