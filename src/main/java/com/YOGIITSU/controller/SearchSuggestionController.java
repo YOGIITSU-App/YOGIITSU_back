@@ -49,8 +49,7 @@ public class SearchSuggestionController {
 		}
 
 		// 2. 토큰이 있으면 MemberId 추출, 없으면 null
-		Long memberIdLong = jwtUtil.extractMemberIdSafely(httpRequest);
-		String memberId = memberIdLong != null ? memberIdLong.toString() : null;
+		String memberId = jwtUtil.extractMemberIdStringSafely(httpRequest);
 
 		// 3. 자동완성 검색어 반환
 		return ResponseEntity.ok(searchSuggestionService.getSearchSuggestions(query, memberId));
