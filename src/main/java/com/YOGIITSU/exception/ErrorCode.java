@@ -28,6 +28,7 @@ public enum ErrorCode {
 	PASSWORD_NOT_EQUALS("USER_004", "새 비밀번호와 확인 비밀번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST),
 	SAME_PASSWORD("USER_005", "기존 비밀번호와 동일한 비밀번호로는 변경할 수 없습니다.", HttpStatus.BAD_REQUEST),
 	SAME_EMAIL("USER_006", "기존 이메일과 동일한 이메일로는 변경할 수 없습니다.", HttpStatus.BAD_REQUEST),
+	EMAIL_NOT_REGISTERED("USER_007", "가입 이력이 없는 이메일입니다.", HttpStatus.NOT_FOUND),
 
 	// 리소스 관련 (3000번대)
 	BUILDING_NOT_FOUND("RESOURCE_001", "존재하지 않는 건물입니다.", HttpStatus.NOT_FOUND),
