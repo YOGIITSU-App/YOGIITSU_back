@@ -28,16 +28,17 @@ public class SearchSuggestionService {
 	private final MemberRepository memberRepository;
 
 	public List<SearchSuggestionResponseDto> getSearchSuggestions(String query, String memberId) {
-		// 1. 사용자 정보 조회
-		Member member = findMemberById(memberId);
+		// 1. memberId가 null이면 비회원이므로 즐겨찾기 건물은 빈 리스트
+		List<Building> bookmarkedBuildings = new ArrayList<>();
+		if (memberId != null) {
+			Member member = findMemberById(memberId);
+			bookmarkedBuildings = findBookmarkedBuildings(member, query);
+		}
 
-		// 2. 사용자의 즐겨찾기된 건물 목록 가져오기 (즐겨찾기된 건물 중 검색어 포함된 것)
-		List<Building> bookmarkedBuildings = findBookmarkedBuildings(member, query);
-
-		// 3. DB에서 검색어가 포함된 건물 리스트 가져오기
+		// 2. DB에서 검색어가 포함된 건물 리스트 가져오기
 		List<Building> searchResults = findBuildingsWithAliases(query);
 
-		// 4. 즐겨찾기된 건물 리스트 + 일반 검색 결과 리스트 합치기
+		// 3. 즐겨찾기된 건물 리스트 + 일반 검색 결과 리스트 합치기
 		return mergeResults(bookmarkedBuildings, searchResults);
 	}
 

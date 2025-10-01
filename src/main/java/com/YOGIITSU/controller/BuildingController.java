@@ -32,7 +32,8 @@ public class BuildingController {
 		summary = "건물 상세 조회",
 		description = """
 			건물 ID를 기반으로 상세 정보를 조회합니다. <br>
-			각 건물에 대한 사용자의 즐겨찾기 여부를 포함한 결과를 반환합니다. <br><br>
+			로그인한 사용자의 경우 즐겨찾기 여부를 포함한 결과를 반환합니다. <br>
+			비회원의 경우 기본 건물 정보만 반환됩니다. <br><br>
 
 			사용 가능한 건물 ID 목록:<br>
 			1: 인문사회융합대학<br>
@@ -68,28 +69,31 @@ public class BuildingController {
 				"예시:<br>9 → 지능형SW융합대학<br>13 → 경영공학대학",
 			example = "9"
 		)
-
 		@PathVariable Long id,
-
 		@Parameter(hidden = true)
 		HttpServletRequest request
 	) {
-		// 1. 로그인한 사용자인 경우 MemberId 추출
-		Long memberId = jwtUtil.extractMemberId(request);
+		// 1. 토큰이 있으면 MemberId 추출, 없으면 null
+		Long memberId = jwtUtil.extractMemberIdSafely(request);
 
-		// 2. 서비스 호출 → 즐겨찾기 여부까지 포함해서 반환
+		// 2. 서비스 호출 → 토큰이 있으면 즐겨찾기 여부까지 포함해서 반환
 		return buildingService.getBuildingDetail(id, memberId);
 	}
 
 	@Operation(
 		summary = "전체 건물 목록 조회",
-		description = "앱의 전체 단과대(건물) 스크롤 화면에 사용될 건물 목록 전체를 조회합니다."
+		description = """
+			앱의 전체 단과대(건물) 스크롤 화면에 사용될 건물 목록 전체를 조회합니다.
+			로그인한 사용자의 경우 즐겨찾기 여부를 포함한 결과를 반환합니다.
+			비회원의 경우 기본 건물 정보만 반환됩니다.
+		"""
 	)
 	@GetMapping
 	public List<BuildingListResponseDto> getAllBuildings(
 		@Parameter(hidden = true) HttpServletRequest request
 	) {
-		Long memberId = jwtUtil.extractMemberId(request);
+		// 토큰이 있으면 MemberId 추출, 없으면 null
+		Long memberId = jwtUtil.extractMemberIdSafely(request);
 		return buildingService.getAllBuildings(memberId);
 	}
 }
