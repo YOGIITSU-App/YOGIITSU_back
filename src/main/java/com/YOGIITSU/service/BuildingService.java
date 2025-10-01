@@ -7,10 +7,8 @@ import com.YOGIITSU.entity.Building;
 import com.YOGIITSU.exception.building.BuildingNotFoundException;
 import com.YOGIITSU.repository.BuildingRepository;
 import com.YOGIITSU.repository.FavoriteRepository;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,15 +26,15 @@ public class BuildingService {
 	 * 건물 상세 정보를 조회하는 메서드
 	 *
 	 * @param buildingId 조회할 건물의 ID
-	 * @param memberId   조회하는 사용자의 ID (즐겨찾기 여부 확인용)
+	 * @param memberId   조회하는 사용자의 ID (즐겨찾기 여부 확인용, null이면 비회원)
 	 * @return 건물의 상세 정보를 담은 BuildingDetailResponseDto
 	 */
 	@Transactional(readOnly = true)
 	public BuildingDetailResponseDto getBuildingDetail(Long buildingId, Long memberId) {
 		Building building = findBuildingById(buildingId);
 
-		//즐겨찾기 여부 조회
-		boolean isFavorite = favoriteRepository.existsByMemberIdAndBuildingId(memberId, buildingId);
+		// 즐겨찾기 여부 조회 (memberId가 null이면 비회원이므로 false)
+		boolean isFavorite = memberId != null && favoriteRepository.existsByMemberIdAndBuildingId(memberId, buildingId);
 
 		return buildingConverter.convertToBuildingDetailResponseDto(building, isFavorite);
 	}
@@ -56,14 +54,17 @@ public class BuildingService {
 	/**
 	 * 전체 건물 목록을 조회하는 메서드 (즐겨찾기 여부 포함)
 	 *
-	 * @param memberId 현재 로그인한 사용자의 ID
+	 * @param memberId 현재 로그인한 사용자의 ID (null이면 비회원)
 	 * @return 건물 목록 정보를 담은 List<BuildingListResponseDto>
 	 */
 	@Transactional(readOnly = true)
 	public List<BuildingListResponseDto> getAllBuildings(Long memberId) {
 		List<BuildingListResponseDto> buildings = buildingRepository.findAllSimpleList();
 
-		Set<Long> favoriteBuildingIds = favoriteRepository.findBuildingIdsByMemberId(memberId);
+		// memberId가 null이면 비회원이므로 빈 Set 사용
+		Set<Long> favoriteBuildingIds = memberId != null ? 
+			favoriteRepository.findBuildingIdsByMemberId(memberId) : 
+			Set.of();
 
 		return buildingConverter.convertToBuildingListResponseDto(buildings, favoriteBuildingIds);
 	}
