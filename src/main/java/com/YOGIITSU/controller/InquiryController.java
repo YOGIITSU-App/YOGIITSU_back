@@ -7,7 +7,6 @@ import com.YOGIITSU.dto.RequestDto.InquiryRequestDto;
 import com.YOGIITSU.dto.ResponseDto.InquiryListResponseDto;
 import com.YOGIITSU.dto.ResponseDto.InquiryResponseDto;
 import com.YOGIITSU.entity.Member;
-import com.YOGIITSU.jwt.CustomUserDetails;
 import com.YOGIITSU.jwt.JwtTokenProvider;
 import com.YOGIITSU.repository.MemberRepository;
 import com.YOGIITSU.service.InquiryService;
@@ -19,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -48,34 +46,39 @@ public class InquiryController {
     @Operation(summary = "문의 등록")
     @PostMapping
     public ResponseEntity<String> createInquiry(
-        @RequestBody InquiryRequestDto requestDto,
-        @AuthenticationPrincipal CustomUserDetails userDetails) {
+        @RequestBody @Valid InquiryRequestDto requestDto,
+        HttpServletRequest request) {
 
-        inquiryService.createInquiry(requestDto, userDetails.getId());
+        Long memberId = extractMemberIdFromToken(request);
+
+        inquiryService.createInquiry(requestDto, memberId);
         return ResponseEntity.status(HttpStatus.CREATED).body("등록이 완료되었습니다.");
     }
 
     /**
      * 전체 문의 리스트 조회 API
-     * - 전체 공개 (모든 로그인 사용자 접근 가능)
+     * - 로그인한 사용자만 접근 가능
      */
     @Operation(summary = "전체 문의 목록 조회")
     @GetMapping
     public ResponseEntity<List<InquiryListResponseDto>> getAllInquiries(
         HttpServletRequest request) {
 
-        validateToken(request);  // 인증 여부만 확인
+        validateToken(request);  // 로그인 여부 확인
         return ResponseEntity.ok(inquiryService.getAllInquiries());
     }
 
     /**
-     * 문의 상세 조회 (전체 공개)
-     * - 본인 여부와 관계 없이 열람 가능
+     * 문의 상세 조회 API
+     * - 로그인한 사용자라면 누구나 열람 가능 (본인 여부와 무관)
      */
     @Operation(summary = "문의 상세 조회")
     @GetMapping("/{inquiryId}")
     public ResponseEntity<InquiryResponseDto> getInquiry(
-        @PathVariable Long inquiryId) {
+        @PathVariable Long inquiryId,
+        HttpServletRequest request) {
+
+        validateToken(request);  // 로그인 여부 확인
 
         InquiryResponseDto response = inquiryService.getInquiry(inquiryId);
         return ResponseEntity.ok(response);

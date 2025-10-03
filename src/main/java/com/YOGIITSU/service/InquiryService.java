@@ -1,13 +1,14 @@
 package com.YOGIITSU.service;
 
+import com.YOGIITSU.exception.auth.AccessDeniedException;
 import com.YOGIITSU.exception.user.MemberNotFoundException;
-import com.YOGIITSU.exception.validation.InvalidArgumentException;
 import com.YOGIITSU.dto.RequestDto.InquiryRequestDto;
 import com.YOGIITSU.dto.ResponseDto.InquiryListResponseDto;
 import com.YOGIITSU.dto.ResponseDto.InquiryResponseDto;
 import com.YOGIITSU.entity.Inquiry;
 import com.YOGIITSU.entity.InquiryState;
 import com.YOGIITSU.entity.Member;
+import com.YOGIITSU.exception.validation.InvalidInquiryStateException;
 import com.YOGIITSU.repository.InquiryRepository;
 import com.YOGIITSU.repository.MemberRepository;
 import com.YOGIITSU.exception.resource.InquiryNotFoundException;
@@ -32,8 +33,8 @@ public class InquiryService {
 
     /**
      * Create: 문의 등록
-     * - 제목과 내용이 비어 있는지 검증
      * - 상태를 '답변 대기'로 설정한 후 저장
+     * - 제목/내용 유효성 검증은 InquiryRequestDto(@NotBlank)에서 처리
      *
      * @param requestDto 문의 요청 데이터
      * @param memberId   문의 작성한 회원 ID
@@ -44,14 +45,7 @@ public class InquiryService {
         // 1. 회원 조회
         Member member = findMember(memberId);
 
-        // 2. 입력값 유효성 검사
-        if (requestDto.getInquiryTitle() == null || requestDto.getInquiryTitle().isEmpty()) {
-            throw new InvalidArgumentException("문의 제목을 입력해주세요.");
-        }
-        if (requestDto.getInquiryContent() == null || requestDto.getInquiryContent().isEmpty()) {
-            throw new InvalidArgumentException("문의 내용을 입력해주세요.");
-        }
-
+        // 2. 요청 DTO와 회원 정보를 기반으로 Inquiry 엔티티 생성
         Inquiry inquiry = Inquiry.builder()
             .member(member)
             .inquiryTitle(requestDto.getInquiryTitle())
@@ -96,7 +90,7 @@ public class InquiryService {
     /**
      * Update: 문의 수정
      * - 본인의 문의이고, 답변 대기 상태인 경우에만 수정 가능
-     * - null 값이 아닌 필드만 수정
+     * - 제목/내용 중 null 값은 무시하고 기존 값 유지
      *
      * @param inquiryId  문의 ID
      * @param memberId   사용자 ID
@@ -114,7 +108,7 @@ public class InquiryService {
 
         // 3. 관리자 답변이 있는 경우 수정 불가
         if (inquiry.getInquiryState() == InquiryState.COMPLETED) {
-            throw new InvalidArgumentException("답변 완료된 문의는 수정할 수 없습니다.");
+            throw new InvalidInquiryStateException("답변 완료된 문의는 수정할 수 없습니다.");
         }
 
         // 4. 문의 업데이트
@@ -141,7 +135,7 @@ public class InquiryService {
 
         // 3. 답변이 이미 완료된 경우 삭제 불가
         if (inquiry.getInquiryState() == InquiryState.COMPLETED) {
-            throw new InvalidArgumentException("답변 완료된 문의는 삭제할 수 없습니다.");
+            throw new InvalidInquiryStateException("답변 완료된 문의는 삭제할 수 없습니다.");
         }
 
         // 4. 문의 삭제
@@ -167,7 +161,7 @@ public class InquiryService {
      */
     private Inquiry findInquiry(Long inquiryId) {
         return inquiryRepository.findById(inquiryId)
-			.orElseThrow(() -> new InquiryNotFoundException(inquiryId));
+			.orElseThrow(InquiryNotFoundException::new);
     }
 
     /**
@@ -175,7 +169,7 @@ public class InquiryService {
      */
     private void validateOwnership(Inquiry inquiry, Long memberId) {
         if (!inquiry.getMember().getId().equals(memberId)) {
-            throw new InvalidArgumentException("본인이 작성한 문의만 수정 또는 삭제할 수 있습니다.");
+            throw new AccessDeniedException("본인이 작성한 문의만 수정 또는 삭제할 수 있습니다.");
         }
     }
 
