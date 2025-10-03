@@ -1,6 +1,5 @@
-package com.YOGIITSU.exception.apple;
+package com.YOGIITSU.exception.external;
 
-import com.YOGIITSU.exception.external.ExternalServiceException;
 import com.YOGIITSU.exception.ErrorCode;
 
 /**

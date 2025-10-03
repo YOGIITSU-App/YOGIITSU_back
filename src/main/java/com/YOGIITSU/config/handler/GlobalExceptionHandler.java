@@ -3,7 +3,7 @@ package com.YOGIITSU.config.handler;
 import com.YOGIITSU.dto.ErrorResponse;
 import com.YOGIITSU.exception.BaseException;
 import com.YOGIITSU.exception.ErrorCode;
-import com.YOGIITSU.exception.apple.AppleExchangeException;
+import com.YOGIITSU.exception.external.AppleExchangeException;
 import com.YOGIITSU.exception.auth.*;
 import com.YOGIITSU.exception.building.BuildingNotFoundException;
 import com.YOGIITSU.exception.cafeteria.CafeteriaNotFoundForBuildingException;
