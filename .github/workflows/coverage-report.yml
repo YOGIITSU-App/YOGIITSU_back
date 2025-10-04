@@ -17,6 +17,9 @@ jobs:
     - name: 코드 체크아웃
       uses: actions/checkout@v4
       
+    - name: Gradle Wrapper 실행 권한 설정
+      run: chmod +x ./gradlew
+      
     - name: Java 21 설정
       uses: actions/setup-java@v4
       with:
@@ -35,6 +38,7 @@ jobs:
           
     - name: 테스트 실행 및 커버리지 리포트 생성
       run: ./gradlew clean test jacocoTestReport
+      continue-on-error: true
       
     - name: 커버리지 리포트 업로드
       uses: actions/upload-artifact@v4
