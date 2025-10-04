@@ -1,0 +1,59 @@
+name: Code Coverage Report
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main, develop ]
+
+jobs:
+  test-and-coverage:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    
+    steps:
+    - name: 코드 체크아웃
+      uses: actions/checkout@v4
+      
+    - name: Java 21 설정
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        
+    - name: Gradle 캐시 설정
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+          
+    - name: 테스트 실행 및 커버리지 리포트 생성
+      run: ./gradlew clean test jacocoTestReport
+      
+    - name: 커버리지 리포트 업로드
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: coverage-report
+        path: build/reports/jacoco/
+        retention-days: 30
+        
+    - name: PR에 커버리지 코멘트 등록
+      if: github.event_name == 'pull_request'
+      uses: madrapps/jacoco-report@v1.2
+      with:
+        title: 테스트 커버리지 리포트
+        paths: ${{ github.workspace }}/build/reports/jacoco/test/jacocoTestReport.xml
+        token: ${{ secrets.GITHUB_TOKEN }}
+        min-coverage-overall: 50
+        min-coverage-changed-files: 50
+        fail-on-coverage-drop: false
+        show-missing: true
+        show-line-coverage: true
+        show-branch-coverage: true
