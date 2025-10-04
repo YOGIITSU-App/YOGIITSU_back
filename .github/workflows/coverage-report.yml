@@ -36,12 +36,8 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-gradle-
           
-    - name: 테스트 실행
-      run: ./gradlew clean test --tests "!YogiitsuApplicationTests"
-      continue-on-error: true
-      
-    - name: 커버리지 리포트 생성
-      run: ./gradlew jacocoTestReport
+    - name: 테스트 실행 및 커버리지 리포트 생성
+      run: ./gradlew clean test jacocoTestReport
       continue-on-error: true
       
     - name: 커버리지 파일 확인
