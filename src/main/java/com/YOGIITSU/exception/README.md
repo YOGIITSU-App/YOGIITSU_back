@@ -51,6 +51,7 @@
 - **유효성 검사 관련 예외** (`com.YOGIITSU.exception.validation`)
   - `ValidationException`: 유효성 검사 관련 기본 예외
   - `InvalidArgumentException`: 잘못된 인수
+  - `InvalidInquiryStateException` : 문의 상태 유효하지 않음
   - `MissingRequiredFieldException`: 필수 필드 누락
 
 - **시스템 관련 예외** (`com.YOGIITSU.exception.system`)
