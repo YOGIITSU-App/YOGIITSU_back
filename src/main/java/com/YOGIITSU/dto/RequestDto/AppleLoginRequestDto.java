@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class AppleLoginRequestDto {
 
-    @NotBlank(message = "authorizationCode은 필수입니다.")
+    @NotBlank(message = "authorizationCode는 필수입니다.")
     private String authorizationCode;
 
     @JsonCreator
