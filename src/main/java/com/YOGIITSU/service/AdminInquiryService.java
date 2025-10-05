@@ -5,18 +5,22 @@ import com.YOGIITSU.dto.RequestDto.AdminAnswerUpdateRequestDto;
 import com.YOGIITSU.dto.ResponseDto.InquiryResponseDto;
 import com.YOGIITSU.entity.Inquiry;
 import com.YOGIITSU.entity.InquiryState;
+import com.YOGIITSU.exception.auth.MissingTokenException;
+import com.YOGIITSU.exception.validation.InvalidInquiryStateException;
+import com.YOGIITSU.exception.validation.MissingRequiredFieldException;
 import com.YOGIITSU.jwt.CustomUserDetails;
 import com.YOGIITSU.repository.InquiryRepository;
 import com.YOGIITSU.exception.resource.InquiryNotFoundException;
-import com.YOGIITSU.exception.validation.InvalidArgumentException;
 import com.YOGIITSU.exception.auth.AdminAccessDeniedException;
 import com.YOGIITSU.exception.auth.UnauthorizedException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AdminInquiryService {
@@ -42,13 +46,14 @@ public class AdminInquiryService {
 
         // 이미 답변 완료된 경우 예외 처리
         if (inquiry.getInquiryState() == InquiryState.COMPLETED) {
-            throw new InvalidArgumentException("이미 답변이 등록된 문의입니다.");
+            throw new InvalidInquiryStateException("이미 답변이 등록된 문의입니다.");
         }
 
         inquiry.createAnswer(
             requestDto.getAnswerTitle(),
             requestDto.getAnswerContent()
         );
+        log.info("[ADMIN] 문의 답변 등록 완료 - inquiryId={}", inquiryId);
 
         return new InquiryResponseDto(inquiry);
     }
@@ -59,7 +64,7 @@ public class AdminInquiryService {
      * - 제목이나 내용 중 하나라도 유효하면 수정
      *
      * @param inquiryId  수정할 문의 ID
-     * @param requestDto  수정할 제목 및 내용
+     * @param requestDto 수정할 제목 및 내용
      * @return InquiryResponseDto 수정 후 전체 문의 정보
      */
     @Transactional
@@ -72,17 +77,19 @@ public class AdminInquiryService {
 
         // 답변이 등록되지 않은 경우 수정 불가
         if (inquiry.getInquiryState() != InquiryState.COMPLETED) {
-            throw new InvalidArgumentException("아직 답변이 등록되지 않아 수정할 수 없습니다.");
+            throw new InvalidInquiryStateException("답변 등록 완료 상태에서만 수정 가능합니다.");
         }
 
         String title = requestDto.getAnswerTitle();
         String content = requestDto.getAnswerContent();
 
         if ((title == null || title.isBlank()) && (content == null || content.isBlank())) {
-            throw new InvalidArgumentException("수정할 답변 제목 또는 내용을 입력하세요.");
+            throw new MissingRequiredFieldException("수정할 답변 제목 또는 내용을 입력하세요.");
         }
 
         inquiry.updateAnswer(title, content);
+        log.info("[ADMIN] 문의 답변 수정 완료 - inquiryId={}", inquiryId);
+
         return new InquiryResponseDto(inquiry);
     }
 
@@ -102,16 +109,24 @@ public class AdminInquiryService {
             .orElseThrow(() -> new InquiryNotFoundException(inquiryId));
 
         inquiryRepository.delete(inquiry);
+        log.info("[ADMIN] 문의글 삭제 완료 - inquiryId={}", inquiryId);
     }
 
+    /**
+     * 관리자 권한 확인
+     * - 인증 정보 없음 -> MissingTokenException
+     * - 인증 실패 -> UnauthorizedException
+     * - 관리자 권한 아님 -> AdminAccessDeniedException
+     */
     private void checkAdminRole() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        if (auth == null || !auth.isAuthenticated()) {
-            throw new UnauthorizedException();
+        if (auth == null) {
+            throw new MissingTokenException();
         }
 
-        if (!(auth.getPrincipal() instanceof CustomUserDetails userDetails)) {
+        if (auth.getPrincipal() == null
+            || !(auth.getPrincipal() instanceof CustomUserDetails userDetails)) {
             throw new UnauthorizedException();
         }
 
