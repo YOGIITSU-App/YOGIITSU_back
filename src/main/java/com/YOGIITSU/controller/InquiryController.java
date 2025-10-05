@@ -92,7 +92,7 @@ public class InquiryController {
     @PutMapping("/{inquiryId}")
     public ResponseEntity<InquiryResponseDto> updateInquiry(
         @PathVariable Long inquiryId,
-        @RequestBody @Valid InquiryRequestDto requestDto,
+        @RequestBody InquiryRequestDto requestDto,
         HttpServletRequest request) {
 
         Long memberId = extractMemberIdFromToken(request);

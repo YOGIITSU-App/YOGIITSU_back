@@ -9,6 +9,7 @@ import com.YOGIITSU.entity.Inquiry;
 import com.YOGIITSU.entity.InquiryState;
 import com.YOGIITSU.entity.Member;
 import com.YOGIITSU.exception.validation.InvalidInquiryStateException;
+import com.YOGIITSU.exception.validation.MissingRequiredFieldException;
 import com.YOGIITSU.repository.InquiryRepository;
 import com.YOGIITSU.repository.MemberRepository;
 import com.YOGIITSU.exception.resource.InquiryNotFoundException;
@@ -111,10 +112,19 @@ public class InquiryService {
             throw new InvalidInquiryStateException("답변 완료된 문의는 수정할 수 없습니다.");
         }
 
-        // 4. 문의 업데이트
-        inquiry.updateInquiry(requestDto.getInquiryTitle(), requestDto.getInquiryContent());
+        String title = requestDto.getInquiryTitle();
+        String content = requestDto.getInquiryContent();
 
-        // 5. 수정된 문의 정보 반환
+        // 4. 제목과 내용이 모두 비어 있으면 예외 발생
+        if ((title == null || title.isBlank()) && (content == null || content.isBlank())) {
+            throw new MissingRequiredFieldException("수정할 제목 또는 내용을 입력하세요.");
+        }
+
+        // 5. 유효한 항목만 수저 (엔티티 내부에서 처리)
+        inquiry.updateInquiry(title, content);
+        log.info("[USER] 문의 수정 완료 - inquiryId={}", inquiryId);
+
+        // 6. 수정된 문의 정보 반환
         return new InquiryResponseDto(inquiry);
     }
 
