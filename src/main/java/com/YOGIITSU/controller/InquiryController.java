@@ -124,15 +124,15 @@ public class InquiryController {
      * JWT 토큰에서 memberId 추출
      */
     private Long extractMemberIdFromToken(HttpServletRequest request) {
-
-        validateToken(request);
         String token = jwtTokenProvider.resolveToken(request);
+        if (token == null || !jwtTokenProvider.validateToken(token)) {
+            throw new InvalidTokenException();
+        }
 
         String memberId = jwtTokenProvider.getAuthentication(token).getName();
-        Member member = memberRepository.findByMemberId(memberId)
-            .orElseThrow(MemberNotFoundException::new);
-
-        return member.getId();
+        return memberRepository.findByMemberId(memberId)
+            .orElseThrow(MemberNotFoundException::new)
+            .getId();
     }
 
     /**
