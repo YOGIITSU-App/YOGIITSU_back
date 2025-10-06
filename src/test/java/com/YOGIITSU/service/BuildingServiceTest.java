@@ -64,32 +64,6 @@ class BuildingServiceTest {
 		verify(buildingConverter).convertToBuildingDetailResponseDto(building, true);
 	}
 
-	@DisplayName("간단한_테스트")
-	@Test
-	void simpleTest() {
-		// given
-		Long buildingId = 1L;
-		Long memberId = 1L;
-		Building building = createDummyBuilding();
-		BuildingDetailResponseDto expectedResponse = BuildingDetailResponseDto.builder()
-			.isFavorite(false)
-			.build();
-
-		when(buildingRepository.findByIdWithAllRelations(buildingId)).thenReturn(
-			Optional.of(building));
-		when(favoriteRepository.existsByMemberIdAndBuildingId(memberId, buildingId)).thenReturn(
-			false);
-		when(buildingConverter.convertToBuildingDetailResponseDto(building, false))
-			.thenReturn(expectedResponse);
-
-		// when
-		BuildingDetailResponseDto result = buildingService.getBuildingDetail(buildingId, memberId);
-
-		// then
-		assertNotNull(result);
-		assertEquals(expectedResponse, result);
-	}
-
 	@DisplayName("건물상세조회_성공_회원_즐겨찾기없음")
 	@Test
 	void getBuildingDetail_success_member_withoutFavorite() {

@@ -7,6 +7,10 @@ import com.YOGIITSU.util.JwtUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -15,12 +19,21 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(BuildingController.class)
+@WebMvcTest(
+	controllers = BuildingController.class,
+	excludeAutoConfiguration = {
+		SecurityAutoConfiguration.class,
+		UserDetailsServiceAutoConfiguration.class,
+		OAuth2ClientAutoConfiguration.class,
+		OAuth2ResourceServerAutoConfiguration.class
+	}
+)
 class BuildingControllerTest {
 
 	@Autowired
@@ -48,12 +61,12 @@ class BuildingControllerTest {
 
 		// when & then
 		mockMvc.perform(get("/buildings/{id}", buildingId))
-			.andExpect(status().isOk());
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.favorite").value(true));
 	}
 
 	@DisplayName("건물상세조회_성공_비회원")
 	@Test
-	@WithMockUser
 	void getBuildingDetail_success_guest() throws Exception {
 		// given
 		Long buildingId = 1L;
@@ -66,7 +79,8 @@ class BuildingControllerTest {
 
 		// when & then
 		mockMvc.perform(get("/buildings/{id}", buildingId))
-			.andExpect(status().isOk());
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.favorite").value(false));
 	}
 
 	@DisplayName("건물상세조회_실패_건물없음")
@@ -116,12 +130,18 @@ class BuildingControllerTest {
 
 		// when & then
 		mockMvc.perform(get("/buildings"))
-			.andExpect(status().isOk());
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$", hasSize(2)))
+			.andExpect(jsonPath("$[0].buildingId").value(1L))
+			.andExpect(jsonPath("$[0].buildingName").value("건물1"))
+			.andExpect(jsonPath("$[0].isFavorite").value(true))
+			.andExpect(jsonPath("$[1].buildingId").value(2L))
+			.andExpect(jsonPath("$[1].buildingName").value("건물2"))
+			.andExpect(jsonPath("$[1].isFavorite").value(false));
 	}
 
 	@DisplayName("전체건물목록조회_성공_비회원")
 	@Test
-	@WithMockUser
 	void getAllBuildings_success_guest() throws Exception {
 		// given
 		List<BuildingListResponseDto> expectedResponse = List.of(
@@ -140,7 +160,11 @@ class BuildingControllerTest {
 
 		// when & then
 		mockMvc.perform(get("/buildings"))
-			.andExpect(status().isOk());
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$", hasSize(1)))
+			.andExpect(jsonPath("$[0].buildingId").value(1L))
+			.andExpect(jsonPath("$[0].buildingName").value("건물1"))
+			.andExpect(jsonPath("$[0].isFavorite").value(false));
 	}
 
 	@DisplayName("전체건물목록조회_성공_빈목록")
@@ -156,6 +180,7 @@ class BuildingControllerTest {
 
 		// when & then
 		mockMvc.perform(get("/buildings"))
-			.andExpect(status().isOk());
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$", hasSize(0)));
 	}
 }
