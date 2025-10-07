@@ -69,7 +69,7 @@ public class AdminInquiryController {
      * - 관리자 권한으로 사용자 문의글과 답변 모두 삭제
      * - 상태와 관계없이 강제 삭제 가능
      */
-    @Operation(summary = "문의 삭제")
+    @Operation(summary = "관리자 문의 삭제")
     @DeleteMapping("/{inquiryId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteInquiryByAdmin(
