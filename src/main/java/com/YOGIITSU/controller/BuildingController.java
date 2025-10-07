@@ -83,10 +83,10 @@ public class BuildingController {
 	@Operation(
 		summary = "전체 건물 목록 조회",
 		description = """
-			앱의 전체 단과대(건물) 스크롤 화면에 사용될 건물 목록 전체를 조회합니다.
-			로그인한 사용자의 경우 즐겨찾기 여부를 포함한 결과를 반환합니다.
-			비회원의 경우 기본 건물 정보만 반환됩니다.
-		"""
+				앱의 전체 단과대(건물) 스크롤 화면에 사용될 건물 목록 전체를 조회합니다.
+				로그인한 사용자의 경우 즐겨찾기 여부를 포함한 결과를 반환합니다.
+				비회원의 경우 기본 건물 정보만 반환됩니다.
+			"""
 	)
 	@GetMapping
 	public List<BuildingListResponseDto> getAllBuildings(
