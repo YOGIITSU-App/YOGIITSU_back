@@ -63,7 +63,7 @@ public class AdminInquiryController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<InquiryResponseDto> updateAnswer(
         @PathVariable Long inquiryId,
-        @RequestBody AdminAnswerUpdateRequestDto requestDto,
+        @RequestBody @Valid AdminAnswerUpdateRequestDto requestDto,
         @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         requireLogin(userDetails);
