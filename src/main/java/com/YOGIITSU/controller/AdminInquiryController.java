@@ -3,7 +3,6 @@ package com.YOGIITSU.controller;
 import com.YOGIITSU.dto.RequestDto.AdminAnswerCreateRequestDto;
 import com.YOGIITSU.dto.RequestDto.AdminAnswerUpdateRequestDto;
 import com.YOGIITSU.dto.ResponseDto.InquiryResponseDto;
-import com.YOGIITSU.exception.auth.UnauthorizedException;
 import com.YOGIITSU.jwt.CustomUserDetails;
 import com.YOGIITSU.service.AdminInquiryService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -45,18 +44,13 @@ public class AdminInquiryController {
         @RequestBody @Valid AdminAnswerCreateRequestDto requestDto,
         @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        requireLogin(userDetails);
-
         InquiryResponseDto responseDto = adminInquiryService.createAnswer(inquiryId, requestDto);
-        log.info("[ADMIN] 문의 답변 등록 완료 - inquiryId={}", inquiryId);
-
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 
     /**
      * 문의 답변 수정 API
-     * - 상태가 'COMPLETE'인 문의에만 수정 가능
-     * - 기존 제목/내용을 새 값으로 갱신
+     * - 상태가 'COMPLETED'인 문의에만 수정 가능
      */
     @Operation(summary = "관리자 답변 수정")
     @PutMapping("/{inquiryId}")
@@ -66,11 +60,7 @@ public class AdminInquiryController {
         @RequestBody @Valid AdminAnswerUpdateRequestDto requestDto,
         @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        requireLogin(userDetails);
-
         InquiryResponseDto responseDto = adminInquiryService.updateAnswer(inquiryId, requestDto);
-        log.info("[ADMIN] 문의 답변 수정 완료 - inquiryId={}", inquiryId);
-
         return ResponseEntity.ok(responseDto);
     }
 
@@ -86,21 +76,7 @@ public class AdminInquiryController {
         @PathVariable Long inquiryId,
         @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        requireLogin(userDetails);
-
         adminInquiryService.deleteInquiryByAdmin(inquiryId);
-        log.info("[ADMIN] 문의글 삭제 완료 - inquiryId={}", inquiryId);
-
         return ResponseEntity.noContent().build();
-    }
-
-    /**
-     * 로그인 여부 확인
-     * - 인증 정보가 없으면 UnauthorizedException 발생
-     */
-    private void requireLogin(CustomUserDetails userDetails) {
-        if (userDetails == null) {
-            throw new UnauthorizedException();
-        }
     }
 }

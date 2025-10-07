@@ -6,7 +6,7 @@ import com.YOGIITSU.dto.RequestDto.InquiryRequestDto;
 import com.YOGIITSU.dto.ResponseDto.InquiryListResponseDto;
 import com.YOGIITSU.dto.ResponseDto.InquiryResponseDto;
 import com.YOGIITSU.entity.Inquiry;
-import com.YOGIITSU.entity.InquiryState;
+import com.YOGIITSU.enums.InquiryState;
 import com.YOGIITSU.entity.Member;
 import com.YOGIITSU.exception.validation.InvalidInquiryStateException;
 import com.YOGIITSU.exception.validation.MissingRequiredFieldException;

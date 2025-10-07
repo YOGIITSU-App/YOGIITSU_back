@@ -4,19 +4,13 @@ import com.YOGIITSU.dto.RequestDto.AdminAnswerCreateRequestDto;
 import com.YOGIITSU.dto.RequestDto.AdminAnswerUpdateRequestDto;
 import com.YOGIITSU.dto.ResponseDto.InquiryResponseDto;
 import com.YOGIITSU.entity.Inquiry;
-import com.YOGIITSU.entity.InquiryState;
-import com.YOGIITSU.exception.auth.MissingTokenException;
+import com.YOGIITSU.enums.InquiryState;
 import com.YOGIITSU.exception.validation.InvalidInquiryStateException;
 import com.YOGIITSU.exception.validation.MissingRequiredFieldException;
-import com.YOGIITSU.jwt.CustomUserDetails;
 import com.YOGIITSU.repository.InquiryRepository;
 import com.YOGIITSU.exception.resource.InquiryNotFoundException;
-import com.YOGIITSU.exception.auth.AdminAccessDeniedException;
-import com.YOGIITSU.exception.auth.UnauthorizedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,7 +24,7 @@ public class AdminInquiryService {
     /**
      * 문의 답변 등록
      * - 상태가 'PROCESSING'인 문의에만 등록 가능
-     * - 등록 시 상태를 'COMPLETE'로 변경
+     * - 등록 시 상태를 'COMPLETED'로 변경
      *
      * @param inquiryId  답변할 문의 ID
      * @param requestDto 답변 제목 및 내용
@@ -38,9 +32,6 @@ public class AdminInquiryService {
      */
     @Transactional
     public InquiryResponseDto createAnswer(Long inquiryId, AdminAnswerCreateRequestDto requestDto) {
-
-        checkAdminRole();
-
         Inquiry inquiry = inquiryRepository.findById(inquiryId)
             .orElseThrow(() -> new InquiryNotFoundException(inquiryId));
 
@@ -49,6 +40,7 @@ public class AdminInquiryService {
             throw new InvalidInquiryStateException("이미 답변이 등록된 문의입니다.");
         }
 
+        // 관리자 답변 등록
         inquiry.createAnswer(
             requestDto.getAnswerTitle(),
             requestDto.getAnswerContent()
@@ -60,7 +52,7 @@ public class AdminInquiryService {
 
     /**
      * 문의 답변 수정
-     * - 상태가 'COMPLETE'인 문의에만 수정 가능
+     * - 상태가 'COMPLETED'인 문의에만 수정 가능
      * - 제목이나 내용 중 하나라도 유효하면 수정
      *
      * @param inquiryId  수정할 문의 ID
@@ -69,9 +61,6 @@ public class AdminInquiryService {
      */
     @Transactional
     public InquiryResponseDto updateAnswer(Long inquiryId, AdminAnswerUpdateRequestDto requestDto) {
-
-        checkAdminRole();
-
         Inquiry inquiry = inquiryRepository.findById(inquiryId)
             .orElseThrow(() -> new InquiryNotFoundException(inquiryId));
 
@@ -102,36 +91,10 @@ public class AdminInquiryService {
      */
     @Transactional
     public void deleteInquiryByAdmin(Long inquiryId) {
-
-        checkAdminRole();
-
         Inquiry inquiry = inquiryRepository.findById(inquiryId)
             .orElseThrow(() -> new InquiryNotFoundException(inquiryId));
 
         inquiryRepository.delete(inquiry);
         log.info("[ADMIN] 문의글 삭제 완료 - inquiryId={}", inquiryId);
-    }
-
-    /**
-     * 관리자 권한 확인
-     * - 인증 정보 없음 -> MissingTokenException
-     * - 인증 실패 -> UnauthorizedException
-     * - 관리자 권한 아님 -> AdminAccessDeniedException
-     */
-    private void checkAdminRole() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-        if (auth == null) {
-            throw new MissingTokenException();
-        }
-
-        if (auth.getPrincipal() == null
-            || !(auth.getPrincipal() instanceof CustomUserDetails userDetails)) {
-            throw new UnauthorizedException();
-        }
-
-        if (!"ADMIN".equals(userDetails.getRole())) {
-            throw new AdminAccessDeniedException();
-        }
     }
 }

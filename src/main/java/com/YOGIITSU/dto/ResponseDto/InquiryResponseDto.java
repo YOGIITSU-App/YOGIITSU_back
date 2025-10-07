@@ -1,7 +1,7 @@
 package com.YOGIITSU.dto.ResponseDto;
 
 import com.YOGIITSU.entity.Inquiry;
-import com.YOGIITSU.entity.InquiryState;
+import com.YOGIITSU.enums.InquiryState;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

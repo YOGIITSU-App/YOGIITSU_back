@@ -1,5 +1,6 @@
 package com.YOGIITSU.entity;
 
+import com.YOGIITSU.enums.InquiryState;
 import jakarta.persistence.*;
 import lombok.*;
 
