@@ -1,6 +1,7 @@
 package com.YOGIITSU.dto.ResponseDto;
 
 import com.YOGIITSU.entity.Inquiry;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDateTime;
 import lombok.Getter;
 
@@ -16,6 +17,7 @@ public class InquiryListResponseDto {
     private String authorName;
     private String inquiryState;
     private LocalDateTime inquiryAt;
+    @JsonProperty("isMine")
     private boolean isMine;
 
     public InquiryListResponseDto(Inquiry inquiry, boolean isMine) {

@@ -2,6 +2,7 @@ package com.YOGIITSU.dto.ResponseDto;
 
 import com.YOGIITSU.entity.Inquiry;
 import com.YOGIITSU.entity.InquiryState;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -26,7 +27,7 @@ public class InquiryResponseDto {
     private String answerTitle;
     private String answerContent;
     private LocalDateTime answerAt;
-
+    @JsonProperty("isMine")
     private boolean isMine;
 
     public InquiryResponseDto(Inquiry inquiry, boolean isMine) {
