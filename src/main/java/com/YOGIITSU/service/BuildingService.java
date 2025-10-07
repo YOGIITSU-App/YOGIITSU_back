@@ -34,7 +34,9 @@ public class BuildingService {
 		Building building = findBuildingById(buildingId);
 
 		// 즐겨찾기 여부 조회 (memberId가 null이면 비회원이므로 false)
-		boolean isFavorite = memberId != null && favoriteRepository.existsByMemberIdAndBuildingId(memberId, buildingId);
+		boolean isFavorite =
+			memberId != null && favoriteRepository.existsByMemberIdAndBuildingId(memberId,
+				buildingId);
 
 		return buildingConverter.convertToBuildingDetailResponseDto(building, isFavorite);
 	}
@@ -62,8 +64,8 @@ public class BuildingService {
 		List<BuildingListResponseDto> buildings = buildingRepository.findAllSimpleList();
 
 		// memberId가 null이면 비회원이므로 빈 Set 사용
-		Set<Long> favoriteBuildingIds = memberId != null ? 
-			favoriteRepository.findBuildingIdsByMemberId(memberId) : 
+		Set<Long> favoriteBuildingIds = memberId != null ?
+			favoriteRepository.findBuildingIdsByMemberId(memberId) :
 			Set.of();
 
 		return buildingConverter.convertToBuildingListResponseDto(buildings, favoriteBuildingIds);
