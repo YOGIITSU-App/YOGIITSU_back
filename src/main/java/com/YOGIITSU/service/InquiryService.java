@@ -22,7 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * InquiryService
- * - 문의 등록, 조회, 수정, 삭제에 대한 비즈니스 로직 처리
+ * - 문의 등록, 조회, 수정, 삭제 비즈니스 로직 처리
+ * - 비회원은 전체/단건 조회만 가능
  */
 @Service
 @RequiredArgsConstructor
@@ -43,10 +44,15 @@ public class InquiryService {
     @Transactional
     public void createInquiry(InquiryRequestDto requestDto, Long memberId) {
 
-        // 1. 회원 조회
+        // 1. 비회원 접근 차단
+        if (memberId == null) {
+            throw new AccessDeniedException("로그인이 필요한 기능입니다.");
+        }
+
+        // 2. 회원 조회
         Member member = findMember(memberId);
 
-        // 2. 요청 DTO와 회원 정보를 기반으로 Inquiry 엔티티 생성
+        // 3. 요청 DTO와 회원 정보를 기반으로 Inquiry 엔티티 생성
         Inquiry inquiry = Inquiry.builder()
             .member(member)
             .inquiryTitle(requestDto.getInquiryTitle())
@@ -54,22 +60,27 @@ public class InquiryService {
             .inquiryState(InquiryState.PROCESSING)  // 기본 상태: PROCESSING(답변대기)
             .build();
 
-        // 3. 생성된 문의 DB에 저장
+        // 4. 생성된 문의 DB에 저장
         inquiryRepository.save(inquiry);
+        log.info("[UserInquiry] 문의 등록 완료 - inquiryId={}", inquiry.getInquiryId());
     }
 
     /**
-     * Read-list: 문의 전체 리스트 조회
+     * Read-list: 전체 문의 리스트 조회 (비회원 가능)
      * - 최신순으로 정렬
      * - 제목, 상태, 작성자, 작성일만 포함된 DTO 리스트 반환
+     * - memberId가 null이면 비회원으로 간주
      *
      * @return InquiryListResponseDto 문의 리스트
      */
     @Transactional(readOnly = true)
-    public List<InquiryListResponseDto> getAllInquiries() {
-        return inquiryRepository.findAllByOrderByInquiryAtDesc().stream()
-            .map(InquiryListResponseDto::new)
-            .collect(Collectors.toList());
+    public List<InquiryListResponseDto> getAllInquiries(Long memberId) {
+        List<Inquiry> inquiries = inquiryRepository.findAllByOrderByInquiryAtDesc();
+
+        return inquiries.stream().map(inquiry -> {
+            boolean isMine = (memberId != null && inquiry.getMember().getId().equals(memberId));
+            return new InquiryListResponseDto(inquiry, isMine);
+        }).collect(Collectors.toList());
     }
 
     /**
@@ -81,11 +92,12 @@ public class InquiryService {
      * @return InquiryResponseDto 문의 상세 정보
      */
     @Transactional(readOnly = true)
-    public InquiryResponseDto getInquiry(Long inquiryId) {
+    public InquiryResponseDto getInquiry(Long inquiryId, Long memberId) {
         Inquiry inquiry = findInquiry(inquiryId);
 
+        boolean isMine = (memberId != null && inquiry.getMember().getId().equals(memberId));
         // 문의 정보 반환
-        return new InquiryResponseDto(inquiry);
+        return new InquiryResponseDto(inquiry, isMine);
     }
 
     /**
@@ -120,12 +132,12 @@ public class InquiryService {
             throw new MissingRequiredFieldException("수정할 제목 또는 내용을 입력하세요.");
         }
 
-        // 5. 유효한 항목만 수저 (엔티티 내부에서 처리)
+        // 5. 유효한 항목만 수정 (엔티티 내부에서 처리)
         inquiry.updateInquiry(title, content);
-        log.info("[USER] 문의 수정 완료 - inquiryId={}", inquiryId);
+        log.info("[UserInquiry] 문의 수정 완료 - inquiryId={}", inquiryId);
 
         // 6. 수정된 문의 정보 반환
-        return new InquiryResponseDto(inquiry);
+        return new InquiryResponseDto(inquiry, true);
     }
 
     /**
@@ -150,33 +162,26 @@ public class InquiryService {
 
         // 4. 문의 삭제
         inquiryRepository.delete(inquiry);
+        log.info("[UserInquiry] 문의 삭제 완료 - inquiryId={}", inquiryId);
     }
 
-    /**
-     * 특정 ID의 회원 조회 (예외 처리 포함)
-     *
-     * @param memberId 사용자 ID
-     * @return
+    /*
+      ===== 공통 유틸 메서드 =====
      */
+
+    /** 특정 ID의 회원 조회 (예외 처리 포함) */
     private Member findMember(Long memberId) {
         return memberRepository.findById(memberId)
             .orElseThrow(MemberNotFoundException::new);
     }
 
-    /**
-     * 문의 조회 (예외 처리 포함)
-     *
-     * @param inquiryId 문의 ID
-     * @return Inquiry 조회된 문의 객체
-     */
+    /** 문의 조회 (예외 처리 포함) */
     private Inquiry findInquiry(Long inquiryId) {
         return inquiryRepository.findById(inquiryId)
 			.orElseThrow(InquiryNotFoundException::new);
     }
 
-    /**
-     * 본인 문의 여부 확인
-     */
+    /** 본인 문의 여부 확인 */
     private void validateOwnership(Inquiry inquiry, Long memberId) {
         if (!inquiry.getMember().getId().equals(memberId)) {
             throw new AccessDeniedException("본인이 작성한 문의만 수정 또는 삭제할 수 있습니다.");

@@ -55,7 +55,7 @@ public class AdminInquiryService {
         );
         log.info("[ADMIN] 문의 답변 등록 완료 - inquiryId={}", inquiryId);
 
-        return new InquiryResponseDto(inquiry);
+        return new InquiryResponseDto(inquiry, false);
     }
 
     /**
@@ -90,7 +90,7 @@ public class AdminInquiryService {
         inquiry.updateAnswer(title, content);
         log.info("[ADMIN] 문의 답변 수정 완료 - inquiryId={}", inquiryId);
 
-        return new InquiryResponseDto(inquiry);
+        return new InquiryResponseDto(inquiry, false);
     }
 
     /**
