@@ -1,6 +1,7 @@
 package com.YOGIITSU.controller;
 
 import com.YOGIITSU.dto.ResponseDto.MypageProfileResponseDto;
+import com.YOGIITSU.exception.auth.MissingTokenException;
 import com.YOGIITSU.jwt.CustomUserDetails;
 import com.YOGIITSU.service.MypageProfileService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,6 +37,9 @@ public class MypageProfileController {
     public ResponseEntity<MypageProfileResponseDto> getMyProfile(
         @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
+        if (userDetails == null) {
+            throw new MissingTokenException();
+        }
         return ResponseEntity.ok(
             mypageProfileService.getProfile(userDetails.getId())
         );

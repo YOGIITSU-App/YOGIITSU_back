@@ -1,5 +1,6 @@
 package com.YOGIITSU.entity;
 
+import com.YOGIITSU.enums.InquiryState;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -62,8 +63,12 @@ public class Inquiry {
      * 제목과 내용을 수정
      */
     public void updateInquiry(String newTitle, String newContent) {
-        this.inquiryTitle = (newTitle != null) ? newTitle : this.inquiryTitle;
-        this.inquiryContent = (newContent != null) ? newContent : this.inquiryContent;
+        if (newTitle != null && !newTitle.isBlank()) {
+            this.inquiryTitle = newTitle;
+        }
+        if (newContent != null && !newContent.isBlank()) {
+            this.inquiryContent = newContent;
+        }
     }
 
     /**

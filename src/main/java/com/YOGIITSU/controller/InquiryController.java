@@ -2,12 +2,9 @@ package com.YOGIITSU.controller;
 
 import com.YOGIITSU.exception.auth.InvalidTokenException;
 import com.YOGIITSU.exception.user.MemberNotFoundException;
-import com.YOGIITSU.exception.auth.MissingTokenException;
 import com.YOGIITSU.dto.RequestDto.InquiryRequestDto;
 import com.YOGIITSU.dto.ResponseDto.InquiryListResponseDto;
 import com.YOGIITSU.dto.ResponseDto.InquiryResponseDto;
-import com.YOGIITSU.entity.Member;
-import com.YOGIITSU.jwt.CustomUserDetails;
 import com.YOGIITSU.jwt.JwtTokenProvider;
 import com.YOGIITSU.repository.MemberRepository;
 import com.YOGIITSU.service.InquiryService;
@@ -19,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -43,65 +39,65 @@ public class InquiryController {
     /**
      * 문의 등록 API
      * - 인증된 사용자가 문의 등록
-     * - 응답 body 없이 204 반환
      */
     @Operation(summary = "문의 등록")
     @PostMapping
     public ResponseEntity<String> createInquiry(
-        @RequestBody InquiryRequestDto requestDto,
-        @AuthenticationPrincipal CustomUserDetails userDetails) {
+        @RequestBody @Valid InquiryRequestDto requestDto,
+        HttpServletRequest request) {
 
-        inquiryService.createInquiry(requestDto, userDetails.getId());
+        Long memberId = extractMemberIdFromToken(request); // 로그인 필수
+        inquiryService.createInquiry(requestDto, memberId);
+
         return ResponseEntity.status(HttpStatus.CREATED).body("등록이 완료되었습니다.");
     }
 
     /**
      * 전체 문의 리스트 조회 API
-     * - 전체 공개 (모든 로그인 사용자 접근 가능)
+     * - 비회원도 가능 (memberId=null일 경우 isMine=false로 처리)
      */
     @Operation(summary = "전체 문의 목록 조회")
     @GetMapping
     public ResponseEntity<List<InquiryListResponseDto>> getAllInquiries(
         HttpServletRequest request) {
 
-        validateToken(request);  // 인증 여부만 확인
-        return ResponseEntity.ok(inquiryService.getAllInquiries());
+        Long memberId = extractMemberIdOrNull(request); // 토큰 없으면 Null
+        return ResponseEntity.ok(inquiryService.getAllInquiries(memberId));
     }
 
     /**
-     * 문의 상세 조회 (전체 공개)
-     * - 본인 여부와 관계 없이 열람 가능
+     * 문의 상세 조회 API
+     * - 비회원도 가능 (본인 여부는 isMine으로 표시)
      */
     @Operation(summary = "문의 상세 조회")
     @GetMapping("/{inquiryId}")
     public ResponseEntity<InquiryResponseDto> getInquiry(
-        @PathVariable Long inquiryId) {
+        @PathVariable Long inquiryId,
+        HttpServletRequest request) {
 
-        InquiryResponseDto response = inquiryService.getInquiry(inquiryId);
-        return ResponseEntity.ok(response);
+        Long memberId = extractMemberIdOrNull(request); // 토큰 없으면 Null
+        return ResponseEntity.ok(inquiryService.getInquiry(inquiryId, memberId));
     }
 
     /**
      * 문의 수정 API
-     * - 본인의 문의이며, 답변 대기 상태인 경우에만 수정 가능
+     * - 로그인 필요 + 본인 문의만 가능
+     * - 답변 대기 상태인 경우에만 수정 가능
      */
     @Operation(summary = "문의 수정")
     @PutMapping("/{inquiryId}")
     public ResponseEntity<InquiryResponseDto> updateInquiry(
         @PathVariable Long inquiryId,
-        @RequestBody @Valid InquiryRequestDto requestDto,
+        @RequestBody InquiryRequestDto requestDto,
         HttpServletRequest request) {
 
         Long memberId = extractMemberIdFromToken(request);
-
-        // 문의 수정
-        InquiryResponseDto response = inquiryService.updateInquiry(inquiryId, memberId, requestDto);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(inquiryService.updateInquiry(inquiryId, memberId, requestDto));
     }
 
     /**
      * 문의 삭제 API
-     * - 본인의 문의이며, 답변 대기 상태인 경우에만 삭제 가능
+     * - 로그인 필요 + 본인 문의만 가능
      */
     @Operation(summary = "문의 삭제")
     @DeleteMapping("/{inquiryId}")
@@ -109,42 +105,52 @@ public class InquiryController {
         @PathVariable Long inquiryId,
         HttpServletRequest request) {
 
-        // JWT 토큰에서 memberId 추출
         Long memberId = extractMemberIdFromToken(request);
-
-        // 문의 삭제
         inquiryService.deleteInquiry(inquiryId, memberId);
+
         return ResponseEntity.noContent().build();
     }
 
     /**
-     * JWT 토큰에서 memberId 추출
+     * JWT 토큰에서 memberId 추출 (로그인 필수)
+     * - 토큰 없거나 유효하지 않으면 예외 발생
      */
     private Long extractMemberIdFromToken(HttpServletRequest request) {
-
-        validateToken(request);
-        String token = jwtTokenProvider.resolveToken(request);
-
-        String memberId = jwtTokenProvider.getAuthentication(token).getName();
-        Member member = memberRepository.findByMemberId(memberId)
-            .orElseThrow(MemberNotFoundException::new);
-
-        return member.getId();
-    }
-
-    /**
-     * JWT 토큰 유효성 검사
-     */
-    private void validateToken(HttpServletRequest request) {
-
         String token = jwtTokenProvider.resolveToken(request);
 
         if (token == null) {
-            throw new MissingTokenException();
+            throw new InvalidTokenException("토큰이 존재하지 않습니다.");
         }
         if (!jwtTokenProvider.validateToken(token)) {
-            throw new InvalidTokenException();
+            throw new InvalidTokenException("유효하지 않은 토큰입니다.");
         }
+
+        String memberId = jwtTokenProvider.getAuthentication(token).getName();
+        return memberRepository.findByMemberId(memberId)
+            .orElseThrow(MemberNotFoundException::new)
+            .getId();
     }
 
+    /**
+     * JWT 토큰에서 memberId 추출 (비회원 허용)
+     * - 토큰 없거나 유효하지 않으면 null 반환
+     */
+    private Long extractMemberIdOrNull(HttpServletRequest request) {
+        String token = jwtTokenProvider.resolveToken(request);
+
+        // 토큰이 없으면 비회원으로 간주
+        if (token == null) {
+            return null;
+        }
+
+        // 토큰이 유효하지 않으면 비회원으로 간주
+        if (!jwtTokenProvider.validateToken(token)) {
+            return null;
+        }
+
+        String memberId = jwtTokenProvider.getAuthentication(token).getName();
+        return memberRepository.findByMemberId(memberId)
+            .map(member -> member.getId())
+            .orElse(null);
+    }
 }

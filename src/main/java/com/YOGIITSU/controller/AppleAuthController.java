@@ -6,6 +6,7 @@ import com.YOGIITSU.dto.ResponseDto.UserResponseDto;
 import com.YOGIITSU.service.AppleAuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -32,9 +33,9 @@ public class AppleAuthController {
     )
     @PostMapping("/apple")
     public ResponseEntity<Map<String, Object>> loginWithApple(
-        @RequestBody AppleLoginRequestDto requestDto) {
+        @RequestBody @Valid AppleLoginRequestDto requestDto) {
 
-        log.debug("[AppleAuthController] 애플 로그인 요청 받음");
+        log.info("[AppleAuthController] 애플 로그인 요청 수신");
 
         // 1. 서비스 호출 → 자체 JWT 발급
         TokenResponseDto tokenInfo = appleAuthService.loginWithApple(
@@ -49,10 +50,9 @@ public class AppleAuthController {
         UserResponseDto userDto = tokenInfo.getUser();
         Map<String, Object> responseBody = new HashMap<>();
         responseBody.put("message", "로그인 성공");
-        responseBody.put("userId", userDto.getId());
         responseBody.put("role", userDto.getRole());
 
-        log.info("[AppleAuthController] 로그인 성공 - userId={}, role={}",
+        log.debug("[AppleAuthController] Apple 로그인 성공 - userId={}, role={}",
             userDto.getId(), userDto.getRole());
 
         // 4. 최종 응답 반환
