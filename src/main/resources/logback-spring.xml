@@ -5,30 +5,67 @@
       <pattern>%d{yyyy-MM-dd HH:mm:ss, Asia/Seoul} %-5level %logger{36} - %msg%n</pattern>
     </encoder>
   </appender>
-  
-  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <!-- 현재 로그 파일 -->
-    <file>/app/logs/app.log</file>
 
-    <!-- 일별 롤링 + 보관 정책 -->
-    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-      <!-- 날짜별 로그 파일 (압축 저장) -->
-      <fileNamePattern>/app/logs/app.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
-      <!-- 7일만 보관 -->
-      <maxHistory>7</maxHistory>
-      <!-- 총 용량 1GB 초과 시 오래된 것 삭제 -->
-      <totalSizeCap>1GB</totalSizeCap>
-    </rollingPolicy>
+  <!-- 개발 환경용 파일 -->
+  <springProfile name="dev">
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+      <!-- 현재 로그 파일 -->
+      <file>/var/log/yogiitsu/dev/app.log</file>
 
-    <!-- 로그 포맷 -->
-    <encoder>
-      <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
-    </encoder>
-  </appender>
+      <!-- 일별 롤링 + 보관 정책 -->
+      <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+        <!-- 날짜별 로그 파일 (압축 저장) -->
+        <fileNamePattern>/var/log/yogiitsu/dev/app.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+        <!-- 7일만 보관 -->
+        <maxHistory>7</maxHistory>
+        <!-- 총 용량 1GB 초과 시 오래된 것 삭제 -->
+        <totalSizeCap>1GB</totalSizeCap>
+      </rollingPolicy>
 
-  <!-- 루트 로거가 파일과 콘솔 양쪽 모두에 로그를 보냄 -->
-  <root level="INFO">
-    <appender-ref ref="FILE" />
-    <appender-ref ref="CONSOLE" />
-  </root>
+      <!-- 로그 포맷 -->
+      <encoder>
+        <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
+      </encoder>
+    </appender>
+
+    <root level="INFO">
+      <appender-ref ref="FILE"/>
+      <appender-ref ref="CONSOLE"/>
+    </root>
+  </springProfile>
+
+  <!-- 운영 환경용 파일 -->
+  <springProfile name="prod">
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+      <!-- 현재 로그 파일 -->
+      <file>/var/log/yogiitsu/prod/app.log</file>
+
+      <!-- 일별 롤링 + 보관 정책 -->
+      <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+        <!-- 날짜별 로그 파일 (압축 저장) -->
+        <fileNamePattern>/var/log/yogiitsu/prod/app.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+        <!-- 7일만 보관 -->
+        <maxHistory>7</maxHistory>
+        <!-- 총 용량 1GB 초과 시 오래된 것 삭제 -->
+        <totalSizeCap>1GB</totalSizeCap>
+      </rollingPolicy>
+
+      <!-- 로그 포맷 -->
+      <encoder>
+        <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
+      </encoder>
+    </appender>
+
+    <root level="INFO">
+      <appender-ref ref="FILE"/>
+      <appender-ref ref="CONSOLE"/>
+    </root>
+  </springProfile>
+
+  <!-- 기본 환경 (테스트, 로컬 개발): 콘솔만 사용 -->
+  <springProfile name="!(dev | prod)">
+    <root level="INFO">
+      <appender-ref ref="CONSOLE"/>
+    </root>
+  </springProfile>
 </configuration>
