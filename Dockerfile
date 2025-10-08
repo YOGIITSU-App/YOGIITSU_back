@@ -10,7 +10,8 @@ COPY ${JAR_FILE} app.jar
 
 # 로그 디렉토리 생성 및 권한 설정
 RUN mkdir -p /app/logs /var/log/yogiitsu/dev /var/log/yogiitsu/prod && \
-    chmod 777 /app/logs /var/log/yogiitsu/dev /var/log/yogiitsu/prod
+    chmod 755 /app/logs && \
+    chmod 775 /var/log/yogiitsu/dev /var/log/yogiitsu/prod
 
 # 앱이 사용하는 포트
 EXPOSE 8080
