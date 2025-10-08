@@ -52,9 +52,18 @@
     </appender>
   </springProfile>
 
-  <!-- 루트 로거가 파일과 콘솔 양쪽 모두에 로그를 보냄 -->
-  <root level="INFO">
-    <appender-ref ref="FILE"/>
-    <appender-ref ref="CONSOLE"/>
-  </root>
+  <!-- 개발/운영 환경: 파일과 콘솔 양쪽 모두에 로그를 보냄 -->
+  <springProfile name="dev,prod">
+    <root level="INFO">
+      <appender-ref ref="FILE"/>
+      <appender-ref ref="CONSOLE"/>
+    </root>
+  </springProfile>
+
+  <!-- 기본 환경 (테스트, 로컬 개발): 콘솔만 사용 -->
+  <springProfile name="!dev and !prod">
+    <root level="INFO">
+      <appender-ref ref="CONSOLE"/>
+    </root>
+  </springProfile>
 </configuration>
