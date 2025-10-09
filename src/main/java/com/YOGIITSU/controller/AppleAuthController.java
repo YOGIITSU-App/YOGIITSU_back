@@ -50,6 +50,7 @@ public class AppleAuthController {
         UserResponseDto userDto = tokenInfo.getUser();
         Map<String, Object> responseBody = new HashMap<>();
         responseBody.put("message", "로그인 성공");
+        responseBody.put("userId", userDto.getId());
         responseBody.put("role", userDto.getRole());
 
         log.debug("[AppleAuthController] Apple 로그인 성공 - userId={}, role={}",
