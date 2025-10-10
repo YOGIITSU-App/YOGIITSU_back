@@ -1,9 +1,9 @@
 package com.YOGIITSU.controller;
 
-import com.YOGIITSU.exception.auth.UnauthorizedException;
 import com.YOGIITSU.dto.RequestDto.NoticeRequestDto;
 import com.YOGIITSU.dto.ResponseDto.NoticeDetailResponseDto;
 import com.YOGIITSU.dto.ResponseDto.NoticeListResponseDto;
+import com.YOGIITSU.exception.auth.UnauthorizedException;
 import com.YOGIITSU.jwt.CustomUserDetails;
 import com.YOGIITSU.service.NoticeService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,20 +33,16 @@ public class NoticeController {
     private final NoticeService noticeService;
 
     // 공지 전체 목록 조회 (모든 사용자 가능)
-    @Operation(summary = "공지사항 전체 조회", description = "로그인된 모든 사용자가 공지사항 목록을 최신순으로 조회할 수 있습니다.")
+    @Operation(summary = "공지사항 전체 조회", description = "로그인하지 않은 사용자도 공지사항 목록을 최신순으로 조회할 수 있습니다.")
     @GetMapping
-    public ResponseEntity<List<NoticeListResponseDto>> getNotices(
-        @AuthenticationPrincipal CustomUserDetails userDetails) {
-        requireLogin(userDetails);
+    public ResponseEntity<List<NoticeListResponseDto>> getNotices() {
         return ResponseEntity.ok(noticeService.getAllNotices());
     }
 
     // 공지 상세 조회 (모든 사용자 가능)
-    @Operation(summary = "공지사항 상세 조회", description = "공지사항의 ID를 통해 상세 내용을 조회할 수 있습니다. 로그인된 모든 사용자가 접근할 수 있습니다.")
+    @Operation(summary = "공지사항 상세 조회", description = "공지사항의 ID를 통해 상세 내용을 조회할 수 있습니다. 로그인하지 않은 사용자도 접근할 수 있습니다.")
     @GetMapping("/{id}")
-    public ResponseEntity<NoticeDetailResponseDto> getNotice(@PathVariable("id") Long id,
-        @AuthenticationPrincipal CustomUserDetails userDetails) {
-        requireLogin(userDetails);
+    public ResponseEntity<NoticeDetailResponseDto> getNotice(@PathVariable("id") Long id) {
         return ResponseEntity.ok(noticeService.getNoticeById(id));
     }
 
