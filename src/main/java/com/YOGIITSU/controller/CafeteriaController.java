@@ -11,8 +11,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+@Validated
 @RestController
 @RequestMapping("/cafeteria")
 @RequiredArgsConstructor
@@ -32,6 +34,9 @@ public class CafeteriaController {
 			""")
 	@ApiResponses({
 		@ApiResponse(responseCode = "200", description = "성공"),
+		@ApiResponse(responseCode = "400", description = "잘못된 요청",
+			content = @Content(mediaType = "application/json",
+				schema = @Schema(implementation = ErrorResponse.class))),
 		@ApiResponse(responseCode = "401", description = "인증 실패",
 			content = @Content(mediaType = "application/json",
 				schema = @Schema(implementation = ErrorResponse.class))),
@@ -41,7 +46,7 @@ public class CafeteriaController {
 	})
 	@GetMapping("/menus/weekly")
 	public ResponseEntity<WeeklyCafeteriaResponseDto> getWeekly(
-		@Parameter(description = "건물 ID", example = "5")
+		@Parameter(description = "건물 ID", required = true, example = "5")
 		@RequestParam(name = "buildingId") Long buildingId
 	) {
 		return ResponseEntity.ok(queryService.getWeeklyByBuilding(buildingId));

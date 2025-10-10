@@ -4,8 +4,10 @@ import com.YOGIITSU.dto.ResponseDto.WeeklyCafeteriaResponseDto;
 import com.YOGIITSU.dto.ResponseDto.WeeklyCafeteriaResponseDto.CafeteriaMenuWithIndexDto;
 import com.YOGIITSU.entity.Cafeteria;
 import com.YOGIITSU.entity.CafeteriaMenu;
+import com.YOGIITSU.exception.ErrorCode;
 import com.YOGIITSU.exception.building.BuildingNotFoundException;
 import com.YOGIITSU.exception.cafeteria.CafeteriaNotFoundForBuildingException;
+import com.YOGIITSU.exception.resource.ResourceException;
 import com.YOGIITSU.exception.validation.InvalidArgumentException;
 import com.YOGIITSU.repository.CafeteriaMenuRepository;
 import com.YOGIITSU.repository.CafeteriaRepository;
@@ -192,6 +194,12 @@ public class CafeteriaQueryService {
 		List<CafeteriaMenu> menus = menuRepo
 			.findByCafeteriaIdInAndMealDateBetweenOrderByMealDateAscMealTypeAscCornerAsc(
 				cafeteriaIds, monday, friday);
+
+		// 조건 위반하면 바로 예외 -> 글로벌 핸틀러가 통일 포맷으로 응답
+		if (menus.isEmpty()) {
+			String detail = "buildingId=" + buildingId + ",week=" + monday + "~" + friday;
+			throw new ResourceException(ErrorCode.RESOURCE_NOT_FOUND, detail);
+		}
 
 		// 메뉴 → 프론트용 한 끼 DTO(+dayIndex/date)로 변환
 		List<CafeteriaMenuWithIndexDto> menusOut = new ArrayList<>();
