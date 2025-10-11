@@ -23,11 +23,11 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none  # 데이터베이스 스키마를 자동으로 업데이트 (개발용)
-    show-sql: true       # 실행되는 SQL 로그 출력
+    show-sql: false       # 실행되는 SQL 로그 출력
     database-platform: org.hibernate.dialect.MySQL8Dialect # MySQL Dialect로 설정
     properties:
       hibernate:
-        format_sql: true  # SQL 쿼리 포맷팅 활성화
+        format_sql: false  # SQL 쿼리 포맷팅 활성화
     open-in-view: false  # 데이터베이스 쿼리가 뷰 렌더링 중에 실행되지 않도록 설정
 
   jackson:
