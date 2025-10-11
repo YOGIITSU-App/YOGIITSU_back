@@ -18,7 +18,7 @@ public class InquiryListResponseDto {
     private String inquiryState;
     private LocalDateTime inquiryAt;
     @JsonProperty("isMine")
-    private boolean isMine;
+    private boolean mine;
 
     public InquiryListResponseDto(Inquiry inquiry, boolean isMine) {
         this.inquiryId = inquiry.getInquiryId();
@@ -26,6 +26,6 @@ public class InquiryListResponseDto {
         this.authorName = inquiry.getMember().getUserName();
         this.inquiryState = inquiry.getInquiryState().name();  // "PROCESSING", "COMPLETED"
         this.inquiryAt = inquiry.getInquiryAt();
-        this.isMine = isMine;
+        this.mine = isMine;
     }
 }
