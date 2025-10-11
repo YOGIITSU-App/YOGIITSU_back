@@ -3,6 +3,7 @@ package com.YOGIITSU.service;
 import com.YOGIITSU.dto.RequestDto.MemberSignUpRequestDto;
 import com.YOGIITSU.entity.EmailMessage;
 import com.YOGIITSU.entity.Member;
+import com.YOGIITSU.exception.user.IdAlreadyExistsException;
 import com.YOGIITSU.repository.EmailMessageRepository;
 import com.YOGIITSU.repository.MemberRepository;
 import com.YOGIITSU.exception.validation.EmailAlreadyExistsException;
@@ -11,11 +12,10 @@ import com.YOGIITSU.exception.validation.UsernameAlreadyExistsException;
 import com.YOGIITSU.exception.validation.InvalidArgumentException;
 import jakarta.transaction.Transactional;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 import java.util.regex.Pattern;
 
 @Service
@@ -45,7 +45,7 @@ public class SignUpService {
 
 		// 3. 아이디 중복 체크
 		if (memberRepository.findByMemberId(dto.getMemberId()).isPresent()) {
-			throw new UsernameAlreadyExistsException("아이디가 이미 존재합니다.");
+			throw new IdAlreadyExistsException("아이디가 이미 존재합니다.");
 		}
 
 		// 3-1. 아이디 유효성 검사
