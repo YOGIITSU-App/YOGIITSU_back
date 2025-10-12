@@ -2,7 +2,9 @@ package com.YOGIITSU.service;
 
 import com.YOGIITSU.config.handler.EmailProperties;
 import com.YOGIITSU.entity.EmailMessage;
+import com.YOGIITSU.exception.auth.EmailVerificationNotApprovedException;
 import com.YOGIITSU.exception.auth.InvalidTokenException;
+import com.YOGIITSU.exception.auth.MissingTokenException;
 import com.YOGIITSU.exception.user.EmailMismatchException;
 import com.YOGIITSU.exception.user.EmailNotRegisteredException;
 import com.YOGIITSU.exception.user.MemberNotFoundException;
@@ -214,8 +216,11 @@ public class EmailService {
 	public void changeEmail(String token, HttpServletRequest request) {
 		// 1. AccessToken 추출 및 유효성 검사
 		String accessToken = jwtTokenProvider.resolveToken(request);
-		if (accessToken == null || !jwtTokenProvider.validateToken(accessToken)) {
-			throw new UnauthorizedException("유효하지 않은 로그인 토큰입니다.");
+		if (accessToken == null || accessToken.isBlank()) {
+			throw new MissingTokenException();
+		}
+		if (!jwtTokenProvider.validateToken(accessToken)) {
+			throw new InvalidTokenException("유효하지 않은 로그인 토큰입니다.");
 		}
 
 		// 2. 인증 객체 획득
@@ -230,12 +235,18 @@ public class EmailService {
 
 		// 4. 인증 코드 검증 및 승인 처리
 		EmailMessage message = verifyEmailCode(newEmail, code);
+		if (!message.isApproved()) {
+			throw new EmailVerificationNotApprovedException("이메일 인증이 완료되지 않았습니다.");
+		}
+		if (message.getPurpose() != EmailPurpose.EMAIL_CHANGE_NEW) {
+			throw new InvalidTokenException("이메일 변경용 인증 정보가 아닙니다.");
+		}
 		approveAndSave(message);
 
 		// 5. 사용자 정보 조회
 		String memberId = auth.getName();
 		Member member = memberRepository.findByMemberIdWithLock(memberId)
-			.orElseThrow(() -> new MemberNotFoundException("사용자를 찾을 수 없습니다."));
+			.orElseThrow(MemberNotFoundException::new);
 
 		// 6. 기존 이메일과 동일한지 검사
 		if (member.getEmail().trim().equalsIgnoreCase(newEmail.trim())) {
