@@ -20,6 +20,11 @@ public enum ErrorCode {
 	EMAIL_NOT_VERIFIED("AUTH_006", "이메일 인증이 완료되지 않았습니다.", HttpStatus.UNAUTHORIZED),
 	ACCESS_DENIED("AUTH_007", "접근 권한이 없습니다.", HttpStatus.FORBIDDEN),
 	ADMIN_ACCESS_DENIED("AUTH_008", "관리자 계정이 아닙니다.", HttpStatus.FORBIDDEN),
+	VERIFICATION_CODE_MISMATCH("AUTH_009", "인증 코드가 일치하지 않습니다.", HttpStatus.BAD_REQUEST),
+	VERIFICATION_CODE_EXPIRED("AUTH_010", "인증 코드가 만료되었습니다. 인증 코드를 재전송해 주세요.",
+		HttpStatus.BAD_REQUEST),
+	VERIFICATION_CODE_NOT_FOUND("AUTH_011", "유효하지 않은 인증 코드입니다. 인증 코드를 재전송해 주세요.",
+		HttpStatus.BAD_REQUEST),
 
 	// 사용자 관련 (2000번대)
 	MEMBER_NOT_FOUND("USER_001", "존재하지 않는 계정입니다.", HttpStatus.NOT_FOUND),
@@ -29,6 +34,7 @@ public enum ErrorCode {
 	SAME_PASSWORD("USER_005", "기존 비밀번호와 동일한 비밀번호로는 변경할 수 없습니다.", HttpStatus.BAD_REQUEST),
 	SAME_EMAIL("USER_006", "기존 이메일과 동일한 이메일로는 변경할 수 없습니다.", HttpStatus.BAD_REQUEST),
 	EMAIL_NOT_REGISTERED("USER_007", "가입 이력이 없는 이메일입니다.", HttpStatus.NOT_FOUND),
+	EMAIL_MISMATCH("USER_008", "이메일 정보가 일치하지 않습니다.", HttpStatus.BAD_REQUEST),
 
 	// 리소스 관련 (3000번대)
 	BUILDING_NOT_FOUND("RESOURCE_001", "존재하지 않는 건물입니다.", HttpStatus.NOT_FOUND),

@@ -2,8 +2,13 @@ package com.YOGIITSU.service;
 
 import com.YOGIITSU.config.handler.EmailProperties;
 import com.YOGIITSU.entity.EmailMessage;
+import com.YOGIITSU.exception.auth.InvalidTokenException;
+import com.YOGIITSU.exception.user.EmailMismatchException;
+import com.YOGIITSU.exception.user.EmailNotRegisteredException;
 import com.YOGIITSU.exception.user.MemberNotFoundException;
 import com.YOGIITSU.exception.validation.InvalidEmailDomainException;
+import com.YOGIITSU.exception.auth.VerificationCodeExpiredException;
+import com.YOGIITSU.exception.auth.VerificationCodeNotFoundException;
 import com.YOGIITSU.jwt.EmailVerificationJwtProvider;
 import com.YOGIITSU.jwt.JwtTokenProvider;
 import com.YOGIITSU.repository.EmailMessageRepository;
@@ -12,7 +17,6 @@ import com.YOGIITSU.exception.auth.UnauthorizedException;
 import com.YOGIITSU.exception.validation.EmailAlreadyExistsException;
 import com.YOGIITSU.exception.validation.EmailRequiredException;
 import com.YOGIITSU.exception.user.SameEmailException;
-import com.YOGIITSU.exception.validation.InvalidArgumentException;
 import com.YOGIITSU.exception.external.EmailSendException;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
@@ -195,7 +199,7 @@ public class EmailService {
 
 		// 3. 입력한 이메일이 로그인된 사용자의 현재 이메일과 일치하는지 확인
 		if (!member.getEmail().equals(email)) {
-			throw new InvalidArgumentException("이메일 정보가 일치하지 않습니다.");
+			throw new EmailMismatchException();
 		}
 	}
 
@@ -219,7 +223,7 @@ public class EmailService {
 
 		// 3. JWT 토큰 파싱하여 새 이메일 및 인증 코드 추출
 		Claims claims = emailJwtProvider.parseEmailToken(token)
-			.orElseThrow(() -> new InvalidArgumentException("유효하지 않은 인증 토큰입니다."));
+			.orElseThrow(InvalidTokenException::new);
 
 		String newEmail = claims.getSubject();
 		String code = claims.get("code", String.class);
@@ -253,15 +257,17 @@ public class EmailService {
 	public EmailMessage verifyEmailCode(String email, String code) {
 		EmailMessage message = findEmailMessage(email, code);
 		if (message.getExpiresAt().isBefore(nowKst())) {
-			throw new InvalidArgumentException("인증 코드가 만료되었습니다.");
+			// 레코드를 찾았지만 만료됨
+			throw new VerificationCodeExpiredException();
 		}
 		return message;
 	}
 
 	// 이메일과 코드로 EmailMessage 조회
 	private EmailMessage findEmailMessage(String email, String code) {
+		// 레코드를 못 찾음
 		return emailMessageRepository.findByEmailAndCode(email, code)
-			.orElseThrow(() -> new InvalidArgumentException("인증 코드가 만료되었습니다. 인증 코드를 재전송해 주세요."));
+			.orElseThrow(VerificationCodeNotFoundException::new);
 	}
 
 	// 인증 승인 처리 및 저장
@@ -273,7 +279,7 @@ public class EmailService {
 	// 이메일 존재 여부 확인
 	private void checkEmailExists(String email) {
 		if (!memberRepository.existsByEmail(email)) {
-			throw new InvalidArgumentException("해당 이메일로 가입된 계정이 존재하지 않습니다.");
+			throw new EmailNotRegisteredException();
 		}
 	}
 }
