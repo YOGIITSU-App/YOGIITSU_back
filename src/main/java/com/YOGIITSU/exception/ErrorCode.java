@@ -61,6 +61,9 @@ public enum ErrorCode {
 	INVALID_INQUIRY_STATE("VALIDATION_004", "잘못된 문의 상태입니다.", HttpStatus.BAD_REQUEST),
 	INVALID_EMAIL_DOMAIN("VALIDATION_005",
 		"허용되지 않은 이메일 도메인입니다. suwon.ac.kr, naver.com, gmail.com만 가능합니다.", HttpStatus.BAD_REQUEST),
+	INVALID_MEMBER_ID_FORMAT("VALIDATION_006", "아이디 형식이 올바르지 않습니다.", HttpStatus.BAD_REQUEST),
+	INVALID_USERNAME_FORMAT("VALIDATION_007", "이름 형식이 올바르지 않습니다.", HttpStatus.BAD_REQUEST),
+	INVALID_PASSWORD_FORMAT("VALIDATION_008", "비밀번호 형식이 올바르지 않습니다.", HttpStatus.BAD_REQUEST),
 
 	// 시스템 관련 (9000번대)
 	INTERNAL_SERVER_ERROR("SYSTEM_001", "서버 내부 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
