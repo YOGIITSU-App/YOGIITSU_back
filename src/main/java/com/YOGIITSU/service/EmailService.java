@@ -2,11 +2,12 @@ package com.YOGIITSU.service;
 
 import com.YOGIITSU.config.handler.EmailProperties;
 import com.YOGIITSU.entity.EmailMessage;
+import com.YOGIITSU.exception.user.MemberNotFoundException;
+import com.YOGIITSU.exception.validation.InvalidEmailDomainException;
 import com.YOGIITSU.jwt.EmailVerificationJwtProvider;
 import com.YOGIITSU.jwt.JwtTokenProvider;
 import com.YOGIITSU.repository.EmailMessageRepository;
 import com.YOGIITSU.repository.MemberRepository;
-import com.YOGIITSU.exception.auth.EmailVerificationNotApprovedException;
 import com.YOGIITSU.exception.auth.UnauthorizedException;
 import com.YOGIITSU.exception.validation.EmailAlreadyExistsException;
 import com.YOGIITSU.exception.validation.EmailRequiredException;
@@ -19,7 +20,6 @@ import java.security.SecureRandom;
 import java.util.Locale;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -27,16 +27,8 @@ import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import java.time.LocalDateTime;
 import com.YOGIITSU.entity.Member;
 import com.YOGIITSU.entity.EmailPurpose;
-import com.YOGIITSU.exception.user.SameEmailException;
-import com.YOGIITSU.exception.validation.EmailRequiredException;
-import com.YOGIITSU.exception.validation.EmailAlreadyExistsException;
-import com.YOGIITSU.exception.auth.UnauthorizedException;
-import com.YOGIITSU.exception.validation.InvalidArgumentException;
-import com.YOGIITSU.exception.external.EmailSendException;
 
 @Slf4j
 @Service
@@ -50,6 +42,12 @@ public class EmailService {
 	private final EmailVerificationJwtProvider emailJwtProvider;
 	private final EmailProperties emailProperties;
 	private final JwtTokenProvider jwtTokenProvider;
+
+	private static final java.time.ZoneId KST = java.time.ZoneId.of("Asia/Seoul");
+
+	private static java.time.LocalDateTime nowKst() {
+		return java.time.LocalDateTime.now(KST);
+	}
 
 	// 6자리 숫자 인증 코드 생성
 	public String generateVerificationCode() {
@@ -67,28 +65,46 @@ public class EmailService {
 	// 이메일 전송 (인증 코드 포함)
 	public void sendMail(EmailMessage emailMessage, String type) {
 		// 도메인 제한 체크
-		if (!isAllowedEmailDomain(emailMessage.getEmail())) {
-			throw new InvalidArgumentException(
+		if (isDisallowedEmailDomain(emailMessage.getEmail())) {
+			throw new InvalidEmailDomainException(
 				"suwon.ac.kr, naver.com, gmail.com 도메인만 인증할 수 있습니다.");
 		}
 
 		try {
-			MimeMessageHelper mimeMessageHelper = createMimeMessage(emailMessage,
-				emailMessage.getCode(), type);
-			javaMailSender.send(mimeMessageHelper.getMimeMessage());
-			log.info("메일 전송 성공: {}", emailMessage.getEmail());
+			MimeMessageHelper helper = createMimeMessage(emailMessage, emailMessage.getCode(),
+				type);
+			javaMailSender.send(helper.getMimeMessage());
+			log.info("메일 전송 성공: {}", mask(emailMessage.getEmail()));
 
-		} catch (MailException e) {
-			log.error("메일 전송 실패: {}", e.getMessage());
-			throw new EmailSendException("메일 전송 중 오류가 발생했습니다: " + e.getMessage());
+		} catch (org.springframework.mail.MailException e) {
+			// 메일 전송 실패는 사용자 메시지 단순화 + 민감정보 마스킹
+			log.error("메일 전송 실패: to={}, cause={}", mask(emailMessage.getEmail()),
+				e.getClass().getSimpleName(), e);
+			throw new EmailSendException("메일 전송 중 오류가 발생했습니다: " + mask(emailMessage.getEmail()));
+		} catch (RuntimeException e) {
+			// 템플릿 렌더/메시지 빌드 등 런타임 이슈도 동일 정책
+			log.error("메일 빌드 실패: to={}, msg={}", mask(emailMessage.getEmail()), e.getMessage(), e);
+			throw new EmailSendException("메일 전송 준비 중 오류가 발생했습니다: " + mask(emailMessage.getEmail()));
 		}
 	}
 
+	private String mask(String email) {
+		if (email == null) {
+			return "null";
+		}
+		int at = email.indexOf('@');
+		if (at < 0) {
+			return "***";
+		}
+		String local = email.substring(0, at), domain = email.substring(at);
+		return (local.length() <= 3 ? "***" : local.substring(0, 3) + "***") + domain;
+	}
+
 	// 허용된 이메일 도메인인지 확인
-	private boolean isAllowedEmailDomain(String email) {
+	private boolean isDisallowedEmailDomain(String email) {
 		String normalized = email.trim().toLowerCase(Locale.ROOT);
 		return emailProperties.allowedDomains().stream()
-			.anyMatch(domain -> normalized.endsWith("@" + domain));
+			.noneMatch(domain -> normalized.endsWith("@" + domain));
 	}
 
 	// MimeMessage 생성
@@ -104,7 +120,10 @@ public class EmailService {
 
 			return mimeMessageHelper;
 		} catch (Exception e) {
-			throw new EmailSendException("MimeMessage 생성 중 오류 발생: " + e.getMessage());
+			log.error("MimeMessage 생성 실패: to={}, msg={}", mask(emailMessage.getEmail()),
+				e.getMessage(), e);
+			throw new EmailSendException(
+				"MimeMessage 생성 중 오류 발생: " + mask(emailMessage.getEmail()));
 		}
 	}
 
@@ -123,8 +142,8 @@ public class EmailService {
 			throw new EmailRequiredException();
 		}
 
-		if (!isAllowedEmailDomain(email)) {
-			throw new InvalidArgumentException(
+		if (isDisallowedEmailDomain(email)) {
+			throw new InvalidEmailDomainException(
 				"suwon.ac.kr, naver.com, gmail.com 도메인만 인증할 수 있습니다.");
 		}
 
@@ -144,7 +163,7 @@ public class EmailService {
 			if (purpose == EmailPurpose.EMAIL_CHANGE_NEW) {
 				String memberId = auth.getName();
 				Member member = memberRepository.findByMemberId(memberId)
-					.orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다."));
+					.orElseThrow(() -> new MemberNotFoundException("사용자를 찾을 수 없습니다."));
 
 				if (member.getEmail().trim().equalsIgnoreCase(email.trim())) {
 					throw new SameEmailException();
@@ -172,7 +191,7 @@ public class EmailService {
 		// 2. 로그인된 사용자 정보 조회
 		String memberId = auth.getName();
 		Member member = memberRepository.findByMemberId(memberId)
-			.orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다."));
+			.orElseThrow(() -> new MemberNotFoundException("사용자를 찾을 수 없습니다."));
 
 		// 3. 입력한 이메일이 로그인된 사용자의 현재 이메일과 일치하는지 확인
 		if (!member.getEmail().equals(email)) {
@@ -212,7 +231,7 @@ public class EmailService {
 		// 5. 사용자 정보 조회
 		String memberId = auth.getName();
 		Member member = memberRepository.findByMemberIdWithLock(memberId)
-			.orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다."));
+			.orElseThrow(() -> new MemberNotFoundException("사용자를 찾을 수 없습니다."));
 
 		// 6. 기존 이메일과 동일한지 검사
 		if (member.getEmail().trim().equalsIgnoreCase(newEmail.trim())) {
@@ -227,13 +246,13 @@ public class EmailService {
 		// 8. 사용자 이메일 변경
 		member.setEmail(newEmail);
 		memberRepository.save(member);
-		log.info("이메일 변경 완료 - memberId: {}, newEmail: {}", memberId, newEmail);
+		log.info("이메일 변경 완료 - memberId: {}, newEmail: {}", memberId, mask(newEmail));
 	}
 
 	// 인증 코드 검증 (존재 + 만료 여부)
 	public EmailMessage verifyEmailCode(String email, String code) {
 		EmailMessage message = findEmailMessage(email, code);
-		if (message.getExpiresAt().isBefore(LocalDateTime.now())) {
+		if (message.getExpiresAt().isBefore(nowKst())) {
 			throw new InvalidArgumentException("인증 코드가 만료되었습니다.");
 		}
 		return message;
