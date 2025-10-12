@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.constraints.Positive;
 
 @Validated
 @RestController
@@ -47,7 +48,7 @@ public class CafeteriaController {
 	@GetMapping("/menus/weekly")
 	public ResponseEntity<WeeklyCafeteriaResponseDto> getWeekly(
 		@Parameter(description = "건물 ID", required = true, example = "5")
-		@RequestParam(name = "buildingId") Long buildingId
+		@RequestParam(name = "buildingId") @Positive(message = "buildingId는 양수여야 합니다.") Long buildingId
 	) {
 		return ResponseEntity.ok(queryService.getWeeklyByBuilding(buildingId));
 	}
