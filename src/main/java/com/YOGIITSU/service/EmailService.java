@@ -267,7 +267,7 @@ public class EmailService {
 	// 인증 코드 검증 (존재 + 만료 여부)
 	public EmailMessage verifyEmailCode(String email, String code) {
 		EmailMessage message = findEmailMessage(email, code);
-		if (message.getExpiresAt().isBefore(nowKst())) {
+		if (message.getExpiresAt() != null && message.getExpiresAt().isBefore(nowKst())) {
 			// 레코드를 찾았지만 만료됨
 			throw new VerificationCodeExpiredException();
 		}
