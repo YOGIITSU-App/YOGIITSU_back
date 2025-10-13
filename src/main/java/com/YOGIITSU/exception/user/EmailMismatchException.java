@@ -2,7 +2,6 @@ package com.YOGIITSU.exception.user;
 
 import com.YOGIITSU.exception.BaseException;
 import com.YOGIITSU.exception.ErrorCode;
-import javax.swing.plaf.PanelUI;
 
 public class EmailMismatchException extends BaseException {
 
