@@ -195,7 +195,7 @@ public class CafeteriaQueryService {
 			.findByCafeteriaIdInAndMealDateBetweenOrderByMealDateAscMealTypeAscCornerAsc(
 				cafeteriaIds, monday, friday);
 
-		// 조건 위반하면 바로 예외 -> 글로벌 핸틀러가 통일 포맷으로 응답
+		// 조건 위반하면 바로 예외 -> 글로벌 핸들러가 통일 포맷으로 응답
 		if (menus.isEmpty()) {
 			String detail = "buildingId=" + buildingId + ",week=" + monday + "~" + friday;
 			throw new ResourceException(ErrorCode.RESOURCE_NOT_FOUND, detail);
