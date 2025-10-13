@@ -106,6 +106,9 @@ public class SignUpService {
 	}
 
 	private void validatePassword(String password) {
+		if (password == null || password.isBlank()) {
+			throw new InvalidPasswordFormatException("비밀번호가 비어 있거나 null입니다.");
+		}
 		if (password.length() < 8 || password.length() > 16) {
 			throw new InvalidPasswordFormatException("비밀번호는 8자 이상 16자 이하이어야 합니다.");
 		}
