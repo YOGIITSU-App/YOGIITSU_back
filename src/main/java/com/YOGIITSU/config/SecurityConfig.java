@@ -1,10 +1,13 @@
 package com.YOGIITSU.config;
 
 import com.YOGIITSU.config.handler.LogoutSuccessHandler;
+import com.YOGIITSU.exception.ErrorCode;
 import com.YOGIITSU.jwt.JwtAuthenticationFilter;
 import com.YOGIITSU.jwt.JwtTokenProvider;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Arrays;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,9 +25,11 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @RequiredArgsConstructor
+@Slf4j
 public class SecurityConfig {
 
 	private final JwtTokenProvider jwtTokenProvider;
+	private final ObjectMapper objectMapper;
 	@Value("${cors.allowed-origin}")
 	private String allowedOrigin;
 
@@ -54,15 +59,20 @@ public class SecurityConfig {
 				UsernamePasswordAuthenticationFilter.class) // JWT 인증 필터 추가
 			.exceptionHandling(ex -> ex
 				.authenticationEntryPoint((request, response, authException) -> {
-					response.setContentType("application/json");
-					response.setStatus(
-						HttpServletResponse.SC_UNAUTHORIZED); // 401 Unauthorized 상태 설정
-					response.getWriter().write("{\"error\": \"Unauthorized\"}");
+					// UNAUTHORIZED: 인증이 필요합니다.
+					log.warn("Authentication failed - URI: {}, ErrorCode: {}, Message: {}",
+						request.getRequestURI(),
+						ErrorCode.UNAUTHORIZED.getCode(),
+						authException.getMessage());
+					handleSecurityError(response, ErrorCode.UNAUTHORIZED);
 				})
 				.accessDeniedHandler((request, response, accessDeniedException) -> {
-					response.setContentType("application/json"); // 401 Unauthorized 상태 설정
-					response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-					response.getWriter().write("{\"error\": \"Access Denied\"}");
+					// ACCESS_DENIED: 접근 권한이 없습니다.
+					log.warn("Access denied - URI: {}, ErrorCode: {}, Message: {}",
+						request.getRequestURI(),
+						ErrorCode.ACCESS_DENIED.getCode(),
+						accessDeniedException.getMessage());
+					handleSecurityError(response, ErrorCode.ACCESS_DENIED);
 				})
 			)
 			.sessionManagement(session -> session
@@ -84,6 +94,28 @@ public class SecurityConfig {
 		return new LogoutSuccessHandler(jwtTokenProvider);  // 커스텀 로그아웃 성공 핸들러 사용
 	}
 
+	/**
+	 * Spring Security 오류 발생 시 응답 처리
+	 */
+	private void handleSecurityError(HttpServletResponse response, ErrorCode errorCode) {
+		try {
+			response.setContentType("application/json");
+			response.setCharacterEncoding("UTF-8");
+			response.setStatus(errorCode.getHttpStatus().value());
+
+			// JSON 응답 생성
+			String jsonResponse = objectMapper.writeValueAsString(
+				java.util.Map.of(
+					"errorCode", errorCode.getCode(),
+					"message", errorCode.getMessage()
+				)
+			);
+			response.getWriter().write(jsonResponse);
+		} catch (Exception e) {
+			log.error("Failed to write security error response", e);
+		}
+	}
+
 	@Bean
 	public PasswordEncoder passwordEncoder() {
 		return PasswordEncoderFactories.createDelegatingPasswordEncoder(); // 패스워드 인코딩
@@ -101,7 +133,8 @@ public class SecurityConfig {
 		configuration.setExposedHeaders(Arrays.asList("Authorization", "verify")); // 노출할 응답 헤더
 		configuration.setAllowCredentials(true); // 자격 증명 허용
 
-		configuration.setExposedHeaders(Arrays.asList("Authorization", "verify", "X-Refresh-Token"));
+		configuration.setExposedHeaders(
+			Arrays.asList("Authorization", "verify", "X-Refresh-Token"));
 
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		source.registerCorsConfiguration("/**", configuration);

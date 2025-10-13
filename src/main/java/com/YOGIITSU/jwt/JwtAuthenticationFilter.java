@@ -1,21 +1,27 @@
 package com.YOGIITSU.jwt;
 
+import com.YOGIITSU.exception.ErrorCode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.GenericFilterBean;
 
 @RequiredArgsConstructor
+@Slf4j
 public class JwtAuthenticationFilter extends GenericFilterBean {
 
 	private final JwtTokenProvider jwtTokenProvider;
+	private final ObjectMapper objectMapper = new ObjectMapper();
 	private static final String AUTHORIZATION_HEADER = "Authorization";
 	private static final String BEARER_PREFIX = "Bearer ";
 
@@ -31,6 +37,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 		throws IOException, ServletException {
 
 		HttpServletRequest httpRequest = (HttpServletRequest) request;
+		HttpServletResponse httpResponse = (HttpServletResponse) response;
 		String path = httpRequest.getRequestURI();
 
 		// 토큰 없이도 접근 가능한 URL은 필터 제외
@@ -39,14 +46,73 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 			return;
 		}
 
-		// 1. Request Header 에서 JWT 토큰 추출
-		String token = resolveToken((HttpServletRequest) request);
-		// 2. validateToken 으로 토큰 유효성 검사
-		if (isValidToken(token)) {
-			// 3. 토큰이 유효할 경우 토큰에서 Authentication 객체를 가지고 와서 SecurityContext 에 저장
-			setAuthentication(token);
+		try {
+			// 1. Request Header 에서 JWT 토큰 추출
+			String token = resolveToken(httpRequest);
+
+			// 2. validateToken 으로 토큰 유효성 검사
+			if (isValidToken(token)) {
+				// 3. 토큰이 유효할 경우 토큰에서 Authentication 객체를 가지고 와서 SecurityContext 에 저장
+				setAuthentication(token);
+			} else if (token != null) {
+				// 토큰은 있지만 유효하지 않은 경우 로그
+				log.warn("Invalid JWT token - URI: {}, Token prefix: {}",
+					path,
+					token.length() > 10 ? token.substring(0, 10) + "..." : token);
+			}
+
+			chain.doFilter(request, response);
+
+		} catch (io.jsonwebtoken.ExpiredJwtException e) {
+			// TOKEN_EXPIRED: 토큰이 만료되었습니다.
+			log.warn("JWT token expired - URI: {}, ErrorCode: {}, Message: {}",
+				path, ErrorCode.TOKEN_EXPIRED.getCode(), e.getMessage());
+			handleAuthenticationError(httpResponse, ErrorCode.TOKEN_EXPIRED);
+
+		} catch (io.jsonwebtoken.MalformedJwtException e) {
+			// INVALID_TOKEN: 유효하지 않은 토큰입니다.
+			log.warn("Malformed JWT token - URI: {}, ErrorCode: {}, Message: {}",
+				path, ErrorCode.INVALID_TOKEN.getCode(), e.getMessage());
+			handleAuthenticationError(httpResponse, ErrorCode.INVALID_TOKEN);
+
+		} catch (io.jsonwebtoken.UnsupportedJwtException e) {
+			// INVALID_TOKEN: 유효하지 않은 토큰입니다.
+			log.warn("Unsupported JWT token - URI: {}, ErrorCode: {}, Message: {}",
+				path, ErrorCode.INVALID_TOKEN.getCode(), e.getMessage());
+			handleAuthenticationError(httpResponse, ErrorCode.INVALID_TOKEN);
+
+		} catch (io.jsonwebtoken.security.SignatureException e) {
+			// INVALID_TOKEN: 유효하지 않은 토큰입니다.
+			log.warn("Invalid JWT signature - URI: {}, ErrorCode: {}, Message: {}",
+				path, ErrorCode.INVALID_TOKEN.getCode(), e.getMessage());
+			handleAuthenticationError(httpResponse, ErrorCode.INVALID_TOKEN);
+
+		} catch (Exception e) {
+			// UNAUTHORIZED: 인증이 필요합니다.
+			log.error("JWT authentication error - URI: {}, ErrorCode: {}, Error: {}",
+				path, ErrorCode.UNAUTHORIZED.getCode(), e.getMessage(), e);
+			handleAuthenticationError(httpResponse, ErrorCode.UNAUTHORIZED);
 		}
-		chain.doFilter(request, response);
+	}
+
+	/**
+	 * 인증 오류 발생 시 응답 처리
+	 */
+	private void handleAuthenticationError(HttpServletResponse response, ErrorCode errorCode)
+		throws IOException {
+		SecurityContextHolder.clearContext();
+		response.setContentType("application/json");
+		response.setCharacterEncoding("UTF-8");
+		response.setStatus(errorCode.getHttpStatus().value());
+
+		// JSON 응답 생성
+		String jsonResponse = objectMapper.writeValueAsString(
+			java.util.Map.of(
+				"errorCode", errorCode.getCode(),
+				"message", errorCode.getMessage()
+			)
+		);
+		response.getWriter().write(jsonResponse);
 	}
 
 	/**
