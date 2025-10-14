@@ -211,4 +211,18 @@ public class JwtTokenProvider {
 			throw new InvalidTokenException();
 		}
 	}
+
+	/**
+	 * JWT 토큰 파싱 및 검증 (필터에서 사용)
+	 * 서명 키 노출 없이 내부적으로 토큰을 파싱하고 검증
+	 *
+	 * @param token JWT 토큰 문자열
+	 * @throws io.jsonwebtoken.JwtException 토큰이 유효하지 않은 경우
+	 */
+	public void parseAndValidateToken(String token) {
+		Jwts.parser()
+			.setSigningKey(key)
+			.build()
+			.parseClaimsJws(token);
+	}
 }

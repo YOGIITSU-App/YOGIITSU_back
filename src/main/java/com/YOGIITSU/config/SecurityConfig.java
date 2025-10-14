@@ -4,6 +4,7 @@ import com.YOGIITSU.config.handler.LogoutSuccessHandler;
 import com.YOGIITSU.exception.ErrorCode;
 import com.YOGIITSU.jwt.JwtAuthenticationFilter;
 import com.YOGIITSU.jwt.JwtTokenProvider;
+import com.YOGIITSU.util.ErrorResponseUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Arrays;
 import lombok.RequiredArgsConstructor;
@@ -103,13 +104,10 @@ public class SecurityConfig {
 			response.setCharacterEncoding("UTF-8");
 			response.setStatus(errorCode.getHttpStatus().value());
 
-			// JSON 응답 생성
-			String jsonResponse = objectMapper.writeValueAsString(
-				java.util.Map.of(
-					"errorCode", errorCode.getCode(),
-					"message", errorCode.getMessage()
-				)
-			);
+			// 공통 유틸리티를 사용하여 ErrorResponse 형식으로 JSON 응답 생성
+			java.util.Map<String, Object> errorResponse = ErrorResponseUtil.createErrorResponse(
+				errorCode);
+			String jsonResponse = objectMapper.writeValueAsString(errorResponse);
 			response.getWriter().write(jsonResponse);
 		} catch (Exception e) {
 			log.error("Failed to write security error response", e);
