@@ -3,7 +3,6 @@ package com.YOGIITSU.jwt;
 import com.YOGIITSU.exception.ErrorCode;
 import com.YOGIITSU.util.ErrorResponseUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.jsonwebtoken.Jwts;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
@@ -52,13 +51,10 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 			// 1. Request Header 에서 JWT 토큰 추출
 			String token = resolveToken(httpRequest);
 
-			// 2. 토큰이 있는 경우 직접 파싱 (JWT 예외는 외부 catch 블록에서 처리됨)
+			// 2. 토큰이 있는 경우 파싱 및 검증 (JWT 예외는 외부 catch 블록에서 처리됨)
 			if (token != null) {
-				// 토큰 파싱 시도
-				Jwts.parser()
-					.setSigningKey(jwtTokenProvider.getKey())
-					.build()
-					.parseClaimsJws(token);
+				// 토큰 파싱 및 검증
+				jwtTokenProvider.parseAndValidateToken(token);
 				
 				// 파싱 성공 시 인증 설정
 				setAuthentication(token);
