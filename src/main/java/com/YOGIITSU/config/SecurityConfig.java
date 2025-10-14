@@ -103,13 +103,15 @@ public class SecurityConfig {
 			response.setCharacterEncoding("UTF-8");
 			response.setStatus(errorCode.getHttpStatus().value());
 
-			// JSON 응답 생성
-			String jsonResponse = objectMapper.writeValueAsString(
-				java.util.Map.of(
-					"errorCode", errorCode.getCode(),
-					"message", errorCode.getMessage()
-				)
-			);
+			// ErrorResponse 형식으로 JSON 응답 생성
+			java.util.Map<String, Object> errorResponse = new java.util.HashMap<>();
+			errorResponse.put("code", errorCode.getCode());
+			errorResponse.put("message", errorCode.getMessage());
+			errorResponse.put("detail", null);
+			errorResponse.put("timestamp", java.time.LocalDateTime.now().toString());
+			errorResponse.put("status", errorCode.getHttpStatus().value());
+			
+			String jsonResponse = objectMapper.writeValueAsString(errorResponse);
 			response.getWriter().write(jsonResponse);
 		} catch (Exception e) {
 			log.error("Failed to write security error response", e);

@@ -2,6 +2,7 @@ package com.YOGIITSU.jwt;
 
 import com.YOGIITSU.exception.ErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.Jwts;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
@@ -50,49 +51,76 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 			// 1. Request Header 에서 JWT 토큰 추출
 			String token = resolveToken(httpRequest);
 
-			// 2. validateToken 으로 토큰 유효성 검사
-			if (isValidToken(token)) {
-				// 3. 토큰이 유효할 경우 토큰에서 Authentication 객체를 가지고 와서 SecurityContext 에 저장
-				setAuthentication(token);
-			} else if (token != null) {
-				// 토큰은 있지만 유효하지 않은 경우 로그
-				log.warn("Invalid JWT token - URI: {}, Token prefix: {}",
-					path,
-					token.length() > 10 ? token.substring(0, 10) + "..." : token);
-			}
+			// 2. 토큰이 있는 경우 직접 파싱하여 예외 처리
+			if (token != null) {
+				try {
+					// 토큰 파싱 시도 (예외 발생 가능)
+					Jwts.parser()
+						.setSigningKey(jwtTokenProvider.getKey())
+						.build()
+						.parseClaimsJws(token);
 
-			chain.doFilter(request, response);
+					// 파싱 성공 시 인증 설정
+					setAuthentication(token);
+				} catch (io.jsonwebtoken.ExpiredJwtException e) {
+					// 만료된 토큰은 예외로 던져서 catch 블록에서 처리
+					throw e;
+				} catch (io.jsonwebtoken.MalformedJwtException e) {
+					// 잘못된 형식의 토큰은 예외로 던져서 catch 블록에서 처리
+					throw e;
+				} catch (io.jsonwebtoken.UnsupportedJwtException e) {
+					// 지원하지 않는 토큰은 예외로 던져서 catch 블록에서 처리
+					throw e;
+				} catch (io.jsonwebtoken.security.SignatureException e) {
+					// 서명 검증 실패는 예외로 던져서 catch 블록에서 처리
+					throw e;
+				} catch (io.jsonwebtoken.JwtException e) {
+					// 기타 JWT 예외는 예외로 던져서 catch 블록에서 처리
+					throw e;
+				} catch (Exception e) {
+					// 기타 예외는 로그만 남기고 계속 진행
+					log.warn("Invalid JWT token - URI: {}", path);
+				}
+			}
 
 		} catch (io.jsonwebtoken.ExpiredJwtException e) {
 			// TOKEN_EXPIRED: 토큰이 만료되었습니다.
-			log.warn("JWT token expired - URI: {}, ErrorCode: {}, Message: {}",
-				path, ErrorCode.TOKEN_EXPIRED.getCode(), e.getMessage());
+			log.warn("JWT token expired - URI: {}, ErrorCode: {}, Message: {}, Current Time: {}",
+				path, ErrorCode.TOKEN_EXPIRED.getCode(), e.getMessage(),
+				java.time.LocalDateTime.now().toString());
 			handleAuthenticationError(httpResponse, ErrorCode.TOKEN_EXPIRED);
+			return;
 
 		} catch (io.jsonwebtoken.MalformedJwtException e) {
 			// INVALID_TOKEN: 유효하지 않은 토큰입니다.
 			log.warn("Malformed JWT token - URI: {}, ErrorCode: {}, Message: {}",
 				path, ErrorCode.INVALID_TOKEN.getCode(), e.getMessage());
 			handleAuthenticationError(httpResponse, ErrorCode.INVALID_TOKEN);
+			return;
 
 		} catch (io.jsonwebtoken.UnsupportedJwtException e) {
 			// INVALID_TOKEN: 유효하지 않은 토큰입니다.
 			log.warn("Unsupported JWT token - URI: {}, ErrorCode: {}, Message: {}",
 				path, ErrorCode.INVALID_TOKEN.getCode(), e.getMessage());
 			handleAuthenticationError(httpResponse, ErrorCode.INVALID_TOKEN);
+			return;
 
 		} catch (io.jsonwebtoken.security.SignatureException e) {
 			// INVALID_TOKEN: 유효하지 않은 토큰입니다.
 			log.warn("Invalid JWT signature - URI: {}, ErrorCode: {}, Message: {}",
 				path, ErrorCode.INVALID_TOKEN.getCode(), e.getMessage());
 			handleAuthenticationError(httpResponse, ErrorCode.INVALID_TOKEN);
+			return;
 
-		} catch (Exception e) {
-			// UNAUTHORIZED: 인증이 필요합니다.
-			log.error("JWT authentication error - URI: {}, ErrorCode: {}, Error: {}",
-				path, ErrorCode.UNAUTHORIZED.getCode(), e.getMessage(), e);
+		} catch (io.jsonwebtoken.JwtException e) {
+			// 기타 JWT 처리 오류
+			log.warn("JWT processing error - URI: {}, ErrorCode: {}, Message: {}",
+				path, ErrorCode.UNAUTHORIZED.getCode(), e.getMessage());
 			handleAuthenticationError(httpResponse, ErrorCode.UNAUTHORIZED);
+			return;
 		}
+		// 나머지 예외는 전파하여 전역 예외 처리(5xx 등)에 맡깁니다.
+		chain.doFilter(request, response);
 	}
 
 	/**
@@ -105,13 +133,15 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 		response.setCharacterEncoding("UTF-8");
 		response.setStatus(errorCode.getHttpStatus().value());
 
-		// JSON 응답 생성
-		String jsonResponse = objectMapper.writeValueAsString(
-			java.util.Map.of(
-				"errorCode", errorCode.getCode(),
-				"message", errorCode.getMessage()
-			)
-		);
+		// ErrorResponse 형식으로 JSON 응답 생성
+		java.util.Map<String, Object> errorResponse = new java.util.HashMap<>();
+		errorResponse.put("code", errorCode.getCode());
+		errorResponse.put("message", errorCode.getMessage());
+		errorResponse.put("detail", null);
+		errorResponse.put("timestamp", java.time.LocalDateTime.now().toString());
+		errorResponse.put("status", errorCode.getHttpStatus().value());
+
+		String jsonResponse = objectMapper.writeValueAsString(errorResponse);
 		response.getWriter().write(jsonResponse);
 	}
 
@@ -129,15 +159,6 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 		return null;
 	}
 
-	/**
-	 * JWT 토큰의 유효성을 검사
-	 *
-	 * @param token JWT 토큰 문자열
-	 * @return 토큰이 유효하면 true, 그렇지 않으면 false
-	 */
-	private boolean isValidToken(String token) {
-		return token != null && jwtTokenProvider.validateToken(token);
-	}
 
 	/**
 	 * JWT 토큰에서 인증 정보를 추출하여 SecurityContext 에 저장

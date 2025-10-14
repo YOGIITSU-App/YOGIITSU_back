@@ -211,4 +211,9 @@ public class JwtTokenProvider {
 			throw new InvalidTokenException();
 		}
 	}
+
+	// JWT 서명 키 반환 (필터에서 직접 파싱용)
+	public Key getKey() {
+		return this.key;
+	}
 }
