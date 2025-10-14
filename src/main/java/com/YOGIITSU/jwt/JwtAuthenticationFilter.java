@@ -52,36 +52,16 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 			// 1. Request Header 에서 JWT 토큰 추출
 			String token = resolveToken(httpRequest);
 
-			// 2. 토큰이 있는 경우 직접 파싱하여 예외 처리
+			// 2. 토큰이 있는 경우 직접 파싱 (JWT 예외는 외부 catch 블록에서 처리됨)
 			if (token != null) {
-				try {
-					// 토큰 파싱 시도 (예외 발생 가능)
-					Jwts.parser()
-						.setSigningKey(jwtTokenProvider.getKey())
-						.build()
-						.parseClaimsJws(token);
-
-					// 파싱 성공 시 인증 설정
-					setAuthentication(token);
-				} catch (io.jsonwebtoken.ExpiredJwtException e) {
-					// 만료된 토큰은 예외로 던져서 catch 블록에서 처리
-					throw e;
-				} catch (io.jsonwebtoken.MalformedJwtException e) {
-					// 잘못된 형식의 토큰은 예외로 던져서 catch 블록에서 처리
-					throw e;
-				} catch (io.jsonwebtoken.UnsupportedJwtException e) {
-					// 지원하지 않는 토큰은 예외로 던져서 catch 블록에서 처리
-					throw e;
-				} catch (io.jsonwebtoken.security.SignatureException e) {
-					// 서명 검증 실패는 예외로 던져서 catch 블록에서 처리
-					throw e;
-				} catch (io.jsonwebtoken.JwtException e) {
-					// 기타 JWT 예외는 예외로 던져서 catch 블록에서 처리
-					throw e;
-				} catch (Exception e) {
-					// 기타 예외는 로그만 남기고 계속 진행
-					log.warn("Invalid JWT token - URI: {}", path);
-				}
+				// 토큰 파싱 시도
+				Jwts.parser()
+					.setSigningKey(jwtTokenProvider.getKey())
+					.build()
+					.parseClaimsJws(token);
+				
+				// 파싱 성공 시 인증 설정
+				setAuthentication(token);
 			}
 
 		} catch (io.jsonwebtoken.ExpiredJwtException e) {
