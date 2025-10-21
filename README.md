@@ -17,11 +17,20 @@
   <a href="https://www.youtube.com/watch?v=uGwNB6_aN9s">🎬 시연 영상</a>
 </p>
 
-<p align="center">
-  <a href="https://play.google.com/store/apps/details?id=com.yogiitsuapp&hl=ko">
+<p align="center" style="margin-top: 12px;">
+  <!-- Google Play -->
+  <a href="https://play.google.com/store/apps/details?id=com.yogiitsuapp&hl=ko" target="_blank" style="margin-right: 10px;">
     <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"
-         alt="요기있수 다운로드"
-         height="80"/>
+         alt="요기있수 다운로드 (Google Play)"
+         height="60"/>
+  </a>
+
+  <!-- App Store -->
+  <a href="https://apps.apple.com/kr/app/%EC%9A%94%EA%B8%B0%EC%9E%88%EC%88%98/id6751530444" target="_blank">
+    <img src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/ko-kr?size=250x83"
+         alt="요기있수 다운로드 (App Store)"
+         height="60"
+         style="vertical-align: middle;"/>
   </a>
 </p>
 
