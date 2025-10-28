@@ -1,0 +1,89 @@
+name: cicd-new
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew build -x test
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.NEW_EC2_SSH_KEY }}
+
+      - name: Add known_hosts
+        run: |
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            KNOWN_HOSTS_VALUE="${{ secrets.NEW_KNOWNS_HOST }}" 
+          else
+            KNOWN_HOSTS_VALUE="${{ secrets.NEW_DEV_KNOWNS_HOST || secrets.NEW_KNOWNS_HOST }}"
+          fi
+          mkdir -p ~/.ssh
+          echo "$KNOWN_HOSTS_VALUE" >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Transfer JAR to EC2
+        run: |
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            EC2_IP="${{ secrets.NEW_EC2_IP }}"
+          else
+            EC2_IP="${{ secrets.NEW_DEV_EC2_IP }}"
+          fi
+          scp build/libs/*.jar ubuntu@$EC2_IP:/home/ubuntu/YOGIITSU/
+
+      - name: Deploy on EC2
+        run: |
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            EC2_IP="${{ secrets.NEW_EC2_IP }}"
+            BRANCH="main"
+          else
+            EC2_IP="${{ secrets.NEW_DEV_EC2_IP }}"
+            BRANCH="develop"
+          fi
+          
+          APPLE_KEY_CONTENT_ONELINE=$(echo "${{ secrets.APPLE_PRIVATE_KEY_CONTENT }}" | tr -d '\n' | tr -d '\r')
+
+          ssh ubuntu@$EC2_IP "
+            export BRANCH='$BRANCH'
+            export DB_URL='${{ secrets.NEW_DB_URL }}'
+            export DB_USERNAME='${{ secrets.DB_USERNAME }}'
+            export DB_PASSWORD='${{ secrets.DB_PASSWORD }}'
+            export GOOGLE_CLIENT_ID='${{ secrets.GOOGLE_CLIENT_ID }}'
+            export MAIL_HOST='${{ secrets.MAIL_HOST }}'
+            export MAIL_PORT='${{ secrets.MAIL_PORT }}'
+            export MAIL_USERNAME='${{ secrets.MAIL_USERNAME }}'
+            export GMAIL_APP_PASSWORD='${{ secrets.GMAIL_APP_PASSWORD }}'
+            export JWT_SECRET='${{ secrets.JWT_SECRET }}'
+            export JWT_ACCESS_EXPIRY='${{ secrets.JWT_ACCESS_EXPIRY }}'
+            export JWT_REFRESH_EXPIRY='${{ secrets.JWT_REFRESH_EXPIRY }}'
+            export SWAGGER_SERVER_URL='${{ secrets.NEW_SWAGGER_SERVER_URL }}'
+            export CORS_ALLOWED_ORIGIN='${{ secrets.NEW_CORS_ALLOWED_ORIGIN }}'
+            export CORS_ALLOWED_ORIGIN_DEV='${{ secrets.NEW_CORS_ALLOWED_ORIGIN_DEV }}'
+            export APPLE_CLIENT_ID='${{ secrets.APPLE_CLIENT_ID }}'
+            export APPLE_TEAM_ID='${{ secrets.APPLE_TEAM_ID }}'
+            export APPLE_KEY_ID='${{ secrets.APPLE_KEY_ID }}'
+            export APPLE_PRIVATE_KEY_CONTENT='$APPLE_KEY_CONTENT_ONELINE'
+          
+            cd /home/ubuntu/YOGIITSU
+            ./deploy.sh
+          "
