@@ -234,40 +234,6 @@ public class CafeteriaCrawler {
 			}
 		}
 
-		// --- 추가: 월~금에 비어있는 날을 '(메뉴 준비 중)'으로 보정해서 채워 넣기
-		Set<String> mealTypes = result.stream()
-			.map(ParsedRow::mealType)
-			.map(s -> s == null ? "" : s.trim())
-			.filter(s -> !s.isEmpty())
-			.collect(Collectors.toCollection(LinkedHashSet::new));
-		if (mealTypes.isEmpty()) {
-			mealTypes = Set.of("중식"); // 기본값
-		}
-
-		//월~금에 비어있는 날을 '(메뉴 준비 중)'으로 보정해서 채워 넣기
-		for (String mt : mealTypes) {
-			for (int i = 0; i < 5; i++) {
-				LocalDate d = monday.plusDays(i);
-				boolean exists = result.stream().anyMatch(r ->
-					Objects.equals(r.mealType(), mt) && Objects.equals(r.mealDate(), d)
-				);
-				if (!exists) {
-					String placeholder = "메뉴 준비 중";
-					String hash = DigestUtils.sha1Hex("EMPTY|" + d + "|" + mt);
-					result.add(new ParsedRow(
-						canonicalBuilding(place.building()),
-						canonicalPlace(place.place()),
-						d,
-						mt,
-						null,
-						placeholder,
-						monday,
-						hash
-					));
-				}
-			}
-		}
-
 		return result;
 	}
 
