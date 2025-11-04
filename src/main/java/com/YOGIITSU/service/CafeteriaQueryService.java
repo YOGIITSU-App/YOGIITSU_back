@@ -195,6 +195,17 @@ public class CafeteriaQueryService {
 			.findByCafeteriaIdInAndMealDateBetweenOrderByMealDateAscMealTypeAscCornerAsc(
 				cafeteriaIds, monday, friday);
 
+		// placeholder/공백 제거
+		menus = menus.stream()
+			.filter(m -> {
+				String t = Optional.ofNullable(m.getItemsText()).orElse("").trim();
+				if (t.isEmpty()) {
+					return false;
+				}
+				return !Set.of("메뉴 준비 중", "준비중", "준비 중", "-").contains(t);
+			})
+			.toList();
+
 		// 조건 위반하면 바로 예외 -> 글로벌 핸들러가 통일 포맷으로 응답
 		if (menus.isEmpty()) {
 			String detail = "buildingId=" + buildingId + ",week=" + monday + "~" + friday;
@@ -278,8 +289,6 @@ public class CafeteriaQueryService {
 			indexToDate.put(String.valueOf(i), monday.plusDays(i).format(ISO_DATE));
 		}
 
-		String lastUpdatedAt = serverTime;
-
 		return WeeklyCafeteriaResponseDto.builder()
 			.tz(tz)
 			.serverTime(serverTime)
@@ -288,7 +297,7 @@ public class CafeteriaQueryService {
 			.availableIndices(availableIndices)
 			.indexToDate(indexToDate)
 			.menus(menusOut)
-			.lastUpdatedAt(lastUpdatedAt)
+			.lastUpdatedAt(serverTime)
 			.build();
 	}
 }
