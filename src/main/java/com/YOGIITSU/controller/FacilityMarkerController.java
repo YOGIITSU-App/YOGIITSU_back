@@ -14,7 +14,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 시설 마커 관련 API를 제공하는 컨트롤러입니다. 예: 주차장, 카페, 식당 등의 위치 정보 조회
+ * 시설 마커 관련 API를 제공하는 컨트롤러입니다.
+ * 예: 주차장, 카페, 식당 등의 위치 정보 조회
  */
 @RestController
 @RequiredArgsConstructor
