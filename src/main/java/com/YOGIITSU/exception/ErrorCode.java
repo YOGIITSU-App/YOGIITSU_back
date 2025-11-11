@@ -45,6 +45,7 @@ public enum ErrorCode {
 	FAVORITE_ALREADY_EXISTS("RESOURCE_006", "이미 즐겨찾기에 추가된 건물입니다.", HttpStatus.CONFLICT),
 	FAVORITE_NOT_FOUND("RESOURCE_007", "존재하지 않는 즐겨찾기입니다.", HttpStatus.NOT_FOUND),
 	RESOURCE_NOT_FOUND("RESOURCE_008", "요청하신 리소스를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+	REVIEW_NOT_FOUND("RESOURCE_009", "존재하지 않는 리뷰입니다.", HttpStatus.NOT_FOUND),
 
 	// 외부 서비스 관련 (4000번대)
 	APPLE_AUTH_FAIL("EXTERNAL_001", "Apple 인증에 실패했습니다.", HttpStatus.UNAUTHORIZED),

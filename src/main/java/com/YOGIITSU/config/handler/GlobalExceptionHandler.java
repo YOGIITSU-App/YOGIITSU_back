@@ -12,6 +12,7 @@ import com.YOGIITSU.exception.resource.ResourceException;
 import com.YOGIITSU.exception.resource.NoticeNotFoundException;
 import com.YOGIITSU.exception.resource.InquiryNotFoundException;
 import com.YOGIITSU.exception.resource.FavoriteNotFoundException;
+import com.YOGIITSU.exception.resource.ReviewNotFoundException;
 import com.YOGIITSU.exception.validation.EmailAlreadyExistsException;
 import com.YOGIITSU.exception.validation.UsernameAlreadyExistsException;
 import com.YOGIITSU.exception.validation.EmailRequiredException;
@@ -112,6 +113,7 @@ public class GlobalExceptionHandler {
             NoticeNotFoundException.class,
             InquiryNotFoundException.class,
             FavoriteNotFoundException.class,
+            ReviewNotFoundException.class,
             ResourceException.class
     })
     public ResponseEntity<ErrorResponse> handleResourceException(BaseException e) {
