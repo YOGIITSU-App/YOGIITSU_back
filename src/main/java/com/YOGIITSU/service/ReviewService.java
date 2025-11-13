@@ -22,7 +22,7 @@ public class ReviewService {
 
 	public List<ReviewResponseDto> getAllReviews() {
 
-		return reviewRepository.findAllByOrderByCreatedAtAsc().stream()
+		return reviewRepository.findAllByOrderByCreatedAtDesc().stream()
 			.map(ReviewResponseDto::from)
 			.collect(Collectors.toList());
 	}
