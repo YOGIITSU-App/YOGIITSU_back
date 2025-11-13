@@ -193,4 +193,13 @@ public class MemberService {
 		// 7. 사용된 인증 메시지 삭제 (재사용 방지)
 		emailMessageRepository.delete(emailMessage);
 	}
+
+	/**
+	 * 전체 회원 수 조회 메서드
+	 *
+	 * @return 전체 회원 수
+	 */
+	public Long getMemberCount() {
+		return memberRepository.count();
+	}
 }
