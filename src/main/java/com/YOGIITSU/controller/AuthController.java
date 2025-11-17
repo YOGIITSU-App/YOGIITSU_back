@@ -68,7 +68,8 @@ public class AuthController {
 			throw new InvalidTokenException();
 		}
 
-		Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
+		// 만료된 AccessToken에서도 사용자 정보 추출 가능
+		Authentication authentication = jwtTokenProvider.getAuthenticationFromExpiredToken(accessToken);
 		TokenResponseDto newTokens = jwtTokenProvider.generateToken(authentication);
 
 		HttpHeaders headers = new HttpHeaders();
