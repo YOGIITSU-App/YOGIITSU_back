@@ -47,6 +47,13 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 			return;
 		}
 
+		// 토큰 재발급 경로는 토큰 검증 생략 (재발급 API에서 처리)
+		if (path.equals("/auth/reissue")) {
+			log.info("Skipping token validation for reissue request - URI: {}", path);
+			chain.doFilter(request, response);
+			return;
+		}
+
 		try {
 			// 1. Request Header 에서 JWT 토큰 추출
 			String token = resolveToken(httpRequest);

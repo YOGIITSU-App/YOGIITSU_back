@@ -47,7 +47,8 @@ public class SecurityConfig {
 					"/swagger-resources/**",
 					"/webjars/**",
 					"/members/find-password",
-					"/api/auth/google/verify"
+					"/api/auth/google/verify",
+					"/auth/reissue"
 				).permitAll()
 
 				// 로그아웃은 인증된 사용자만 가능
