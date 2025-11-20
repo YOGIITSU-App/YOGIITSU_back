@@ -1,6 +1,8 @@
 package com.YOGIITSU.service;
 
 import com.YOGIITSU.dto.RequestDto.ReviewCreateRequestDto;
+import com.YOGIITSU.dto.ResponseDto.PaginationInfo;
+import com.YOGIITSU.dto.ResponseDto.ReviewPageResponseDto;
 import com.YOGIITSU.dto.ResponseDto.ReviewResponseDto;
 import com.YOGIITSU.entity.Review;
 import com.YOGIITSU.exception.resource.ReviewNotFoundException;
@@ -9,6 +11,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +30,27 @@ public class ReviewService {
 		return reviewRepository.findAllByOrderByCreatedAtDesc().stream()
 			.map(ReviewResponseDto::from)
 			.collect(Collectors.toList());
+	}
+
+	public ReviewPageResponseDto getReviewsWithPagination(int page, int limit) {
+		Pageable pageable = PageRequest.of(page - 1, limit);
+		Page<Review> reviewPage = reviewRepository.findAllByOrderByCreatedAtDesc(pageable);
+
+		List<ReviewResponseDto> reviews = reviewPage.getContent().stream()
+			.map(ReviewResponseDto::from)
+			.collect(Collectors.toList());
+
+		PaginationInfo pagination = PaginationInfo.builder()
+			.page(page)
+			.totalPages(reviewPage.getTotalPages())
+			.totalCount(reviewPage.getTotalElements())
+			.limit(limit)
+			.build();
+
+		return ReviewPageResponseDto.builder()
+			.reviews(reviews)
+			.pagination(pagination)
+			.build();
 	}
 
 	@Transactional
