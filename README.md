@@ -43,6 +43,11 @@
 - 목적: 수원대학교 학우들의 교내 생활 필수 정보를 **한눈에, 한 손에** 제공하는 서비스  
 - 플랫폼: Android, iOS
   
+### 🔗 링크
+
+- [웹사이트](https://web.yogiitsu.app)
+- [Google Play Store](https://play.google.com/store/apps/details?id=com.yogiitsuapp&hl=ko)
+- [App Store](https://apps.apple.com/kr/app/%EC%9A%94%EA%B8%B0%EC%9E%88%EC%88%98/id6751530444)
 
 ### 📅 개발 기간
 - **2025.01 ~ 현재**  
