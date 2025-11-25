@@ -38,3 +38,4 @@ public class AppVersionController {
 		return service.getAppVersion(platform, currentVersion);
 	}
 }
+
