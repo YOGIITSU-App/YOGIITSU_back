@@ -81,3 +81,4 @@ public class AppVersionService {
 		return 0;
 	}
 }
+
