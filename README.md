@@ -17,28 +17,22 @@
   <a href="https://www.youtube.com/watch?v=uGwNB6_aN9s">🎬 시연 영상</a>
 </p>
 
-<p align="center">
-  <a href="https://play.google.com/store/apps/details?id=com.yogiitsuapp&hl=ko">
+<p align="center" style="margin-top: 12px;">
+  <!-- Google Play -->
+  <a href="https://play.google.com/store/apps/details?id=com.yogiitsuapp&hl=ko" target="_blank" style="margin-right: 10px;">
     <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"
-         alt="요기있수 다운로드"
-         height="80"/>
+         alt="요기있수 다운로드 (Google Play)"
+         height="60"/>
+  </a>
+
+  <!-- App Store -->
+  <a href="https://apps.apple.com/kr/app/%EC%9A%94%EA%B8%B0%EC%9E%88%EC%88%98/id6751530444" target="_blank">
+    <img src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/ko-kr?size=250x83"
+         alt="요기있수 다운로드 (App Store)"
+         height="60"
+         style="vertical-align: middle;"/>
   </a>
 </p>
-
----
-
-## 📑 목차
-
-1. [프로젝트 소개](#-프로젝트-소개)  
-2. [주요 기능](#-주요-기능)  
-3. [기술 스택](#-기술-스택)  
-4. [설치 및 실행 방법](#-설치-및-실행-방법)  
-5. [사용법 (Usage)](#-사용법-usage)  
-6. [기여 방법 (Contributing)](#-기여-방법-contributing)  
-7. [테스트](#-테스트)  
-8. [저자 및 기여자](#-저자-및-기여자)  
-9. [프로젝트 상태 및 로드맵](#-프로젝트-상태-및-로드맵)  
-10. [라이선스](#-라이선스)  
 
 ---
 
@@ -49,6 +43,11 @@
 - 목적: 수원대학교 학우들의 교내 생활 필수 정보를 **한눈에, 한 손에** 제공하는 서비스  
 - 플랫폼: Android, iOS
   
+### 🔗 링크
+
+- [웹사이트](https://web.yogiitsu.app)
+- [Google Play Store](https://play.google.com/store/apps/details?id=com.yogiitsuapp&hl=ko)
+- [App Store](https://apps.apple.com/kr/app/%EC%9A%94%EA%B8%B0%EC%9E%88%EC%88%98/id6751530444)
 
 ### 📅 개발 기간
 - **2025.01 ~ 현재**  
@@ -153,18 +152,6 @@
 - **CI/CD:** GitHub Actions
 - **버전 관리:** Git, GitHub
 
----
-
-## ⚡ 설치 및 실행 방법
-
-### Backend (Spring Boot)
-```bash
-cd backend
-./gradlew build
-./gradlew bootRun
-```
----
-
 ## 📖 사용법 (Usage)
 - 앱 설치 후 회원가입
 - 지도에서 원하는 건물/편의시설 검색
@@ -224,7 +211,7 @@ cd backend
 ## 📌 프로젝트 상태 및 로드맵
 - 현재 상태:
   - 안드로이드 버전 정식 배포 (Google Play Store, 2025-08-26)
+  - IOS 버전 정식 배포 (App Store, 2025-10-13)
 
 - 향후 계획:
-  - iOS 버전 App Store 배포
   - 다국어 지원 (영어, 중국어)

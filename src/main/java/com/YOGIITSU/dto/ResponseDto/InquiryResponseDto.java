@@ -28,7 +28,7 @@ public class InquiryResponseDto {
     private String answerContent;
     private LocalDateTime answerAt;
     @JsonProperty("isMine")
-    private boolean isMine;
+    private boolean mine;
 
     public InquiryResponseDto(Inquiry inquiry, boolean isMine) {
 
@@ -41,6 +41,6 @@ public class InquiryResponseDto {
         this.answerTitle = inquiry.getAnswerTitle();
         this.answerContent = inquiry.getAnswerContent();
         this.answerAt = inquiry.getAnswerAt();
-        this.isMine = isMine;
+        this.mine = isMine;
     }
 }

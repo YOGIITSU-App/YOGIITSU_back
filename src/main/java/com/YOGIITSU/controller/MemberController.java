@@ -8,6 +8,7 @@ import com.YOGIITSU.dto.RequestDto.MemberLoginRequestDto;
 import com.YOGIITSU.dto.RequestDto.FindMemberIdRequestDto;
 import com.YOGIITSU.dto.RequestDto.PasswordResetRequestDto;
 import com.YOGIITSU.dto.ResponseDto.FindMemberIdResponseDto;
+import com.YOGIITSU.dto.ResponseDto.MemberCountResponseDto;
 import com.YOGIITSU.jwt.JwtTokenProvider;
 import com.YOGIITSU.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -154,5 +155,18 @@ public class MemberController {
 		memberService.resetPasswordAfterEmailVerification(requestDto);
 
 		return ResponseEntity.ok(Map.of("message", "비밀번호가 성공적으로 변경되었습니다."));
+	}
+
+	/**
+	 * 전체 회원 수 조회 API (web)
+	 *
+	 * @return 전체 회원 수
+	 */
+	@Operation(summary = "전체 회원 수 조회", description = "현재 가입된 전체 회원 수를 조회합니다.")
+	@CrossOrigin(origins = {"https://web.yogiitsu.app", "http://localhost:3000"})
+	@GetMapping("/count")
+	public ResponseEntity<MemberCountResponseDto> getMemberCount() {
+		Long memberCount = memberService.getMemberCount();
+		return ResponseEntity.ok(new MemberCountResponseDto(memberCount));
 	}
 }

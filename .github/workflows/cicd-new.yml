@@ -1,4 +1,4 @@
-name: cicd
+name: cicd-new
 
 on:
   push:
@@ -29,14 +29,14 @@ jobs:
       - name: Setup SSH
         uses: webfactory/ssh-agent@v0.9.0
         with:
-          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+          ssh-private-key: ${{ secrets.NEW_EC2_SSH_KEY }}
 
       - name: Add known_hosts
         run: |
           if [ "${{ github.ref_name }}" = "main" ]; then
-            KNOWN_HOSTS_VALUE="${{ secrets.KNOWN_HOSTS }}"
+            KNOWN_HOSTS_VALUE="${{ secrets.NEW_KNOWNS_HOST }}" 
           else
-            KNOWN_HOSTS_VALUE="${{ secrets.DEV_KNOWN_HOSTS || secrets.KNOWN_HOSTS }}"
+            KNOWN_HOSTS_VALUE="${{ secrets.NEW_DEV_KNOWNS_HOST || secrets.NEW_KNOWNS_HOST }}"
           fi
           mkdir -p ~/.ssh
           echo "$KNOWN_HOSTS_VALUE" >> ~/.ssh/known_hosts
@@ -45,19 +45,19 @@ jobs:
       - name: Transfer JAR to EC2
         run: |
           if [ "${{ github.ref_name }}" = "main" ]; then
-            EC2_IP="${{ secrets.EC2_IP }}"
+            EC2_IP="${{ secrets.NEW_EC2_IP }}"
           else
-            EC2_IP="${{ secrets.DEV_EC2_IP }}"
+            EC2_IP="${{ secrets.NEW_DEV_EC2_IP }}"
           fi
           scp build/libs/*.jar ubuntu@$EC2_IP:/home/ubuntu/YOGIITSU/
 
       - name: Deploy on EC2
         run: |
           if [ "${{ github.ref_name }}" = "main" ]; then
-            EC2_IP="${{ secrets.EC2_IP }}"
+            EC2_IP="${{ secrets.NEW_EC2_IP }}"
             BRANCH="main"
           else
-            EC2_IP="${{ secrets.DEV_EC2_IP }}"
+            EC2_IP="${{ secrets.NEW_DEV_EC2_IP }}"
             BRANCH="develop"
           fi
           
@@ -65,7 +65,7 @@ jobs:
 
           ssh ubuntu@$EC2_IP "
             export BRANCH='$BRANCH'
-            export DB_URL='${{ secrets.DB_URL }}'
+            export DB_URL='${{ secrets.NEW_DB_URL }}'
             export DB_USERNAME='${{ secrets.DB_USERNAME }}'
             export DB_PASSWORD='${{ secrets.DB_PASSWORD }}'
             export GOOGLE_CLIENT_ID='${{ secrets.GOOGLE_CLIENT_ID }}'
@@ -76,9 +76,9 @@ jobs:
             export JWT_SECRET='${{ secrets.JWT_SECRET }}'
             export JWT_ACCESS_EXPIRY='${{ secrets.JWT_ACCESS_EXPIRY }}'
             export JWT_REFRESH_EXPIRY='${{ secrets.JWT_REFRESH_EXPIRY }}'
-            export SWAGGER_SERVER_URL='${{ secrets.SWAGGER_SERVER_URL }}'
-            export CORS_ALLOWED_ORIGIN='${{ secrets.CORS_ALLOWED_ORIGIN }}'
-            export CORS_ALLOWED_ORIGIN_DEV='${{ secrets.CORS_ALLOWED_ORIGIN_DEV }}'
+            export SWAGGER_SERVER_URL='${{ secrets.NEW_SWAGGER_SERVER_URL }}'
+            export CORS_ALLOWED_ORIGIN='${{ secrets.NEW_CORS_ALLOWED_ORIGIN }}'
+            export CORS_ALLOWED_ORIGIN_DEV='${{ secrets.NEW_CORS_ALLOWED_ORIGIN_DEV }}'
             export APPLE_CLIENT_ID='${{ secrets.APPLE_CLIENT_ID }}'
             export APPLE_TEAM_ID='${{ secrets.APPLE_TEAM_ID }}'
             export APPLE_KEY_ID='${{ secrets.APPLE_KEY_ID }}'

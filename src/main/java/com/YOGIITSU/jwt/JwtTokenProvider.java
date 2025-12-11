@@ -191,6 +191,59 @@ public class JwtTokenProvider {
 		}
 	}
 
+	/**
+	 * 만료된 Access Token에서도 사용자 정보를 추출하고 Authentication 객체를 반환
+	 * 토큰 재발급 시 사용되며, 만료된 토큰에서도 Claims를 추출할 수 있습니다.
+	 *
+	 * @param accessToken 만료되었을 수 있는 JWT Access Token
+	 * @return Authentication 객체 (유저 정보와 권한 포함)
+	 * @throws InvalidTokenException 토큰이 유효하지 않거나 파싱할 수 없는 경우
+	 */
+	public Authentication getAuthenticationFromExpiredToken(String accessToken) {
+		Claims claims;
+		try {
+			// 먼저 정상적으로 파싱 시도
+			claims = Jwts.parser()
+				.setSigningKey(key)
+				.build()
+				.parseClaimsJws(accessToken)
+				.getBody();
+		} catch (ExpiredJwtException e) {
+			// 만료된 토큰의 경우 Claims는 e.getClaims()로 가져올 수 있음
+			claims = e.getClaims();
+		} catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException | 
+		         UnsupportedJwtException | IllegalArgumentException e) {
+			// 서명 오류, 형식 오류 등은 유효하지 않은 토큰으로 처리
+			log.warn("Invalid JWT Token for reissue", e);
+			throw new InvalidTokenException();
+		}
+
+		// 권한 정보가 없으면 기본값으로 "ROLE_USER"를 설정
+		String authoritiesClaim = claims.get(AUTHORITIES_KEY, String.class);
+		if (authoritiesClaim == null || authoritiesClaim.isEmpty()) {
+			authoritiesClaim = "ROLE_USER";  // 기본 권한 설정
+		}
+
+		// 권한 정보를 SimpleGrantedAuthority로 변환
+		Collection<? extends GrantedAuthority> authorities =
+			Arrays.stream(authoritiesClaim.split(","))
+				.map(SimpleGrantedAuthority::new)
+				.collect(Collectors.toList());
+
+		// CustomUserDetails로 직접 복구
+		CustomUserDetails userDetails = new CustomUserDetails(
+			Long.parseLong(claims.getSubject()),                 // id
+			claims.get("memberId", String.class),             // memberId
+			claims.get("username", String.class),             // username
+			claims.get("email", String.class),                // email
+			"",                                                  // password는 빈 값
+			claims.get("role", String.class),                 // role
+			authorities
+		);
+
+		return new UsernamePasswordAuthenticationToken(userDetails, "", authorities);
+	}
+
 	// 요청에서 JWT 토큰을 추출
 	public String resolveToken(HttpServletRequest request) {
 		String bearerToken = request.getHeader("Authorization");
@@ -210,5 +263,19 @@ public class JwtTokenProvider {
 		} catch (NumberFormatException e) {
 			throw new InvalidTokenException();
 		}
+	}
+
+	/**
+	 * JWT 토큰 파싱 및 검증 (필터에서 사용)
+	 * 서명 키 노출 없이 내부적으로 토큰을 파싱하고 검증
+	 *
+	 * @param token JWT 토큰 문자열
+	 * @throws io.jsonwebtoken.JwtException 토큰이 유효하지 않은 경우
+	 */
+	public void parseAndValidateToken(String token) {
+		Jwts.parser()
+			.setSigningKey(key)
+			.build()
+			.parseClaimsJws(token);
 	}
 }

@@ -4,8 +4,10 @@ import com.YOGIITSU.dto.ResponseDto.WeeklyCafeteriaResponseDto;
 import com.YOGIITSU.dto.ResponseDto.WeeklyCafeteriaResponseDto.CafeteriaMenuWithIndexDto;
 import com.YOGIITSU.entity.Cafeteria;
 import com.YOGIITSU.entity.CafeteriaMenu;
+import com.YOGIITSU.exception.ErrorCode;
 import com.YOGIITSU.exception.building.BuildingNotFoundException;
 import com.YOGIITSU.exception.cafeteria.CafeteriaNotFoundForBuildingException;
+import com.YOGIITSU.exception.resource.ResourceException;
 import com.YOGIITSU.exception.validation.InvalidArgumentException;
 import com.YOGIITSU.repository.CafeteriaMenuRepository;
 import com.YOGIITSU.repository.CafeteriaRepository;
@@ -193,6 +195,23 @@ public class CafeteriaQueryService {
 			.findByCafeteriaIdInAndMealDateBetweenOrderByMealDateAscMealTypeAscCornerAsc(
 				cafeteriaIds, monday, friday);
 
+		// placeholder/공백 제거
+		menus = menus.stream()
+			.filter(m -> {
+				String t = Optional.ofNullable(m.getItemsText()).orElse("").trim();
+				if (t.isEmpty()) {
+					return false;
+				}
+				return !Set.of("메뉴 준비 중", "준비중", "준비 중", "-").contains(t);
+			})
+			.toList();
+
+		// 조건 위반하면 바로 예외 -> 글로벌 핸들러가 통일 포맷으로 응답
+		if (menus.isEmpty()) {
+			String detail = "buildingId=" + buildingId + ",week=" + monday + "~" + friday;
+			throw new ResourceException(ErrorCode.RESOURCE_NOT_FOUND, detail);
+		}
+
 		// 메뉴 → 프론트용 한 끼 DTO(+dayIndex/date)로 변환
 		List<CafeteriaMenuWithIndexDto> menusOut = new ArrayList<>();
 		Set<Integer> availableIdxSet = new LinkedHashSet<>();
@@ -270,8 +289,6 @@ public class CafeteriaQueryService {
 			indexToDate.put(String.valueOf(i), monday.plusDays(i).format(ISO_DATE));
 		}
 
-		String lastUpdatedAt = serverTime;
-
 		return WeeklyCafeteriaResponseDto.builder()
 			.tz(tz)
 			.serverTime(serverTime)
@@ -280,7 +297,7 @@ public class CafeteriaQueryService {
 			.availableIndices(availableIndices)
 			.indexToDate(indexToDate)
 			.menus(menusOut)
-			.lastUpdatedAt(lastUpdatedAt)
+			.lastUpdatedAt(serverTime)
 			.build();
 	}
 }
