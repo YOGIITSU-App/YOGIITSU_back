@@ -7,6 +7,9 @@ import com.YOGIITSU.exception.validation.InvalidArgumentException;
 import com.YOGIITSU.service.AppVersionService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration;
@@ -39,17 +42,24 @@ class AppVersionControllerTest {
 	@MockBean
 	private AppVersionService appVersionService;
 
-	@DisplayName("앱버전조회_성공_FORCE업데이트")
-	@Test
-	void getAppVersion_success_forceUpdate() throws Exception {
+	@DisplayName("앱버전조회_성공_업데이트타입별케이스")
+	@ParameterizedTest(name = "updateType={0}")
+	@CsvSource({
+		"FORCE, 1.0.0, 1.2.0, 2.0.0",
+		"SELECT, 1.5.0, 1.2.0, 2.0.0",
+		"NONE, 2.0.0, 1.2.0, 2.0.0"
+	})
+	void getAppVersion_success_updateType(
+		String updateType, String currentVersion,
+		String minVersion, String latestVersion
+	) throws Exception {
 		// given
 		Platform platform = Platform.ANDROID;
-		String currentVersion = "1.0.0";
 		AppVersionResponseDto responseDto = AppVersionResponseDto.builder()
-			.updateType("FORCE")
+			.updateType(updateType)
 			.currentVersion(currentVersion)
-			.minVersion("1.2.0")
-			.latestVersion("2.0.0")
+			.minVersion(minVersion)
+			.latestVersion(latestVersion)
 			.build();
 
 		when(appVersionService.getAppVersion(platform, currentVersion)).thenReturn(responseDto);
@@ -60,19 +70,20 @@ class AppVersionControllerTest {
 				.param("currentVersion", currentVersion)
 				.contentType(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.updateType").value("FORCE"))
+			.andExpect(jsonPath("$.updateType").value(updateType))
 			.andExpect(jsonPath("$.currentVersion").value(currentVersion))
-			.andExpect(jsonPath("$.minVersion").value("1.2.0"))
-			.andExpect(jsonPath("$.latestVersion").value("2.0.0"));
+			.andExpect(jsonPath("$.minVersion").value(minVersion))
+			.andExpect(jsonPath("$.latestVersion").value(latestVersion));
 
 		verify(appVersionService).getAppVersion(platform, currentVersion);
 	}
 
-	@DisplayName("앱버전조회_성공_SELECT업데이트")
-	@Test
-	void getAppVersion_success_selectUpdate() throws Exception {
+	@DisplayName("앱버전조회_성공_플랫폼별케이스")
+	@ParameterizedTest(name = "platform={0}")
+	@ValueSource(strings = {"ANDROID", "IOS"})
+	void getAppVersion_success_platform(String platformName) throws Exception {
 		// given
-		Platform platform = Platform.ANDROID;
+		Platform platform = Platform.valueOf(platformName);
 		String currentVersion = "1.5.0";
 		AppVersionResponseDto responseDto = AppVersionResponseDto.builder()
 			.updateType("SELECT")
@@ -85,39 +96,11 @@ class AppVersionControllerTest {
 
 		// when & then
 		mockMvc.perform(get("/app/version")
-				.param("platform", platform.name())
+				.param("platform", platformName)
 				.param("currentVersion", currentVersion)
 				.contentType(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.updateType").value("SELECT"))
-			.andExpect(jsonPath("$.currentVersion").value(currentVersion));
-
-		verify(appVersionService).getAppVersion(platform, currentVersion);
-	}
-
-	@DisplayName("앱버전조회_성공_NONE업데이트")
-	@Test
-	void getAppVersion_success_noneUpdate() throws Exception {
-		// given
-		Platform platform = Platform.IOS;
-		String currentVersion = "2.0.0";
-		AppVersionResponseDto responseDto = AppVersionResponseDto.builder()
-			.updateType("NONE")
-			.currentVersion(currentVersion)
-			.minVersion("1.2.0")
-			.latestVersion("2.0.0")
-			.build();
-
-		when(appVersionService.getAppVersion(platform, currentVersion)).thenReturn(responseDto);
-
-		// when & then
-		mockMvc.perform(get("/app/version")
-				.param("platform", platform.name())
-				.param("currentVersion", currentVersion)
-				.contentType(MediaType.APPLICATION_JSON))
-			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.updateType").value("NONE"))
-			.andExpect(jsonPath("$.currentVersion").value(currentVersion));
+			.andExpect(jsonPath("$.updateType").value("SELECT"));
 
 		verify(appVersionService).getAppVersion(platform, currentVersion);
 	}
@@ -191,30 +174,7 @@ class AppVersionControllerTest {
 
 		verify(appVersionService, never()).getAppVersion(any(), any());
 	}
-
-	@DisplayName("앱버전조회_성공_IOS플랫폼")
-	@Test
-	void getAppVersion_success_iosPlatform() throws Exception {
-		// given
-		Platform platform = Platform.IOS;
-		String currentVersion = "1.5.0";
-		AppVersionResponseDto responseDto = AppVersionResponseDto.builder()
-			.updateType("SELECT")
-			.currentVersion(currentVersion)
-			.minVersion("1.2.0")
-			.latestVersion("2.0.0")
-			.build();
-
-		when(appVersionService.getAppVersion(platform, currentVersion)).thenReturn(responseDto);
-
-		// when & then
-		mockMvc.perform(get("/app/version")
-				.param("platform", platform.name())
-				.param("currentVersion", currentVersion)
-				.contentType(MediaType.APPLICATION_JSON))
-			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.updateType").value("SELECT"));
-
-		verify(appVersionService).getAppVersion(platform, currentVersion);
-	}
 }
+
+
+
