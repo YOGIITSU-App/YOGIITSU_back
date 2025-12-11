@@ -55,3 +55,4 @@ public class SearchSuggestionController {
 		return ResponseEntity.ok(searchSuggestionService.getSearchSuggestions(query, memberId));
 	}
 }
+
