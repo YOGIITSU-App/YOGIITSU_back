@@ -301,7 +301,7 @@ class InquiryControllerTest {
                         "inquiryTitle":"새 제목","inquiryContent":"새 내용"
                     }
                     """))
-            .andExpect(status().isConflict());
+            .andExpect(status().isBadRequest());
     }
 
     @DisplayName("문의수정_실패_변경사항없음")
