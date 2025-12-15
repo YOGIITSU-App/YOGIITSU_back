@@ -17,7 +17,6 @@ import com.YOGIITSU.service.InquiryService;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration;
@@ -32,13 +31,11 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import static org.mockito.Mockito.*;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -73,7 +70,7 @@ class InquiryControllerTest {
         when(jwtTokenProvider.resolveToken(any())).thenReturn(token);
         when(jwtTokenProvider.validateToken(token)).thenReturn(true);
 
-        Authentication auth = Mockito.mock(Authentication.class);
+        Authentication auth = mock(Authentication.class);
         when(auth.getName()).thenReturn(String.valueOf(memberId));
         when(jwtTokenProvider.getAuthentication(token)).thenReturn(auth);
 
@@ -122,6 +119,51 @@ class InquiryControllerTest {
                     }
                     """))
             .andExpect(status().isUnauthorized());
+    }
+
+    @DisplayName("문의등록_실패_유효하지않은토큰")
+    @Test
+    void createInquiry_fail_invalidToken() throws Exception {
+        String invalidToken = "invalid-token";
+        when(jwtTokenProvider.resolveToken(any())).thenReturn(invalidToken);
+        when(jwtTokenProvider.validateToken(invalidToken)).thenReturn(false);
+
+        mockMvc.perform(post("/inquiries")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                        "inquiryTitle": "테스트 제목",
+                        "inquiryContent": "테스트 내용"
+                    }
+                    """))
+            .andExpect(status().isUnauthorized());
+    }
+
+    @DisplayName("문의등록_실패_회원정보없음")
+    @Test
+    void createInquiry_fail_memberNotFound() throws Exception {
+        String token = "valid-token";
+        String memberIdStr = "999";
+
+        when(jwtTokenProvider.resolveToken(any())).thenReturn(token);
+        when(jwtTokenProvider.validateToken(token)).thenReturn(true);
+
+        Authentication auth = mock(Authentication.class);
+        when(auth.getName()).thenReturn(memberIdStr);
+        when(jwtTokenProvider.getAuthentication(token)).thenReturn(auth);
+
+        // DB에서 찾을 수 없음 -> Optional.empty()
+        when(memberRepository.findByMemberId(memberIdStr)).thenReturn(Optional.empty());
+
+        mockMvc.perform(post("/inquiries")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                        "inquiryTitle": "테스트 제목",
+                        "inquiryContent": "테스트 내용"
+                    }
+                    """))
+            .andExpect(status().isNotFound());
     }
 
     @DisplayName("문의등록_실패_유효성오류")
@@ -180,6 +222,24 @@ class InquiryControllerTest {
             .andExpect(jsonPath("$", hasSize(1)))
             .andExpect(jsonPath("$[0].inquiryTitle").value("문의1"))
             .andExpect(jsonPath("$[0].isMine").value(false));
+    }
+
+    @DisplayName("문의리스트조회_성공_유효하지않은토큰_비회원처리")
+    @Test
+    void getAllInquiries_success_invalidToken_treatedAsGuest() throws Exception {
+        String invalidToken = "invalid-token";
+
+        when(jwtTokenProvider.resolveToken(any())).thenReturn(invalidToken);
+        when(jwtTokenProvider.validateToken(invalidToken)).thenReturn(false);
+
+        Inquiry inquiry = inquiry(1L, "문의1", "내용1", "김진짜", InquiryState.PROCESSING);
+        when(inquiryService.getAllInquiries(null)) // null(비회원)로 호출되는지 검증
+            .thenReturn(List.of(new InquiryListResponseDto(inquiry, false)));
+        
+        mockMvc.perform(get("/inquiries")
+                .header("Authorization", "Bearer " + invalidToken))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", hasSize(1)));
     }
 
     /* ================= READ-DETAIL: 문의 상세 조회 ================= */
