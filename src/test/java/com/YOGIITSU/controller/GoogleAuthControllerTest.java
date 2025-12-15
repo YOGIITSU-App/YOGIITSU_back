@@ -31,8 +31,8 @@ class GoogleAuthControllerTest {
 	@Test
 	void googleLogin_success() {
 		// given
-		GoogleLoginRequestDto requestDto = new GoogleLoginRequestDto();
-		setIdToken(requestDto, "valid-google-id-token");
+		GoogleLoginRequestDto requestDto =
+			new GoogleLoginRequestDto("valid-google-id-token");
 
 		UserResponseDto user = UserResponseDto.builder()
 			.id(1L)
@@ -64,15 +64,5 @@ class GoogleAuthControllerTest {
 		assertEquals("ROLE_USER", response.getBody().get("role"));
 
 		verify(googleAuthService).verifyGoogleIdTokenAndLogin("valid-google-id-token");
-	}
-
-	private void setIdToken(GoogleLoginRequestDto dto, String value) {
-		try {
-			var field = GoogleLoginRequestDto.class.getDeclaredField("idToken");
-			field.setAccessible(true);
-			field.set(dto, value);
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
 	}
 }
