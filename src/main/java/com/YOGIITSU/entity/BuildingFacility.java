@@ -1,5 +1,6 @@
 package com.YOGIITSU.entity;
 
+import com.YOGIITSU.enums.FacilityDetailType;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -28,4 +29,8 @@ public class BuildingFacility {
 	private String name;
 
 	private String floor;
+
+	@Enumerated(EnumType.STRING)
+	@Column(name = "type", nullable = false)
+	private FacilityDetailType type;
 }

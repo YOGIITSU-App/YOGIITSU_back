@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.3.1'
 	id 'io.spring.dependency-management' version '1.1.5'
+	id 'jacoco'
 }
 
 group = 'com.YOGIITSU'
@@ -40,6 +41,9 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.2'
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
+	implementation 'org.jsoup:jsoup:1.17.2'
+	implementation "net.javacrumbs.shedlock:shedlock-spring:5.10.0"
+	implementation "net.javacrumbs.shedlock:shedlock-provider-jdbc-template:5.10.0"
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
 	//JWT 토큰 라이브러리
@@ -48,6 +52,8 @@ dependencies {
 	implementation 'io.jsonwebtoken:jjwt-jackson:0.12.3'
 	implementation "io.github.resilience4j:resilience4j-spring-boot3:2.2.0"
 	implementation "io.github.resilience4j:resilience4j-reactor:2.2.0"
+
+	implementation 'com.nimbusds:nimbus-jose-jwt:10.0.2'
 
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
@@ -64,4 +70,35 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+	finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+	dependsOn test
+	reports {
+		xml.required = true
+		xml.outputLocation = layout.buildDirectory.file('reports/jacoco/test/jacocoTestReport.xml')
+		csv.required = false
+		html.required = true
+		html.outputLocation = layout.buildDirectory.dir('reports/jacoco')
+	}
+
+	classDirectories.setFrom(files(classDirectories.files.collect {
+		fileTree(dir: it, exclude: [
+			'**/entity/**',
+			'**/dto/**',
+			'**/exception/**',
+			'**/enums/**',
+			'**/jwt/**',
+			'**/util/**',
+			'**/converter/**',
+			'**/scheduler/**',
+			'**/config/**',
+			'**/YogiitsuApplication.class'
+		])
+	}))
+}
+
+jacoco {
+	toolVersion = "0.8.13"
 }

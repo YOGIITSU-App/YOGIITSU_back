@@ -1,7 +1,7 @@
 package com.YOGIITSU.controller;
 
-import com.YOGIITSU.config.handler.GlobalExceptionHandler.InvalidTokenException;
-import com.YOGIITSU.config.handler.GlobalExceptionHandler.MissingTokenException;
+import com.YOGIITSU.exception.auth.InvalidTokenException;
+import com.YOGIITSU.exception.auth.MissingTokenException;
 import com.YOGIITSU.dto.ResponseDto.TokenResponseDto;
 import com.YOGIITSU.jwt.JwtTokenProvider;
 import org.junit.jupiter.api.DisplayName;
@@ -31,14 +31,14 @@ class AuthControllerTest {
 	private Authentication authentication;
 
 	@Test
-	@DisplayName("재발급_성공")
-	void reissue_success() {
+	@DisplayName("재발급_성공_유효한_액세스토큰")
+	void reissue_success_with_valid_access_token() {
 		// given
 		String accessTokenHeader = "Bearer oldAccess";
 		String refreshToken = "validRefresh";
 
 		when(jwtTokenProvider.validateToken(refreshToken)).thenReturn(true);
-		when(jwtTokenProvider.getAuthentication("oldAccess")).thenReturn(authentication);
+		when(jwtTokenProvider.getAuthenticationFromExpiredToken("oldAccess")).thenReturn(authentication);
 		when(jwtTokenProvider.generateToken(authentication)).thenReturn(
 			TokenResponseDto.builder()
 				.accessToken("newAccess")
@@ -46,6 +46,7 @@ class AuthControllerTest {
 				.build()
 		);
 
+		// when
 		ResponseEntity<Map<String, String>> response = authController.reissue(accessTokenHeader,
 			refreshToken);
 
@@ -53,6 +54,34 @@ class AuthControllerTest {
 		assertEquals("토큰이 재발급되었습니다.", response.getBody().get("message"));
 		assertEquals("Bearer newAccess", response.getHeaders().getFirst("Authorization"));
 		assertEquals("newRefresh", response.getHeaders().getFirst("X-Refresh-Token"));
+		verify(jwtTokenProvider).getAuthenticationFromExpiredToken("oldAccess");
+	}
+
+	@Test
+	@DisplayName("재발급_성공_만료된_액세스토큰")
+	void reissue_success_with_expired_access_token() {
+		// given
+		String accessTokenHeader = "Bearer expiredAccess";
+		String refreshToken = "validRefresh";
+
+		when(jwtTokenProvider.validateToken(refreshToken)).thenReturn(true);
+		when(jwtTokenProvider.getAuthenticationFromExpiredToken("expiredAccess")).thenReturn(authentication);
+		when(jwtTokenProvider.generateToken(authentication)).thenReturn(
+			TokenResponseDto.builder()
+				.accessToken("newAccess")
+				.refreshToken("newRefresh")
+				.build()
+		);
+
+		// when
+		ResponseEntity<Map<String, String>> response = authController.reissue(accessTokenHeader,
+			refreshToken);
+
+		// then
+		assertEquals("토큰이 재발급되었습니다.", response.getBody().get("message"));
+		assertEquals("Bearer newAccess", response.getHeaders().getFirst("Authorization"));
+		assertEquals("newRefresh", response.getHeaders().getFirst("X-Refresh-Token"));
+		verify(jwtTokenProvider).getAuthenticationFromExpiredToken("expiredAccess");
 	}
 
 

@@ -1,7 +1,7 @@
 package com.YOGIITSU.controller;
 
-import com.YOGIITSU.config.handler.GlobalExceptionHandler.InvalidTokenException;
-import com.YOGIITSU.config.handler.GlobalExceptionHandler.MissingTokenException;
+import com.YOGIITSU.exception.auth.InvalidTokenException;
+import com.YOGIITSU.exception.auth.MissingTokenException;
 import com.YOGIITSU.dto.RequestDto.SearchKeywordRequestDto;
 import com.YOGIITSU.dto.ResponseDto.RecentSearchResponseDto;
 import com.YOGIITSU.service.RecentSearchService;

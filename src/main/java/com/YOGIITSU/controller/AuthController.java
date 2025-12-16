@@ -1,7 +1,7 @@
 package com.YOGIITSU.controller;
 
-import com.YOGIITSU.config.handler.GlobalExceptionHandler.InvalidTokenException;
-import com.YOGIITSU.config.handler.GlobalExceptionHandler.MissingTokenException;
+import com.YOGIITSU.exception.auth.InvalidTokenException;
+import com.YOGIITSU.exception.auth.MissingTokenException;
 import com.YOGIITSU.dto.ResponseDto.TokenResponseDto;
 import com.YOGIITSU.jwt.JwtTokenProvider;
 import io.swagger.v3.oas.annotations.Operation;
@@ -68,7 +68,8 @@ public class AuthController {
 			throw new InvalidTokenException();
 		}
 
-		Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
+		// 만료된 AccessToken에서도 사용자 정보 추출 가능
+		Authentication authentication = jwtTokenProvider.getAuthenticationFromExpiredToken(accessToken);
 		TokenResponseDto newTokens = jwtTokenProvider.generateToken(authentication);
 
 		HttpHeaders headers = new HttpHeaders();

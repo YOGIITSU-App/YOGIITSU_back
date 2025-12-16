@@ -3,6 +3,7 @@ package com.YOGIITSU.service;
 import com.YOGIITSU.entity.Member;
 import com.YOGIITSU.jwt.CustomUserDetails;
 import com.YOGIITSU.jwt.JwtTokenProvider;
+import com.YOGIITSU.exception.validation.InvalidArgumentException;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload;
@@ -28,7 +29,7 @@ public class GoogleAuthService {
 			// 1. 구글 ID 토큰 검증
 			GoogleIdToken idToken = googleIdTokenVerifier.verify(idTokenString);
 			if (idToken == null) {
-				throw new IllegalArgumentException("ID Token is invalid.");
+				throw new InvalidArgumentException("ID Token is invalid.");
 			}
 			Payload payload = idToken.getPayload();
 

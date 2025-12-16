@@ -1,11 +1,14 @@
 package com.YOGIITSU.controller;
 
+import com.YOGIITSU.dto.ResponseDto.ShuttleScheduleDetailResponseDto;
 import com.YOGIITSU.dto.ResponseDto.ShuttleScheduleResponseDto;
 import com.YOGIITSU.service.ShuttleService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -23,6 +26,18 @@ public class ShuttleController {
 	)
 	@GetMapping("/schedule")
 	public ShuttleScheduleResponseDto getShuttleSchedule() {
-		return shuttleService.getShuttleSchedule();
+		return shuttleService.getOriginalShuttleSchedule();
+	}
+
+	@Operation(
+		summary = "특정 정류장의 셔틀 도착 상세 정보 조회",
+		description = "정류장 고유 ID를 기준으로, 해당 정류장의 다음 셔틀 정보와 전체 시간표/노선을 함께 반환합니다."
+	)
+	@GetMapping("/schedule/{stopId}")
+	public ShuttleScheduleDetailResponseDto getShuttleScheduleForStop(
+		@Parameter(description = "조회할 정류장 고유 ID", required = true, example = "STOP_04")
+		@PathVariable String stopId
+	) {
+		return shuttleService.getScheduleForStop(stopId);
 	}
 }

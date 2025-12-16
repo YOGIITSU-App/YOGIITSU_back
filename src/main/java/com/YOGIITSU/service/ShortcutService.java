@@ -7,6 +7,7 @@ import com.YOGIITSU.entity.Shortcut;
 import com.YOGIITSU.entity.ShortcutCoordinate;
 import com.YOGIITSU.repository.ShortcutCoordinateRepository;
 import com.YOGIITSU.repository.ShortcutRepository;
+import com.YOGIITSU.exception.resource.ShortcutNotFoundException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -40,7 +41,7 @@ public class ShortcutService {
 
         // 1. Shortcut 엔티티 조회
         Shortcut shortcut = shortcutRepository.findById(shortcutId)
-            .orElseThrow(() -> new IllegalArgumentException("해당 지름길이 존재하지 않습니다."));
+            .orElseThrow(() -> new ShortcutNotFoundException(shortcutId));
 
         // 2. ShortcutCoordinate 리스트 조회 (pointOrder순 정렬)
         List<ShortcutCoordinate> coordinates = shortcutCoordinateRepository

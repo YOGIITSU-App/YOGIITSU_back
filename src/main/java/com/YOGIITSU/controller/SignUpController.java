@@ -5,11 +5,9 @@ import com.YOGIITSU.service.SignUpService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.HashMap;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.Map;
 
 /**
@@ -21,21 +19,18 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class SignUpController {
 
-    private final SignUpService signUpService;
+	private final SignUpService signUpService;
 
-    @Operation(
-        summary = "회원가입",
-        description = "이메일 인증을 마친 사용자의 회원가입 정보를 등록합니다."
-    )
-    @PostMapping("/signup")
-    public ResponseEntity<Map<String, String>> signUp(
-        @RequestBody @Valid MemberSignUpRequestDto memberSignUpRequestDto) {
+	@Operation(
+		summary = "회원가입",
+		description = "이메일 인증을 마친 사용자의 회원가입 정보를 등록합니다."
+	)
+	@PostMapping("/signup")
+	public ResponseEntity<Map<String, String>> signUp(
+		@RequestBody @Valid MemberSignUpRequestDto memberSignUpRequestDto) {
 
-        signUpService.register(memberSignUpRequestDto);
+		signUpService.register(memberSignUpRequestDto);
 
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "회원가입이 성공적으로 완료되었습니다.");
-        return ResponseEntity.ok(response);
-    }
-
+		return ResponseEntity.ok(Map.of("message", "회원가입이 성공적으로 완료되었습니다."));
+	}
 }

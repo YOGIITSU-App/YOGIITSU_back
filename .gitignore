@@ -37,3 +37,8 @@ out/
 
 ### macOS ###
 .DS_Store
+
+
+### Application YML (local/dev config) ###
+src/main/resources/application-*.yml
+application-*.yml

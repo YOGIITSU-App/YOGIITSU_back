@@ -6,10 +6,12 @@ services:
     container_name: yogiitsu-dev
     ports:
       - "8081:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
     env_file:
       - ./.env
     volumes:
-      - /var/log/yogiitsu/dev:/app/logs
+      - /var/log/yogiitsu/dev:/var/log/yogiitsu/dev
     restart: always
 
   yogiitsu-prod:
@@ -19,8 +21,10 @@ services:
     container_name: yogiitsu-prod
     ports:
       - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
     env_file:
       - ./.env
     volumes:
-      - /var/log/yogiitsu/prod:/app/logs
+      - /var/log/yogiitsu/prod:/var/log/yogiitsu/prod
     restart: always

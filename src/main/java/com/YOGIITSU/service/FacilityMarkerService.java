@@ -3,6 +3,7 @@ package com.YOGIITSU.service;
 import com.YOGIITSU.dto.ResponseDto.FacilityMarkerResponseDto;
 import com.YOGIITSU.enums.FacilityType;
 import com.YOGIITSU.repository.FacilityMarkerRepository;
+import com.YOGIITSU.exception.validation.InvalidArgumentException;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +27,7 @@ public class FacilityMarkerService {
 	 */
 	public List<FacilityMarkerResponseDto> getMarkersByType(FacilityType type) {
 		if (type == null) {
-			throw new IllegalArgumentException("시설 유형은 필수값입니다.");
+			throw new InvalidArgumentException("시설 유형은 필수값입니다.");
 		}
 		return facilityMarkerRepository.findByType(type).stream()
 			.map(f -> new FacilityMarkerResponseDto(
