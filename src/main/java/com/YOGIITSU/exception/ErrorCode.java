@@ -69,7 +69,9 @@ public enum ErrorCode {
 	// 시스템 관련 (9000번대)
 	INTERNAL_SERVER_ERROR("SYSTEM_001", "서버 내부 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
 	DATABASE_ERROR("SYSTEM_002", "데이터베이스 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
-	EXTERNAL_SERVICE_ERROR("SYSTEM_003", "외부 서비스 오류가 발생했습니다.", HttpStatus.SERVICE_UNAVAILABLE);
+	EXTERNAL_SERVICE_ERROR("SYSTEM_003", "외부 서비스 오류가 발생했습니다.", HttpStatus.SERVICE_UNAVAILABLE),
+	CHATBOT_TEMPORARY_ERROR("SYSTEM_004", "일시적으로 답변을 제공할 수 없습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+	CHATBOT_INVALID_STATE("SYSTEM_005", "챗봇 처리 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
 
 	private final String code;
 	private final String message;

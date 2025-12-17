@@ -3,6 +3,7 @@ package com.YOGIITSU.service;
 import com.YOGIITSU.dto.RequestDto.ChatOptionItemRequestDto;
 import com.YOGIITSU.dto.ResponseDto.ChatNodeResponseDto;
 import com.YOGIITSU.enums.ResponseType;
+import com.YOGIITSU.exception.chatbot.ChatbotTemporaryException;
 import com.YOGIITSU.repository.ChatOptionRepository;
 import com.YOGIITSU.repository.DepartmentRepository;
 import com.YOGIITSU.repository.CollegeRepository;
@@ -17,7 +18,8 @@ import java.util.HashMap;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import com.YOGIITSU.config.handler.GlobalExceptionHandler.UnauthenticatedAccessException;
+import com.YOGIITSU.exception.auth.UnauthorizedException;
+import com.YOGIITSU.exception.chatbot.ChatbotInvalidStateException;
 
 @Slf4j
 @Service
@@ -43,11 +45,11 @@ public class ChatbotServiceImpl implements ChatbotService {
 		if (auth == null || !auth.isAuthenticated()
 			|| auth.getPrincipal() == null
 			|| "anonymousUser".equals(String.valueOf(auth.getPrincipal()))) {
-			throw new UnauthenticatedAccessException();
+			throw new UnauthorizedException();
 		}
 
 		var node = optionRepo.findByIdAndIsActiveTrue(nodeId)
-			.orElseThrow(() -> new IllegalArgumentException("Invalid node id: " + nodeId));
+			.orElseThrow(() -> new ChatbotInvalidStateException("Invalid node id: " + nodeId));
 
 		var key = node.getResponseKey();
 		log.debug("[ChatbotService] nodeId={}, key={}, collegeId={}, deptId={}",
@@ -110,10 +112,8 @@ public class ChatbotServiceImpl implements ChatbotService {
 
 		// 3.5) DYNAMIC인데 키 없음
 		if (type == ResponseType.DYNAMIC && (key == null || key.isBlank())) {
-			return ChatNodeResponseDto.finalText(
-				"일시적으로 답변을 제공할 수 없어요. 잠시 후 다시 시도해 주세요.",
-				false,
-				key
+			throw new ChatbotInvalidStateException(
+				"DYNAMIC node without responseKey, nodeId=" + nodeId
 			);
 		}
 
@@ -135,6 +135,11 @@ public class ChatbotServiceImpl implements ChatbotService {
 
 		log.info("[GPT API] ChatGPT 호출 시작 - key: {}, raw length: {}", key, raw.length());
 		var gptResult = gpt.polish(raw, null);
+		if (gptResult == null || !gptResult.success()) {
+			throw new ChatbotTemporaryException(
+				"GPT polish failed, key=" + key
+			);
+		}
 		log.info("[GPT API] ChatGPT 호출 완료 - success: {}, outLen: {}", gptResult.success(),
 			gptResult.text().length());
 
