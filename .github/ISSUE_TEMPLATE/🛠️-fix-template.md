@@ -1,5 +1,5 @@
 ---
-name: Fix Template
+name: "\U0001F6E0️ Fix Template"
 about: Fix Template
 title: 'fix: '
 labels: "\U0001F6E0 fix"
