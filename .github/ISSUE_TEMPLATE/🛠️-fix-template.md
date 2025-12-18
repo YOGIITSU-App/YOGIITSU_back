@@ -16,3 +16,4 @@ assignees: ''
 ### 📝 check-lists
 [//]: # (업무 체크리스트를 작성해주세요.)
 - [ ] Task1
+- [ ] Task2
