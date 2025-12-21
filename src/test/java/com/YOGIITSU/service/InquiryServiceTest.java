@@ -84,9 +84,9 @@ public class InquiryServiceTest {
         verify(inquiryRepository).findAllByOrderByInquiryAtDesc();
     }
 
-    @DisplayName("문의리스트조회_성공_회원")
+    @DisplayName("문의리스트조회_성공_회원_내글")
     @Test
-    void getAllInquiries_success_member() {
+    void getAllInquiries_success_member_mine() {
         Long memberId = 1L;
         Member member = createDummyMember(memberId);
         Inquiry inquiry = createDummyInquiry(member);
@@ -97,6 +97,21 @@ public class InquiryServiceTest {
 
         assertEquals(1, result.size());
         assertTrue(result.getFirst().isMine());
+    }
+
+    @DisplayName("문의리스트조회_성공_회원_남의글")
+    @Test
+    void getAllInquiries_success_member_notMine() {
+        Long myMemberId = 2L; // 로그인한 사용자
+        Member author = createDummyMember(1L); // 글 작성자 (다른 사람)
+        Inquiry inquiry = createDummyInquiry(author);
+
+        when(inquiryRepository.findAllByOrderByInquiryAtDesc()).thenReturn(List.of(inquiry));
+
+        List<InquiryListResponseDto> result = inquiryService.getAllInquiries(myMemberId);
+
+        assertEquals(1, result.size());
+        assertFalse(result.getFirst().isMine()); // 내 글이 아니므로 false여야 함
     }
 
     /* ================= READ-DETAIL: 문의 상세 조회 ================= */
