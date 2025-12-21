@@ -152,6 +152,54 @@ public class AdminInquiryServiceTest {
             adminInquiryService.updateAnswer(inquiryId, dto));
     }
 
+    @DisplayName("답변수정_실패_둘다null")
+    @Test
+    void updateAnswer_fail_bothNull() {
+        Long inquiryId = 1L;
+        Inquiry completedInquiry = createCompletedInquiry(inquiryId);
+
+        AdminAnswerUpdateRequestDto dto = new AdminAnswerUpdateRequestDto();
+        ReflectionTestUtils.setField(dto, "answerTitle", null);
+        ReflectionTestUtils.setField(dto, "answerContent", null);
+
+        when(inquiryRepository.findById(inquiryId)).thenReturn(Optional.of(completedInquiry));
+
+        assertThrows(MissingRequiredFieldException.class, () ->
+            adminInquiryService.updateAnswer(inquiryId, dto));
+    }
+
+    @DisplayName("답변수정_실패_둘다Blank")
+    @Test
+    void updateAnswer_fail_bothBlank() {
+        Long inquiryId = 1L;
+        Inquiry completedInquiry = createCompletedInquiry(inquiryId);
+
+        AdminAnswerUpdateRequestDto dto = new AdminAnswerUpdateRequestDto();
+        ReflectionTestUtils.setField(dto, "answerTitle", "   "); // 공백
+        ReflectionTestUtils.setField(dto, "answerContent", "");  // 빈 문자열
+
+        when(inquiryRepository.findById(inquiryId)).thenReturn(Optional.of(completedInquiry));
+
+        assertThrows(MissingRequiredFieldException.class, () ->
+            adminInquiryService.updateAnswer(inquiryId, dto));
+    }
+
+    @DisplayName("답변수정_실패_변경사항없음_혼합")
+    @Test
+    void updateAnswer_fail_noChanges_mixed() {
+        Long inquiryId = 1L;
+        Inquiry completedInquiry = createCompletedInquiry(inquiryId);
+
+        AdminAnswerUpdateRequestDto dto = new AdminAnswerUpdateRequestDto();
+        ReflectionTestUtils.setField(dto, "answerTitle", null);
+        ReflectionTestUtils.setField(dto, "answerContent", "   ");
+
+        when(inquiryRepository.findById(inquiryId)).thenReturn(Optional.of(completedInquiry));
+
+        assertThrows(MissingRequiredFieldException.class, () ->
+            adminInquiryService.updateAnswer(inquiryId, dto));
+    }
+
     @DisplayName("답변수정_실패_변경사항없음")
     @Test
     void updateAnswer_fail_noChanges() {
