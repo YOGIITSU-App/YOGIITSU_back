@@ -29,54 +29,54 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AdminInquiryController {
 
-    private final AdminInquiryService adminInquiryService;
+	private final AdminInquiryService adminInquiryService;
 
-    /**
-     * 관리자 답변 등록 API
-     * - 문의 상태가 'PROCESSING'인 경우에만 등록 가능
-     * - 제목 및 내용이 비어있으면 예외 발생
-     */
-    @Operation(summary = "관리자 답변 등록")
-    @PostMapping("/{inquiryId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<InquiryResponseDto> createAnswer(
-        @PathVariable Long inquiryId,
-        @RequestBody @Valid AdminAnswerCreateRequestDto requestDto,
-        @AuthenticationPrincipal CustomUserDetails userDetails
-    ) {
-        InquiryResponseDto responseDto = adminInquiryService.createAnswer(inquiryId, requestDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
-    }
+	/**
+	 * 관리자 답변 등록 API
+	 * - 문의 상태가 'PROCESSING'인 경우에만 등록 가능
+	 * - 제목 및 내용이 비어있으면 예외 발생
+	 */
+	@Operation(summary = "관리자 답변 등록")
+	@PostMapping("/{inquiryId}")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<InquiryResponseDto> createAnswer(
+		@PathVariable Long inquiryId,
+		@RequestBody @Valid AdminAnswerCreateRequestDto requestDto,
+		@AuthenticationPrincipal CustomUserDetails userDetails
+	) {
+		InquiryResponseDto responseDto = adminInquiryService.createAnswer(inquiryId, requestDto);
+		return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
+	}
 
-    /**
-     * 문의 답변 수정 API
-     * - 상태가 'COMPLETED'인 문의에만 수정 가능
-     */
-    @Operation(summary = "관리자 답변 수정")
-    @PutMapping("/{inquiryId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<InquiryResponseDto> updateAnswer(
-        @PathVariable Long inquiryId,
-        @RequestBody @Valid AdminAnswerUpdateRequestDto requestDto,
-        @AuthenticationPrincipal CustomUserDetails userDetails
-    ) {
-        InquiryResponseDto responseDto = adminInquiryService.updateAnswer(inquiryId, requestDto);
-        return ResponseEntity.ok(responseDto);
-    }
+	/**
+	 * 문의 답변 수정 API
+	 * - 상태가 'COMPLETED'인 문의에만 수정 가능
+	 */
+	@Operation(summary = "관리자 답변 수정")
+	@PutMapping("/{inquiryId}")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<InquiryResponseDto> updateAnswer(
+		@PathVariable Long inquiryId,
+		@RequestBody @Valid AdminAnswerUpdateRequestDto requestDto,
+		@AuthenticationPrincipal CustomUserDetails userDetails
+	) {
+		InquiryResponseDto responseDto = adminInquiryService.updateAnswer(inquiryId, requestDto);
+		return ResponseEntity.ok(responseDto);
+	}
 
-    /**
-     * 문의글 삭제 API
-     * - 관리자 권한으로 사용자 문의글과 답변 모두 삭제
-     * - 상태와 관계없이 강제 삭제 가능
-     */
-    @Operation(summary = "관리자 문의 삭제")
-    @DeleteMapping("/{inquiryId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deleteInquiryByAdmin(
-        @PathVariable Long inquiryId,
-        @AuthenticationPrincipal CustomUserDetails userDetails
-    ) {
-        adminInquiryService.deleteInquiryByAdmin(inquiryId);
-        return ResponseEntity.noContent().build();
-    }
+	/**
+	 * 문의글 삭제 API
+	 * - 관리자 권한으로 사용자 문의글과 답변 모두 삭제
+	 * - 상태와 관계없이 강제 삭제 가능
+	 */
+	@Operation(summary = "관리자 문의 삭제")
+	@DeleteMapping("/{inquiryId}")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<Void> deleteInquiryByAdmin(
+		@PathVariable Long inquiryId,
+		@AuthenticationPrincipal CustomUserDetails userDetails
+	) {
+		adminInquiryService.deleteInquiryByAdmin(inquiryId);
+		return ResponseEntity.noContent().build();
+	}
 }
