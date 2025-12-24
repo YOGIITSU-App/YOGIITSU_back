@@ -84,7 +84,7 @@ public class AdminInquiryServiceTest {
     }
 
     /* ================= UPDATE: 문의 답변 수정 ================= */
-    @DisplayName("답변수정_성공_제목민")
+    @DisplayName("답변수정_성공_제목만")
     @Test
     void updateAnswer_success_titleOnly() {
         Long inquiryId = 1L;
