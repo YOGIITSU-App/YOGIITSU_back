@@ -77,7 +77,7 @@ public class ShortcutControllerTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.shortcutId").value(shortcutId))
             .andExpect(jsonPath("$.pointA").value("출발지"))
-            .andExpect(jsonPath("$.coordinates[0].turnType").value("STRAIGHT"));
+            .andExpect(jsonPath("$.coordinates[0].turnType").value(11));
     }
 
     @DisplayName("지름길_상세조회_실패_존재하지않음")
