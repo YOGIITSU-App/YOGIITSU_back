@@ -47,8 +47,8 @@ public class AppleAuthControllerTest {
             .thenReturn(tokenResponse);
 
         String requestBody = """
-            { "authorizationCode": "valid-authorization-code" }
-        """;
+                { "authorizationCode": "valid-authorization-code" }
+            """;
 
         // when & then
         mockMvc.perform(post("/auth/apple")
@@ -68,8 +68,8 @@ public class AppleAuthControllerTest {
     @Test
     void loginWithApple_blankCode() throws Exception {
         String requestBody = """
-            { "authorizationCode": "" }
-        """;
+                { "authorizationCode": "" }
+            """;
 
         mockMvc.perform(post("/auth/apple")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -83,8 +83,8 @@ public class AppleAuthControllerTest {
     @Test
     void loginWithApple_missingCode() throws Exception {
         String requestBody = """
-            { }
-        """;
+                { }
+            """;
 
         mockMvc.perform(post("/auth/apple")
                 .contentType(MediaType.APPLICATION_JSON)
