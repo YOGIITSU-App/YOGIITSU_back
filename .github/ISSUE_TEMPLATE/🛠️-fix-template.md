@@ -1,0 +1,19 @@
+---
+name: "\U0001F6E0️ Fix Template"
+about: Fix Template
+title: 'fix: '
+labels: "\U0001F6E0 fix"
+assignees: ''
+
+---
+
+## 🛠️ Issue Description
+[//]: # (해당 이슈에 대한 설명을 작성해주세요.)
+
+## 💭 Fix Description
+[//]: # (변경을 하려는 이유를 설명해주세요.)
+
+### 📝 check-lists
+[//]: # (업무 체크리스트를 작성해주세요.)
+- [ ] Task1
+- [ ] Task2
