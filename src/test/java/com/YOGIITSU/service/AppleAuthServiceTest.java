@@ -12,7 +12,6 @@ import com.YOGIITSU.exception.external.AppleVerificationException;
 import com.YOGIITSU.jwt.JwtTokenProvider;
 import com.YOGIITSU.util.AppleJwtUtil;
 import com.YOGIITSU.util.ClientSecretProvider;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -123,7 +122,7 @@ class AppleAuthServiceTest {
 
         long exp = (System.currentTimeMillis() + 60_000) / 1000;
         Map<String, Object> claims = baseClaims(clientId, exp, sub, null);
-        claims.put("email", Collections.emptyList());
+        claims.remove("email");
 
         when(userService.processOAuthUser(eq("apple"), anyString(), anyString()))
             .thenReturn(dummyMember(sub + "@appleuser.com"));
