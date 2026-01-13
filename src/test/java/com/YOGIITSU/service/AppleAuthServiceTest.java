@@ -14,7 +14,6 @@ import com.YOGIITSU.util.AppleJwtUtil;
 import com.YOGIITSU.util.ClientSecretProvider;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -51,6 +50,8 @@ class AppleAuthServiceTest {
     /* ================= Helpers ================= */
     private static final String TOKEN_URL = "https://appleid.apple.com/auth/token";
 
+    private static final String AUTH_CODE = "auth-code";
+
     private void givenClient(String clientId, String clientSecret) {
         when(clientSecretProvider.getClientId()).thenReturn(clientId);
         when(clientSecretProvider.createClientSecret()).thenReturn(clientSecret);
@@ -84,7 +85,6 @@ class AppleAuthServiceTest {
     @DisplayName("애플로그인_성공")
     @Test
     void loginWithApple_success() {
-        String code = "auth-code";
         String clientId = "client-id";
         String clientSecret = "client-secret";
         String idToken = "id-token";
@@ -95,7 +95,6 @@ class AppleAuthServiceTest {
 
         long exp = (System.currentTimeMillis() + 60_000) / 1000;
         Map<String, Object> claims = baseClaims(clientId, exp, sub, "test@apple.com");
-        claims.put("aud", List.of(clientId));
 
         when(userService.processOAuthUser(eq("apple"), anyString(), anyString()))
             .thenReturn(dummyMember("test@apple.com"));
@@ -105,13 +104,13 @@ class AppleAuthServiceTest {
         try (MockedStatic<AppleJwtUtil> mocked = mockStatic(AppleJwtUtil.class)) {
             mocked.when(() -> AppleJwtUtil.verifyAndGetClaims(idToken)).thenReturn(claims);
 
-            assertDoesNotThrow(() -> appleAuthService.loginWithApple(code));
+            assertDoesNotThrow(() -> appleAuthService.loginWithApple(AUTH_CODE));
         }
     }
 
     @DisplayName("애플로그인_성공_email대체")
     @Test
-    void loginWithApple_success_emailFallback() {
+    void loginWithApple_success_emailMissing() {
         String clientId = "client-id";
         String clientSecret = "client-secret";
         String idToken = "id-token";
@@ -132,13 +131,13 @@ class AppleAuthServiceTest {
         try (MockedStatic<AppleJwtUtil> mocked = mockStatic(AppleJwtUtil.class)) {
             mocked.when(() -> AppleJwtUtil.verifyAndGetClaims(idToken)).thenReturn(claims);
 
-            assertDoesNotThrow(() -> appleAuthService.loginWithApple("auth-code"));
+            assertDoesNotThrow(() -> appleAuthService.loginWithApple(AUTH_CODE));
         }
     }
 
-    @DisplayName("애플로그인_성공_expDate")
+    @DisplayName("애플로그인_성공_expAsDate")
     @Test
-    void loginWithApple_success_expDate() {
+    void loginWithApple_success_expAsDate() {
         String clientId = "client-id";
         String clientSecret = "client-secret";
         String idToken = "id-token";
@@ -158,7 +157,7 @@ class AppleAuthServiceTest {
         try (MockedStatic<AppleJwtUtil> mocked = mockStatic(AppleJwtUtil.class)) {
             mocked.when(() -> AppleJwtUtil.verifyAndGetClaims(idToken)).thenReturn(claims);
 
-            assertDoesNotThrow(() -> appleAuthService.loginWithApple("auth-code"));
+            assertDoesNotThrow(() -> appleAuthService.loginWithApple(AUTH_CODE));
         }
     }
 
@@ -173,7 +172,7 @@ class AppleAuthServiceTest {
             .thenThrow(new RuntimeException());
 
         assertThrows(AppleExchangeException.class,
-            () -> appleAuthService.loginWithApple("auth-code"));
+            () -> appleAuthService.loginWithApple(AUTH_CODE));
     }
 
     @DisplayName("애플로그인_실패_bodyNull")
@@ -191,7 +190,7 @@ class AppleAuthServiceTest {
         )).thenReturn(response);
 
         assertThrows(AppleExchangeException.class,
-            () -> appleAuthService.loginWithApple("auth-code"));
+            () -> appleAuthService.loginWithApple(AUTH_CODE));
     }
 
     @DisplayName("애플로그인_실패_idToken없음")
@@ -205,7 +204,7 @@ class AppleAuthServiceTest {
             eq(Map.class))).thenReturn(response);
 
         assertThrows(AppleExchangeException.class,
-            () -> appleAuthService.loginWithApple("auth-code"));
+            () -> appleAuthService.loginWithApple(AUTH_CODE));
     }
 
     @DisplayName("애플로그인_실패_verify")
@@ -221,7 +220,7 @@ class AppleAuthServiceTest {
                 .thenThrow(new RuntimeException());
 
             assertThrows(AppleVerificationException.class,
-                () -> appleAuthService.loginWithApple("auth-code"));
+                () -> appleAuthService.loginWithApple(AUTH_CODE));
         }
     }
 
@@ -243,7 +242,7 @@ class AppleAuthServiceTest {
             mocked.when(() -> AppleJwtUtil.verifyAndGetClaims(idToken)).thenReturn(claims);
 
             assertThrows(AppleVerificationException.class,
-                () -> appleAuthService.loginWithApple("auth-code"));
+                () -> appleAuthService.loginWithApple(AUTH_CODE));
         }
     }
 
@@ -267,7 +266,7 @@ class AppleAuthServiceTest {
             mocked.when(() -> AppleJwtUtil.verifyAndGetClaims(idToken)).thenReturn(claims);
 
             assertThrows(AppleVerificationException.class,
-                () -> appleAuthService.loginWithApple("auth-code"));
+                () -> appleAuthService.loginWithApple(AUTH_CODE));
         }
     }
 
@@ -288,7 +287,7 @@ class AppleAuthServiceTest {
             mocked.when(() -> AppleJwtUtil.verifyAndGetClaims(idToken)).thenReturn(claims);
 
             assertThrows(AppleTokenInvalidException.class,
-                () -> appleAuthService.loginWithApple("auth-code"));
+                () -> appleAuthService.loginWithApple(AUTH_CODE));
         }
     }
 
@@ -308,7 +307,7 @@ class AppleAuthServiceTest {
             mocked.when(() -> AppleJwtUtil.verifyAndGetClaims(idToken)).thenReturn(claims);
 
             assertThrows(AppleTokenInvalidException.class,
-                () -> appleAuthService.loginWithApple("auth-code"));
+                () -> appleAuthService.loginWithApple(AUTH_CODE));
         }
     }
 
@@ -329,7 +328,7 @@ class AppleAuthServiceTest {
             mocked.when(() -> AppleJwtUtil.verifyAndGetClaims(idToken)).thenReturn(claims);
 
             assertThrows(AppleTokenInvalidException.class,
-                () -> appleAuthService.loginWithApple("auth-code"));
+                () -> appleAuthService.loginWithApple(AUTH_CODE));
         }
     }
 
@@ -353,7 +352,7 @@ class AppleAuthServiceTest {
             mocked.when(() -> AppleJwtUtil.verifyAndGetClaims(idToken)).thenReturn(claims);
 
             assertThrows(AppleExchangeException.class,
-                () -> appleAuthService.loginWithApple("auth-code"));
+                () -> appleAuthService.loginWithApple(AUTH_CODE));
         }
     }
 }
