@@ -174,7 +174,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException e) {
         log.warn("Validation exception occurred: {}", e.getMessage(), e);
-        
+
         // 안전한 오류 메시지 추출
         String errorMessage = "요청 값이 유효하지 않습니다.";
         if (e.getBindingResult() != null && e.getBindingResult().hasErrors()) {
@@ -188,7 +188,7 @@ public class GlobalExceptionHandler {
                 errorMessage = fieldName + firstError.getDefaultMessage();
             }
         }
-        
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ErrorResponse.of(ErrorCode.VALIDATION_ERROR, errorMessage));
     }

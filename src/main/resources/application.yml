@@ -79,8 +79,35 @@ email:
     - naver.com
     - gmail.com
 
+resilience4j:
+  retry:
+    instances:
+      gptRetry:
+        max-attempts: 3
+        wait-duration: 400ms
+        retry-exceptions:
+          - com.YOGIITSU.service.gpt.TooManyRequestsException
+        ignore-exceptions:
+          - com.YOGIITSU.service.gpt.InsufficientQuotaException
+  circuitbreaker:
+    instances:
+      gptBreaker:
+        sliding-window-size: 20
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+  ratelimiter:
+    instances:
+      gptRate:
+        limit-for-period: 5
+        limit-refresh-period: 1s
+
 apple:
   client-id: ${APPLE_CLIENT_ID}
   team-id: ${APPLE_TEAM_ID}
   key-id: ${APPLE_KEY_ID}
   private-key-content: ${APPLE_PRIVATE_KEY_CONTENT}
+
+  openai:
+    api-key: ${OPENAI_API_KEY}
+    model: gpt-4o-mini-2024-07-18
+    timeout-seconds: 10

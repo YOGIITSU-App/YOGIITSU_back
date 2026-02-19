@@ -44,11 +44,14 @@ dependencies {
 	implementation 'org.jsoup:jsoup:1.17.2'
 	implementation "net.javacrumbs.shedlock:shedlock-spring:5.10.0"
 	implementation "net.javacrumbs.shedlock:shedlock-provider-jdbc-template:5.10.0"
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
 	//JWT 토큰 라이브러리
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
 	implementation 'io.jsonwebtoken:jjwt-impl:0.12.3'
 	implementation 'io.jsonwebtoken:jjwt-jackson:0.12.3'
+	implementation "io.github.resilience4j:resilience4j-spring-boot3:2.2.0"
+	implementation "io.github.resilience4j:resilience4j-reactor:2.2.0"
 
 	implementation 'com.nimbusds:nimbus-jose-jwt:10.0.2'
 
@@ -63,7 +66,6 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 	implementation 'com.google.api-client:google-api-client:2.2.0'
 	implementation 'com.google.http-client:google-http-client-gson:1.43.3'
-	implementation 'org.springframework:spring-webflux'
 }
 
 tasks.named('test') {
