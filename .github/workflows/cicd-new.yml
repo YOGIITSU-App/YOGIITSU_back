@@ -83,6 +83,7 @@ jobs:
             export APPLE_TEAM_ID='${{ secrets.APPLE_TEAM_ID }}'
             export APPLE_KEY_ID='${{ secrets.APPLE_KEY_ID }}'
             export APPLE_PRIVATE_KEY_CONTENT='$APPLE_KEY_CONTENT_ONELINE'
+            export OPENAI_API_KEY='${{ secrets.OPENAI_API_KEY }}'
           
             cd /home/ubuntu/YOGIITSU
             ./deploy.sh
