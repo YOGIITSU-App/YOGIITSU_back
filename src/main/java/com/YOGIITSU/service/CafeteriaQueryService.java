@@ -183,7 +183,6 @@ public class CafeteriaQueryService {
 
 		// 메뉴 → 프론트용 한 끼 DTO(+dayIndex/date)로 변환
 		List<CafeteriaMenuWithIndexDto> menusOut = new ArrayList<>();
-		Set<Integer> availableIdxSet = new LinkedHashSet<>();
 
 		List<Cafeteria> cafeterias = cafeteriaRepo.findByBuildingId(buildingId);
 		if (!cafeterias.isEmpty()) {
@@ -247,9 +246,6 @@ public class CafeteriaQueryService {
 				}
 
 				int idx = dayIndex(monday, m.getMealDate());
-				if (0 <= idx && idx <= 6) {
-					availableIdxSet.add(idx);
-				}
 
 				menusOut.add(CafeteriaMenuWithIndexDto.builder()
 					.buildingId(buildingId)
@@ -295,8 +291,7 @@ public class CafeteriaQueryService {
 		int todayIdx = (nowKstDate.isBefore(monday) || nowKstDate.isAfter(sunday))
 			? -1 : dayIndex(monday, nowKstDate);
 
-		List<Integer> availableIndices = new ArrayList<>(availableIdxSet);
-		availableIndices.sort(Integer::compareTo);
+		List<Integer> availableIndices = List.of(0, 1, 2, 3, 4, 5, 6);
 
 		Map<String, String> indexToDate = new LinkedHashMap<>();
 		for (int i = 0; i < 7; i++) {
