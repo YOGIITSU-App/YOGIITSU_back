@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.time.DayOfWeek;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -174,9 +175,13 @@ public class CafeteriaQueryService {
 		String buildingName = buildingLookup.findBuildingNameById(buildingId)
 			.orElseThrow(() -> new BuildingNotFoundException(buildingId));
 
-		// 이번 주 월~금 범위
+		// 이번 주 월~금 범위 (토/일은 다음 주 기준)
 		LocalDate nowKstDate = LocalDate.now(KST);
 		LocalDate monday = mondayOf(nowKstDate);
+		if (nowKstDate.getDayOfWeek() == DayOfWeek.SATURDAY
+			|| nowKstDate.getDayOfWeek() == DayOfWeek.SUNDAY) {
+			monday = monday.plusWeeks(1);
+		}
 		LocalDate friday = monday.plusDays(4);
 
 		// 이 건물의 식당 목록 (없으면 404)
