@@ -4,10 +4,7 @@ import com.YOGIITSU.dto.ResponseDto.WeeklyCafeteriaResponseDto;
 import com.YOGIITSU.dto.ResponseDto.WeeklyCafeteriaResponseDto.CafeteriaMenuWithIndexDto;
 import com.YOGIITSU.entity.Cafeteria;
 import com.YOGIITSU.entity.CafeteriaMenu;
-import com.YOGIITSU.exception.ErrorCode;
 import com.YOGIITSU.exception.building.BuildingNotFoundException;
-import com.YOGIITSU.exception.cafeteria.CafeteriaNotFoundForBuildingException;
-import com.YOGIITSU.exception.resource.ResourceException;
 import com.YOGIITSU.exception.validation.InvalidArgumentException;
 import com.YOGIITSU.repository.CafeteriaMenuRepository;
 import com.YOGIITSU.repository.CafeteriaRepository;
@@ -158,11 +155,11 @@ public class CafeteriaQueryService {
 	}
 
 	private static int dayIndex(LocalDate monday, LocalDate d) {
-		return (int) (d.toEpochDay() - monday.toEpochDay()); // 0~4
+		return (int) (d.toEpochDay() - monday.toEpochDay()); // 0~6
 	}
 
 	/**
-	 * 주간(월~금) 기준 메타 + 메뉴 묶음 반환 (프론트 요구 형식) 입력: buildingId 하나만
+	 * 주간(월~일) 기준 메타 + 메뉴 묶음 반환 (프론트 요구 형식) 입력: buildingId 하나만
 	 */
 	@Transactional(readOnly = true)
 	public WeeklyCafeteriaResponseDto getWeeklyByBuilding(Long buildingId) {
@@ -174,118 +171,135 @@ public class CafeteriaQueryService {
 		String buildingName = buildingLookup.findBuildingNameById(buildingId)
 			.orElseThrow(() -> new BuildingNotFoundException(buildingId));
 
-		// 이번 주 월~금 범위
+		// 이번 주 월~금 범위 (토/일은 다음 주 기준)
 		LocalDate nowKstDate = LocalDate.now(KST);
 		LocalDate monday = mondayOf(nowKstDate);
+		if (nowKstDate.getDayOfWeek() == DayOfWeek.SATURDAY
+			|| nowKstDate.getDayOfWeek() == DayOfWeek.SUNDAY) {
+			monday = monday.plusWeeks(1);
+		}
 		LocalDate friday = monday.plusDays(4);
-
-		// 이 건물의 식당 목록 (없으면 404)
-		List<Cafeteria> cafeterias = cafeteriaRepo.findByBuildingId(buildingId);
-		if (cafeterias.isEmpty()) {
-			throw new CafeteriaNotFoundForBuildingException();
-		}
-
-		Map<Long, Cafeteria> idToCafeteria = cafeterias.stream()
-			.collect(Collectors.toMap(Cafeteria::getId, c -> c));
-
-		List<Long> cafeteriaIds = new ArrayList<>(idToCafeteria.keySet());
-
-		// 주간 메뉴 조회 (없으면 빈 배열)
-		List<CafeteriaMenu> menus = menuRepo
-			.findByCafeteriaIdInAndMealDateBetweenOrderByMealDateAscMealTypeAscCornerAsc(
-				cafeteriaIds, monday, friday);
-
-		// placeholder/공백 제거
-		menus = menus.stream()
-			.filter(m -> {
-				String t = Optional.ofNullable(m.getItemsText()).orElse("").trim();
-				if (t.isEmpty()) {
-					return false;
-				}
-				return !Set.of("메뉴 준비 중", "준비중", "준비 중", "-").contains(t);
-			})
-			.toList();
-
-		// 조건 위반하면 바로 예외 -> 글로벌 핸들러가 통일 포맷으로 응답
-		if (menus.isEmpty()) {
-			String detail = "buildingId=" + buildingId + ",week=" + monday + "~" + friday;
-			throw new ResourceException(ErrorCode.RESOURCE_NOT_FOUND, detail);
-		}
+		LocalDate sunday = monday.plusDays(6);
 
 		// 메뉴 → 프론트용 한 끼 DTO(+dayIndex/date)로 변환
 		List<CafeteriaMenuWithIndexDto> menusOut = new ArrayList<>();
 		Set<Integer> availableIdxSet = new LinkedHashSet<>();
 
-		for (CafeteriaMenu m : menus) {
-			Cafeteria c = idToCafeteria.get(m.getCafeteriaId());
+		List<Cafeteria> cafeterias = cafeteriaRepo.findByBuildingId(buildingId);
+		if (!cafeterias.isEmpty()) {
+			Map<Long, Cafeteria> idToCafeteria = cafeterias.stream()
+				.collect(Collectors.toMap(Cafeteria::getId, c -> c));
 
-			// 원본 라인 목록
-			List<String> rawLines = Arrays.stream(
-					Optional.ofNullable(m.getItemsText()).orElse("").split("\n"))
-				.map(this::normalizeLine)
-				.filter(s -> !s.isBlank())
+			List<Long> cafeteriaIds = new ArrayList<>(idToCafeteria.keySet());
+
+			List<CafeteriaMenu> menus = menuRepo
+				.findByCafeteriaIdInAndMealDateBetweenOrderByMealDateAscMealTypeAscCornerAsc(
+					cafeteriaIds, monday, friday);
+
+			menus = menus.stream()
+				.filter(m -> {
+					String t = Optional.ofNullable(m.getItemsText()).orElse("").trim();
+					if (t.isEmpty()) {
+						return false;
+					}
+					return !Set.of("메뉴 준비 중", "준비중", "준비 중", "-").contains(t);
+				})
 				.toList();
 
-			// (선택식/공통찬) 분리 적용 대상: 문화예술융합대학-학생식당 + 태그 포함 시
-			boolean shouldSplit =
-				"문화예술융합대학".equals(buildingName)
-					&& "학생식당".equals(c.getName())
-					&& containsChoiceOrCommonTag(m.getItemsText());
+			for (CafeteriaMenu m : menus) {
+				Cafeteria c = idToCafeteria.get(m.getCafeteriaId());
+				if (c == null) {
+					continue;
+				}
 
-			List<String> itemsChoiceOut = List.of();
-			List<String> itemsCommonOut = List.of();
-			List<String> itemsOut;
+				// 원본 라인 목록
+				List<String> rawLines = Arrays.stream(
+						Optional.ofNullable(m.getItemsText()).orElse("").split("\n"))
+					.map(this::normalizeLine)
+					.filter(s -> !s.isBlank())
+					.toList();
 
-			if (shouldSplit) {
-				TwoLists t = splitChoiceCommon(m.getItemsText());
-				List<String> choiceTokens = explodeDishes(t.choice());
-				List<String> commonTokens = explodeDishes(t.common());
-				itemsChoiceOut = toList(choiceTokens);
-				itemsCommonOut = toList(commonTokens);
+				// (선택식/공통찬) 분리 적용 대상: 문화예술융합대학-학생식당 + 태그 포함 시
+				boolean shouldSplit =
+					"문화예술융합대학".equals(buildingName)
+						&& "학생식당".equals(c.getName())
+						&& containsChoiceOrCommonTag(m.getItemsText());
 
-				// 전체 items = choice + common 합치기
-				List<String> merged = new ArrayList<>();
-				merged.addAll(choiceTokens);
-				merged.addAll(commonTokens);
-				itemsOut = toList(merged);
-			} else {
-				List<String> tokens = explodeDishes(rawLines);
-				itemsOut = toList(tokens);
+				List<String> itemsChoiceOut = List.of();
+				List<String> itemsCommonOut = List.of();
+				List<String> itemsOut;
+
+				if (shouldSplit) {
+					TwoLists t = splitChoiceCommon(m.getItemsText());
+					List<String> choiceTokens = explodeDishes(t.choice());
+					List<String> commonTokens = explodeDishes(t.common());
+					itemsChoiceOut = toList(choiceTokens);
+					itemsCommonOut = toList(commonTokens);
+
+					// 전체 items = choice + common 합치기
+					List<String> merged = new ArrayList<>();
+					merged.addAll(choiceTokens);
+					merged.addAll(commonTokens);
+					itemsOut = toList(merged);
+				} else {
+					List<String> tokens = explodeDishes(rawLines);
+					itemsOut = toList(tokens);
+				}
+
+				int idx = dayIndex(monday, m.getMealDate());
+				if (0 <= idx && idx <= 6) {
+					availableIdxSet.add(idx);
+				}
+
+				menusOut.add(CafeteriaMenuWithIndexDto.builder()
+					.buildingId(buildingId)
+					.buildingName(buildingName)
+					.place(c.getName())
+					.mealType(m.getMealType())
+					.corner(m.getCorner())
+					.mealDate(m.getMealDate())
+					.dayIndex(idx)
+					.date(m.getMealDate().format(ISO_DATE))
+					.items(itemsOut)
+					.itemsChoice(itemsChoiceOut)
+					.itemsCommon(itemsCommonOut)
+					.build());
 			}
-
-			int idx = dayIndex(monday, m.getMealDate());
-			if (0 <= idx && idx <= 4) {
-				availableIdxSet.add(idx);
-			}
-
-			menusOut.add(CafeteriaMenuWithIndexDto.builder()
-				.buildingId(buildingId)
-				.buildingName(buildingName)
-				.place(c.getName())
-				.mealType(m.getMealType())
-				.corner(m.getCorner())
-				.mealDate(m.getMealDate())
-				.dayIndex(idx)
-				.date(m.getMealDate().format(ISO_DATE))
-				.items(itemsOut)
-				.itemsChoice(itemsChoiceOut)
-				.itemsCommon(itemsCommonOut)
-				.build());
 		}
+
+		// 메뉴 없는 날짜에도 빈 항목 보장 (0~6 전체 날짜)
+		Set<Integer> coveredIndices = menusOut.stream()
+			.map(CafeteriaMenuWithIndexDto::getDayIndex)
+			.collect(Collectors.toSet());
+		for (int i = 0; i < 7; i++) {
+			if (!coveredIndices.contains(i)) {
+				menusOut.add(CafeteriaMenuWithIndexDto.builder()
+					.buildingId(buildingId)
+					.buildingName(buildingName)
+					.dayIndex(i)
+					.date(monday.plusDays(i).format(ISO_DATE))
+					.mealDate(monday.plusDays(i))
+					.items(List.of())
+					.itemsChoice(List.of())
+					.itemsCommon(List.of())
+					.build());
+			}
+		}
+		menusOut.sort(Comparator.comparingInt(CafeteriaMenuWithIndexDto::getDayIndex));
 
 		// 메타 구성
 		String tz = KST.getId();
 		String serverTime = OffsetDateTime.now(KST).format(ISO_OFFSET_DT);
 		String weekStart = monday.format(ISO_DATE);
 
-		int todayIdx = (nowKstDate.isBefore(monday) || nowKstDate.isAfter(friday))
+		int todayIdx = (nowKstDate.isBefore(monday) || nowKstDate.isAfter(sunday))
 			? -1 : dayIndex(monday, nowKstDate);
 
 		List<Integer> availableIndices = new ArrayList<>(availableIdxSet);
 		availableIndices.sort(Integer::compareTo);
 
 		Map<String, String> indexToDate = new LinkedHashMap<>();
-		for (int i = 0; i < 5; i++) {
+		for (int i = 0; i < 7; i++) {
 			indexToDate.put(String.valueOf(i), monday.plusDays(i).format(ISO_DATE));
 		}
 

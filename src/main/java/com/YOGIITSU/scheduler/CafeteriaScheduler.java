@@ -8,6 +8,7 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import java.time.DayOfWeek;
 import java.time.ZoneId;
 import java.time.LocalDate;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
@@ -50,7 +51,13 @@ public class CafeteriaScheduler {
 
 	private void runSync(String tag) {
 		try {
-			LocalDate monday = CafeteriaCrawler.mondayOf(LocalDate.now(KST));
+			LocalDate today = LocalDate.now(KST);
+			LocalDate monday = CafeteriaCrawler.mondayOf(today);
+			// 토/일은 이미 다음 주 메뉴가 게시되므로 다음 주 기준으로 크롤링
+			if (today.getDayOfWeek() == DayOfWeek.SATURDAY
+				|| today.getDayOfWeek() == DayOfWeek.SUNDAY) {
+				monday = monday.plusWeeks(1);
+			}
 			var rows = crawler.fetchAll(monday);
 			sync.sync(rows);
 			log.info("[식단 {}] {} 주차 {}건 처리", tag, monday, rows.size());
