@@ -159,7 +159,7 @@ public class CafeteriaQueryService {
 	}
 
 	/**
-	 * 주간(월~금) 기준 메타 + 메뉴 묶음 반환 (프론트 요구 형식) 입력: buildingId 하나만
+	 * 주간(월~일) 기준 메타 + 메뉴 묶음 반환 (프론트 요구 형식) 입력: buildingId 하나만
 	 */
 	@Transactional(readOnly = true)
 	public WeeklyCafeteriaResponseDto getWeeklyByBuilding(Long buildingId) {
