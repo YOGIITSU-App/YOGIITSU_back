@@ -136,6 +136,7 @@ public class FacilityHandler implements DynamicResponseHandler {
 			case STUDY_ROOM -> "스터디룸";
 			case GYM -> "헬스장";
 			case DELIVERY_BOX -> "무인택배함";
+			case SHUTTLE_BUS -> "셔틀버스정류장";
 		};
 	}
 
