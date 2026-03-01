@@ -1,5 +1,6 @@
 package com.YOGIITSU.dto.ResponseDto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +13,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.ALWAYS)
 public class WeeklyCafeteriaResponseDto {
 
 	private String tz;                 // "Asia/Seoul"
@@ -27,6 +29,7 @@ public class WeeklyCafeteriaResponseDto {
 	@Builder
 	@NoArgsConstructor
 	@AllArgsConstructor
+	@JsonInclude(JsonInclude.Include.ALWAYS)
 	public static class CafeteriaMenuWithIndexDto {
 
 		private Long buildingId;
