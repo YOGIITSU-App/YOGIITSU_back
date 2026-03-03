@@ -97,7 +97,7 @@ public class SignUpService {
 			.email(email)
 			.userName(userName)
 			.role("USER")  // 반드시 ROLE_ 접두사
-			.joinAt(LocalDateTime.now(KST))
+			.joinAt(LocalDateTime.now())
 			.provider("local") // 로컬 회원가입을 나타내는 provider
 			.build();
 
