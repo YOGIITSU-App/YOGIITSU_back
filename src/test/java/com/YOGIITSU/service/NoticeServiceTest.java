@@ -284,4 +284,102 @@ class NoticeServiceTest {
 		verify(noticeRepository).findById(noticeId);
 		verify(noticeRepository, never()).delete(any(Notice.class));
 	}
+
+	@Test
+	@DisplayName("공지사항_수정_실패_관리자아님")
+	void updateNotice_fail_notAdmin() {
+		// given
+		Long noticeId = 1L;
+		Long memberId = 1L;
+		NoticeRequestDto dto = new NoticeRequestDto();
+		dto.setTitle("수정된 제목");
+		dto.setContent("수정된 내용");
+
+		Member normalMember = Member.builder()
+			.id(memberId)
+			.role("USER")
+			.build();
+
+		when(memberRepository.findById(memberId)).thenReturn(Optional.of(normalMember));
+
+		// when & then
+		assertThrows(AdminAccessDeniedException.class,
+			() -> noticeService.updateNotice(noticeId, dto, memberId));
+		verify(memberRepository).findById(memberId);
+		verify(noticeRepository, never()).findById(any());
+		verify(noticeRepository, never()).save(any(Notice.class));
+	}
+
+	@Test
+	@DisplayName("공지사항_수정_실패_회원없음")
+	void updateNotice_fail_memberNotFound() {
+		// given
+		Long noticeId = 1L;
+		Long memberId = 999L;
+		NoticeRequestDto dto = new NoticeRequestDto();
+		dto.setTitle("수정된 제목");
+		dto.setContent("수정된 내용");
+
+		when(memberRepository.findById(memberId)).thenReturn(Optional.empty());
+
+		// when & then
+		assertThrows(AdminNotFoundException.class,
+			() -> noticeService.updateNotice(noticeId, dto, memberId));
+		verify(memberRepository).findById(memberId);
+		verify(noticeRepository, never()).findById(any());
+		verify(noticeRepository, never()).save(any(Notice.class));
+	}
+
+	@Test
+	@DisplayName("공지사항_삭제_실패_관리자아님")
+	void deleteNotice_fail_notAdmin() {
+		// given
+		Long noticeId = 1L;
+		Long memberId = 1L;
+
+		Member normalMember = Member.builder()
+			.id(memberId)
+			.role("USER")
+			.build();
+
+		when(memberRepository.findById(memberId)).thenReturn(Optional.of(normalMember));
+
+		// when & then
+		assertThrows(AdminAccessDeniedException.class,
+			() -> noticeService.deleteNotice(noticeId, memberId));
+		verify(memberRepository).findById(memberId);
+		verify(noticeRepository, never()).findById(any());
+		verify(noticeRepository, never()).delete(any(Notice.class));
+	}
+
+	@Test
+	@DisplayName("공지사항_삭제_실패_회원없음")
+	void deleteNotice_fail_memberNotFound() {
+		// given
+		Long noticeId = 1L;
+		Long memberId = 999L;
+
+		when(memberRepository.findById(memberId)).thenReturn(Optional.empty());
+
+		// when & then
+		assertThrows(AdminNotFoundException.class,
+			() -> noticeService.deleteNotice(noticeId, memberId));
+		verify(memberRepository).findById(memberId);
+		verify(noticeRepository, never()).findById(any());
+		verify(noticeRepository, never()).delete(any(Notice.class));
+	}
+
+	@Test
+	@DisplayName("공지사항_전체_조회_빈목록")
+	void getAllNotices_empty() {
+		// given
+		when(noticeRepository.findAllByOrderByNoticeAtDesc()).thenReturn(List.of());
+
+		// when
+		List<NoticeListResponseDto> result = noticeService.getAllNotices();
+
+		// then
+		assertTrue(result.isEmpty());
+		verify(noticeRepository).findAllByOrderByNoticeAtDesc();
+	}
 }
