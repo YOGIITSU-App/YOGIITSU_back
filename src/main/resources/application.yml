@@ -107,7 +107,7 @@ apple:
   key-id: ${APPLE_KEY_ID}
   private-key-content: ${APPLE_PRIVATE_KEY_CONTENT}
 
-  openai:
-    api-key: ${OPENAI_API_KEY}
-    model: gpt-4o-mini-2024-07-18
-    timeout-seconds: 10
+openai:
+  api-key: ${OPENAI_API_KEY}
+  model: gpt-4o-mini-2024-07-18
+  timeout-seconds: 10
