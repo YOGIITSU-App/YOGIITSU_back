@@ -54,6 +54,9 @@ public class SecurityConfig {
 				// chatbot 경로 인증 요구
 				.requestMatchers("/chatbot/**").authenticated()
 
+				// FCM 토큰 등록 인증 요구
+				.requestMatchers("/fcm/token").authenticated()
+
 				// 로그아웃은 인증된 사용자만 가능
 				.requestMatchers("/logout").authenticated()
 
