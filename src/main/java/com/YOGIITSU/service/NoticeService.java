@@ -1,6 +1,7 @@
 package com.YOGIITSU.service;
 
 import com.YOGIITSU.exception.auth.AdminAccessDeniedException;
+import com.YOGIITSU.exception.external.FcmSendException;
 import com.YOGIITSU.exception.resource.NoticeNotFoundException;
 import com.YOGIITSU.exception.user.AdminNotFoundException;
 import com.YOGIITSU.dto.RequestDto.NoticeRequestDto;
@@ -11,17 +12,20 @@ import com.YOGIITSU.entity.Notice;
 import com.YOGIITSU.repository.MemberRepository;
 import com.YOGIITSU.repository.NoticeRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class NoticeService {
 
 	private final NoticeRepository noticeRepository;
 	private final MemberRepository memberRepository;
+	private final FcmService fcmService;
 
 	// 관리자 권한이 있는지 확인
 	private void validateAdmin(Member member) {
@@ -54,6 +58,16 @@ public class NoticeService {
 			.member(member)
 			.build();
 		noticeRepository.save(notice);
+
+		try {
+			fcmService.sendNoticeNotification(
+				notice.getNoticeTitle(),
+				notice.getNoticeContent(),
+				notice.getNoticeId()
+			);
+		} catch (FcmSendException e) {
+			log.warn("FCM 알림 전송 실패 (공지는 저장됨) noticeId={}", notice.getNoticeId(), e);
+		}
 	}
 
 	// 공지사항 수정
