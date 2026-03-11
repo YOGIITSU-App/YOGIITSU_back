@@ -54,6 +54,7 @@ public enum ErrorCode {
 	GOOGLE_AUTH_FAIL("EXTERNAL_004", "Google 인증에 실패했습니다.", HttpStatus.UNAUTHORIZED),
 	KAKAO_AUTH_FAIL("EXTERNAL_005", "Kakao 인증에 실패했습니다.", HttpStatus.UNAUTHORIZED),
 	EMAIL_SEND_FAIL("EXTERNAL_006", "이메일 전송 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+	FCM_SEND_FAIL("EXTERNAL_007", "FCM 푸시 알림 전송 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
 
 	// 유효성 검사 관련 (5000번대)
 	VALIDATION_ERROR("VALIDATION_001", "입력값이 유효하지 않습니다.", HttpStatus.BAD_REQUEST),

@@ -107,3 +107,5 @@ apple:
   key-id: ${APPLE_KEY_ID}
   private-key-content: ${APPLE_PRIVATE_KEY_CONTENT}
   
+firebase:
+  service-account-json: ${FIREBASE_SERVICE_ACCOUNT_JSON}

@@ -11,17 +11,22 @@ import com.YOGIITSU.entity.Notice;
 import com.YOGIITSU.repository.MemberRepository;
 import com.YOGIITSU.repository.NoticeRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class NoticeService {
 
 	private final NoticeRepository noticeRepository;
 	private final MemberRepository memberRepository;
+	private final FcmService fcmService;
 
 	// 관리자 권한이 있는지 확인
 	private void validateAdmin(Member member) {
@@ -54,6 +59,17 @@ public class NoticeService {
 			.member(member)
 			.build();
 		noticeRepository.save(notice);
+
+		Long noticeId = notice.getNoticeId();
+		String noticeTitle = notice.getNoticeTitle();
+		String noticeContent = notice.getNoticeContent();
+
+		TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+			@Override
+			public void afterCommit() {
+				fcmService.sendNoticeNotificationAsync(noticeTitle, noticeContent, noticeId);
+			}
+		});
 	}
 
 	// 공지사항 수정
