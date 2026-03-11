@@ -67,11 +67,7 @@ public class NoticeService {
 		TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
 			@Override
 			public void afterCommit() {
-				try {
-					fcmService.sendNoticeNotification(noticeTitle, noticeContent, noticeId);
-				} catch (Throwable t) {
-					log.warn("FCM 알림 전송 실패 (공지는 저장됨) noticeId={}", noticeId, t);
-				}
+				fcmService.sendNoticeNotificationAsync(noticeTitle, noticeContent, noticeId);
 			}
 		});
 	}

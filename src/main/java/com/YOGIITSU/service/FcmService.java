@@ -15,6 +15,7 @@ import com.google.firebase.messaging.SendResponse;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,6 +42,15 @@ public class FcmService {
 			.token(dto.getToken())
 			.build();
 		fcmTokenRepository.save(fcmToken);
+	}
+
+	@Async
+	public void sendNoticeNotificationAsync(String title, String body, Long noticeId) {
+		try {
+			sendNoticeNotification(title, body, noticeId);
+		} catch (Throwable t) {
+			log.warn("FCM 알림 전송 실패 (공지는 저장됨) noticeId={}", noticeId, t);
+		}
 	}
 
 	@Transactional
