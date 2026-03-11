@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class FcmService {
 
 	private static final int MAX_BODY_LENGTH = 900;
+	private static final int FCM_BATCH_SIZE = 500;
 
 	private final FcmTokenRepository fcmTokenRepository;
 	private final MemberRepository memberRepository;
@@ -52,39 +53,44 @@ public class FcmService {
 			? body.substring(0, MAX_BODY_LENGTH)
 			: body;
 
-		MulticastMessage message = MulticastMessage.builder()
-			.setNotification(Notification.builder()
-				.setTitle(title)
-				.setBody(truncatedBody)
-				.build())
-			.putData("noticeId", String.valueOf(noticeId))
-			.putData("type", "NOTICE")
-			.addAllTokens(tokens)
+		Notification notification = Notification.builder()
+			.setTitle(title)
+			.setBody(truncatedBody)
 			.build();
 
-		try {
-			BatchResponse batchResponse = FirebaseMessaging.getInstance().sendEachForMulticast(message);
-			log.info("FCM 전송 완료 - 성공: {}, 실패: {}, noticeId={}",
-				batchResponse.getSuccessCount(), batchResponse.getFailureCount(), noticeId);
+		for (int i = 0; i < tokens.size(); i += FCM_BATCH_SIZE) {
+			List<String> batch = tokens.subList(i, Math.min(i + FCM_BATCH_SIZE, tokens.size()));
+			MulticastMessage message = MulticastMessage.builder()
+				.setNotification(notification)
+				.putData("noticeId", String.valueOf(noticeId))
+				.putData("type", "NOTICE")
+				.addAllTokens(batch)
+				.build();
 
-			List<SendResponse> responses = batchResponse.getResponses();
-			for (int i = 0; i < responses.size(); i++) {
-				SendResponse sendResponse = responses.get(i);
-				if (!sendResponse.isSuccessful() && sendResponse.getException() != null) {
-					String errorCode = sendResponse.getException().getMessagingErrorCode() != null
-						? sendResponse.getException().getMessagingErrorCode().name()
-						: "UNKNOWN";
-					log.warn("FCM 전송 실패 - errorCode={}, message={}, token={}",
-						errorCode, sendResponse.getException().getMessage(), tokens.get(i));
+			try {
+				BatchResponse batchResponse = FirebaseMessaging.getInstance().sendEachForMulticast(message);
+				log.info("FCM 배치 전송 완료 - 배치 시작 인덱스: {}, 성공: {}, 실패: {}, noticeId={}",
+					i, batchResponse.getSuccessCount(), batchResponse.getFailureCount(), noticeId);
 
-					if ("UNREGISTERED".equals(errorCode)) {
-						fcmTokenRepository.deleteByToken(tokens.get(i));
-						log.info("FCM 만료 토큰 삭제 - token={}", tokens.get(i));
+				List<SendResponse> responses = batchResponse.getResponses();
+				for (int j = 0; j < responses.size(); j++) {
+					SendResponse sendResponse = responses.get(j);
+					if (!sendResponse.isSuccessful() && sendResponse.getException() != null) {
+						String errorCode = sendResponse.getException().getMessagingErrorCode() != null
+							? sendResponse.getException().getMessagingErrorCode().name()
+							: "UNKNOWN";
+						log.warn("FCM 전송 실패 - errorCode={}, message={}, token={}",
+							errorCode, sendResponse.getException().getMessage(), batch.get(j));
+
+						if ("UNREGISTERED".equals(errorCode)) {
+							fcmTokenRepository.deleteByToken(batch.get(j));
+							log.info("FCM 만료 토큰 삭제 - token={}", batch.get(j));
+						}
 					}
 				}
+			} catch (Exception e) {
+				throw new FcmSendException(e.getMessage());
 			}
-		} catch (Exception e) {
-			throw new FcmSendException(e.getMessage());
 		}
 	}
 }
