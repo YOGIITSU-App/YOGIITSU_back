@@ -1,7 +1,6 @@
 package com.YOGIITSU.service;
 
 import com.YOGIITSU.exception.auth.AdminAccessDeniedException;
-import com.YOGIITSU.exception.external.FcmSendException;
 import com.YOGIITSU.exception.resource.NoticeNotFoundException;
 import com.YOGIITSU.exception.user.AdminNotFoundException;
 import com.YOGIITSU.dto.RequestDto.NoticeRequestDto;
@@ -14,6 +13,8 @@ import com.YOGIITSU.repository.NoticeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,15 +60,20 @@ public class NoticeService {
 			.build();
 		noticeRepository.save(notice);
 
-		try {
-			fcmService.sendNoticeNotification(
-				notice.getNoticeTitle(),
-				notice.getNoticeContent(),
-				notice.getNoticeId()
-			);
-		} catch (FcmSendException e) {
-			log.warn("FCM 알림 전송 실패 (공지는 저장됨) noticeId={}", notice.getNoticeId(), e);
-		}
+		Long noticeId = notice.getNoticeId();
+		String noticeTitle = notice.getNoticeTitle();
+		String noticeContent = notice.getNoticeContent();
+
+		TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+			@Override
+			public void afterCommit() {
+				try {
+					fcmService.sendNoticeNotification(noticeTitle, noticeContent, noticeId);
+				} catch (Throwable t) {
+					log.warn("FCM 알림 전송 실패 (공지는 저장됨) noticeId={}", noticeId, t);
+				}
+			}
+		});
 	}
 
 	// 공지사항 수정
