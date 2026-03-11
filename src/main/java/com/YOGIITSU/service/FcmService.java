@@ -53,7 +53,7 @@ public class FcmService {
 		}
 	}
 
-	@Transactional
+	@Transactional(readOnly = true)
 	public void sendNoticeNotification(String title, String body, Long noticeId) {
 		List<String> tokens = fcmTokenRepository.findAllTokenValues();
 		if (tokens.isEmpty()) {
