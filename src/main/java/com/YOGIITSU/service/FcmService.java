@@ -4,6 +4,7 @@ import com.YOGIITSU.dto.RequestDto.FcmTokenRequestDto;
 import com.YOGIITSU.entity.FcmToken;
 import com.YOGIITSU.entity.Member;
 import com.YOGIITSU.exception.external.FcmSendException;
+import com.YOGIITSU.exception.user.MemberNotFoundException;
 import com.YOGIITSU.repository.FcmTokenRepository;
 import com.YOGIITSU.repository.MemberRepository;
 import com.google.firebase.messaging.BatchResponse;
@@ -33,7 +34,8 @@ public class FcmService {
 		if (fcmTokenRepository.findByToken(dto.getToken()).isPresent()) {
 			return;
 		}
-		Member member = memberRepository.findById(memberId).orElse(null);
+		Member member = memberRepository.findById(memberId)
+			.orElseThrow(() -> new MemberNotFoundException("memberId=" + memberId));
 		FcmToken fcmToken = FcmToken.builder()
 			.member(member)
 			.token(dto.getToken())
