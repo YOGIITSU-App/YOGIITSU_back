@@ -8,10 +8,12 @@ services:
       - "8081:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=dev
+      - FIREBASE_SERVICE_ACCOUNT_PATH=/run/secrets/firebase-service-account.json
     env_file:
       - ./.env
     volumes:
       - /var/log/yogiitsu/dev:/var/log/yogiitsu/dev
+      - /home/ubuntu/YOGIITSU/firebase-service-account.json:/run/secrets/firebase-service-account.json:ro
     restart: always
 
   yogiitsu-prod:
@@ -23,8 +25,10 @@ services:
       - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - FIREBASE_SERVICE_ACCOUNT_PATH=/run/secrets/firebase-service-account.json
     env_file:
       - ./.env
     volumes:
       - /var/log/yogiitsu/prod:/var/log/yogiitsu/prod
+      - /home/ubuntu/YOGIITSU/firebase-service-account.json:/run/secrets/firebase-service-account.json:ro
     restart: always
