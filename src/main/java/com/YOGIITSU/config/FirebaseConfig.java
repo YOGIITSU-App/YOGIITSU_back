@@ -3,9 +3,8 @@ package com.YOGIITSU.config;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
-import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -15,23 +14,27 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class FirebaseConfig {
 
-	@Value("${firebase.service-account-json:}")
-	private String serviceAccountJson;
+	@Value("${firebase.service-account-path:}")
+	private String serviceAccountPath;
 
 	@Bean
 	public FirebaseApp firebaseApp() throws IOException {
-		if (serviceAccountJson == null || serviceAccountJson.isBlank()) {
-			log.warn("FIREBASE_SERVICE_ACCOUNT_JSON 환경변수가 설정되지 않았습니다. FCM 기능이 비활성화됩니다.");
+		if (serviceAccountPath == null || serviceAccountPath.isBlank()) {
+			log.warn("FIREBASE_SERVICE_ACCOUNT_PATH 환경변수가 설정되지 않았습니다. FCM 기능이 비활성화됩니다.");
 			return null;
 		}
 		if (!FirebaseApp.getApps().isEmpty()) {
 			return FirebaseApp.getInstance();
 		}
-		GoogleCredentials credentials = GoogleCredentials.fromStream(
-			new ByteArrayInputStream(serviceAccountJson.getBytes(StandardCharsets.UTF_8)));
+		GoogleCredentials credentials;
+		try (FileInputStream fis = new FileInputStream(serviceAccountPath)) {
+			credentials = GoogleCredentials.fromStream(fis);
+		}
 		FirebaseOptions options = FirebaseOptions.builder()
 			.setCredentials(credentials)
 			.build();
-		return FirebaseApp.initializeApp(options);
+		FirebaseApp app = FirebaseApp.initializeApp(options);
+		log.info("FirebaseApp initialized successfully. path={}", serviceAccountPath);
+		return app;
 	}
 }
