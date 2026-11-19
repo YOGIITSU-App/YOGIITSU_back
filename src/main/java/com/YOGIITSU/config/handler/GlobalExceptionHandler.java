@@ -37,6 +37,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.mail.MailException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 
 /**
@@ -251,6 +254,34 @@ public class GlobalExceptionHandler {
         log.error("Mail exception occurred: {}", e.getMessage(), e);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ErrorResponse.of(ErrorCode.EMAIL_SEND_FAIL, null));
+    }
+
+    /**
+     * 존재하지 않는 경로 요청 처리
+     */
+    @ExceptionHandler({
+            NoResourceFoundException.class,
+            NoHandlerFoundException.class
+    })
+    public ResponseEntity<ErrorResponse> handleNoResourceFoundException(Exception e) {
+        log.warn("No resource found: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ErrorResponse.of(ErrorCode.RESOURCE_NOT_FOUND, null));
+    }
+
+    /**
+     * 지원하지 않는 HTTP 메서드 요청 처리
+     */
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ErrorResponse> handleMethodNotSupportedException(HttpRequestMethodNotSupportedException e) {
+        log.warn("HTTP method not supported: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
+                .headers(headers -> {
+                    if (e.getSupportedHttpMethods() != null) {
+                        headers.setAllow(e.getSupportedHttpMethods());
+                    }
+                })
+                .body(ErrorResponse.of(ErrorCode.METHOD_NOT_ALLOWED, null));
     }
 
     /**
