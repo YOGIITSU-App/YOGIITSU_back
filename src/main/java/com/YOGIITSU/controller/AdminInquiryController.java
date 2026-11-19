@@ -38,7 +38,7 @@ public class AdminInquiryController {
 	 */
 	@Operation(summary = "관리자 답변 등록")
 	@PostMapping("/{inquiryId}")
-	@PreAuthorize("hasRole('ADMIN')")
+	@PreAuthorize("@adminAuthorization.isAdmin(authentication)")
 	public ResponseEntity<InquiryResponseDto> createAnswer(
 		@PathVariable Long inquiryId,
 		@RequestBody @Valid AdminAnswerCreateRequestDto requestDto,
@@ -54,7 +54,7 @@ public class AdminInquiryController {
 	 */
 	@Operation(summary = "관리자 답변 수정")
 	@PutMapping("/{inquiryId}")
-	@PreAuthorize("hasRole('ADMIN')")
+	@PreAuthorize("@adminAuthorization.isAdmin(authentication)")
 	public ResponseEntity<InquiryResponseDto> updateAnswer(
 		@PathVariable Long inquiryId,
 		@RequestBody @Valid AdminAnswerUpdateRequestDto requestDto,
@@ -71,7 +71,7 @@ public class AdminInquiryController {
 	 */
 	@Operation(summary = "관리자 문의 삭제")
 	@DeleteMapping("/{inquiryId}")
-	@PreAuthorize("hasRole('ADMIN')")
+	@PreAuthorize("@adminAuthorization.isAdmin(authentication)")
 	public ResponseEntity<Void> deleteInquiryByAdmin(
 		@PathVariable Long inquiryId,
 		@AuthenticationPrincipal CustomUserDetails userDetails
