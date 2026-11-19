@@ -10,12 +10,16 @@ import com.YOGIITSU.exception.resource.NoticeNotFoundException;
 import com.YOGIITSU.exception.user.AdminNotFoundException;
 import com.YOGIITSU.repository.MemberRepository;
 import com.YOGIITSU.repository.NoticeRepository;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -33,8 +37,21 @@ class NoticeServiceTest {
 	@Mock
 	private MemberRepository memberRepository;
 
+	@Mock
+	private FcmService fcmService;
+
 	@InjectMocks
 	private NoticeService noticeService;
+
+	@BeforeEach
+	void initTransactionSynchronization() {
+		TransactionSynchronizationManager.initSynchronization();
+	}
+
+	@AfterEach
+	void clearTransactionSynchronization() {
+		TransactionSynchronizationManager.clearSynchronization();
+	}
 
 	@Test
 	@DisplayName("공지사항_전체_조회_성공")
@@ -131,6 +148,14 @@ class NoticeServiceTest {
 		// then
 		verify(memberRepository).findById(memberId);
 		verify(noticeRepository).save(any(Notice.class));
+
+		// 커밋 전에는 FCM 알림이 전송되지 않아야 한다
+		verifyNoInteractions(fcmService);
+
+		// 커밋 이후 콜백 실행 시 FCM 알림이 전송되어야 한다
+		TransactionSynchronizationManager.getSynchronizations()
+			.forEach(TransactionSynchronization::afterCommit);
+		verify(fcmService).sendNoticeNotificationAsync(eq(dto.getTitle()), eq(dto.getContent()), any());
 	}
 
 	@Test
