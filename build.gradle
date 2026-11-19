@@ -24,6 +24,10 @@ repositories {
 	mavenCentral()
 }
 
+// 보안 패치: Spring Boot 관리 버전 override (Spring Boot 업그레이드 시 함께 확인 후 제거)
+ext['tomcat.version'] = '10.1.62'   // CVE-2026-68525, CVE-2026-65905, CVE-2026-65182 (< 10.1.58)
+ext['log4j2.version'] = '2.25.5'    // CVE-2026-49844 (< 2.25.5)
+
 compileJava.options.encoding = 'UTF-8'
 tasks.withType(JavaCompile){
 	options.encoding = 'UTF-8'
