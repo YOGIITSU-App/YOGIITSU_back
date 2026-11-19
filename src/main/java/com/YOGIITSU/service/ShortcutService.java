@@ -9,7 +9,9 @@ import com.YOGIITSU.repository.ShortcutCoordinateRepository;
 import com.YOGIITSU.repository.ShortcutRepository;
 import com.YOGIITSU.exception.resource.ShortcutNotFoundException;
 import java.util.List;
+import com.YOGIITSU.config.CacheConfig;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -22,6 +24,7 @@ public class ShortcutService {
     /**
      * 지름길 전체 리스트 조회
      */
+    @Cacheable(cacheNames = CacheConfig.SHORTCUTS)
     public List<ShortcutListResponseDto> getAllShortcuts() {
         return shortcutRepository.findAll().stream()
             .map(shortcut -> ShortcutListResponseDto.builder()
@@ -37,6 +40,7 @@ public class ShortcutService {
     /**
      * 지름길 상세 정보 조회
      */
+    @Cacheable(cacheNames = CacheConfig.SHORTCUT_DETAIL, key = "#shortcutId")
     public ShortcutDetailResponseDto getShortcutDetail(Long shortcutId) {
 
         // 1. Shortcut 엔티티 조회

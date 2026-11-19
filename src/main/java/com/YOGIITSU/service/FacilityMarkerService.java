@@ -6,7 +6,9 @@ import com.YOGIITSU.repository.FacilityMarkerRepository;
 import com.YOGIITSU.exception.validation.InvalidArgumentException;
 import java.util.List;
 import java.util.stream.Collectors;
+import com.YOGIITSU.config.CacheConfig;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 /**
@@ -25,6 +27,7 @@ public class FacilityMarkerService {
 	 * @param type 조회할 시설 유형 (예: RESTAURANT, PARKING, CONVENIENCE_CAFE)
 	 * @return FacilityMarkerResponseDto
 	 */
+	@Cacheable(cacheNames = CacheConfig.FACILITY_MARKERS, key = "#type")
 	public List<FacilityMarkerResponseDto> getMarkersByType(FacilityType type) {
 		if (type == null) {
 			throw new InvalidArgumentException("시설 유형은 필수값입니다.");
