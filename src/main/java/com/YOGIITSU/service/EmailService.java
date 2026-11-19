@@ -65,9 +65,12 @@ public class EmailService {
 		return String.valueOf(code);
 	}
 
-	//인증 메일 정보를 DB에 저장
+	// 인증 메일 정보를 DB에 저장
+	// 이메일당 1건만 유지하기 위해 기존 인증 코드를 삭제한 뒤 저장한다.
+	// (findByEmail 등 단건 조회가 중복 행으로 실패하는 것을 방지)
 	@Transactional
 	public void saveEmailMessage(EmailMessage emailMessage) {
+		emailMessageRepository.deleteByEmail(emailMessage.getEmail());
 		emailMessageRepository.save(emailMessage);
 	}
 
