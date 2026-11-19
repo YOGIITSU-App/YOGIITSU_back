@@ -66,6 +66,7 @@ public enum ErrorCode {
 	INVALID_MEMBER_ID_FORMAT("VALIDATION_006", "아이디 형식이 올바르지 않습니다.", HttpStatus.BAD_REQUEST),
 	INVALID_USERNAME_FORMAT("VALIDATION_007", "이름 형식이 올바르지 않습니다.", HttpStatus.BAD_REQUEST),
 	INVALID_PASSWORD_FORMAT("VALIDATION_008", "비밀번호 형식이 올바르지 않습니다.", HttpStatus.BAD_REQUEST),
+	METHOD_NOT_ALLOWED("VALIDATION_009", "지원하지 않는 HTTP 메서드입니다.", HttpStatus.METHOD_NOT_ALLOWED),
 
 	// 시스템 관련 (9000번대)
 	INTERNAL_SERVER_ERROR("SYSTEM_001", "서버 내부 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
