@@ -92,11 +92,11 @@ public class FcmService {
 							? sendResponse.getException().getMessagingErrorCode().name()
 							: "UNKNOWN";
 						log.warn("FCM 전송 실패 - errorCode={}, message={}, token={}",
-							errorCode, sendResponse.getException().getMessage(), batch.get(j));
+							errorCode, sendResponse.getException().getMessage(), maskToken(batch.get(j)));
 
 						if ("UNREGISTERED".equals(errorCode)) {
 							fcmTokenRepository.deleteByToken(batch.get(j));
-							log.info("FCM 만료 토큰 삭제 - token={}", batch.get(j));
+							log.info("FCM 만료 토큰 삭제 - token={}", maskToken(batch.get(j)));
 						}
 					}
 				}
@@ -104,5 +104,13 @@ public class FcmService {
 				throw new FcmSendException(e.getMessage());
 			}
 		}
+	}
+
+	// FCM 토큰은 기기 식별 자격 증명이므로 로그에는 앞 8자리만 남긴다.
+	static String maskToken(String token) {
+		if (token == null || token.length() <= 8) {
+			return "****";
+		}
+		return token.substring(0, 8) + "****";
 	}
 }
