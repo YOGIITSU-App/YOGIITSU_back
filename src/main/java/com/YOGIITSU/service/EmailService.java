@@ -11,6 +11,7 @@ import com.YOGIITSU.exception.user.MemberNotFoundException;
 import com.YOGIITSU.exception.validation.InvalidEmailDomainException;
 import com.YOGIITSU.exception.auth.VerificationCodeExpiredException;
 import com.YOGIITSU.exception.auth.VerificationCodeNotFoundException;
+import com.YOGIITSU.exception.auth.VerificationCodeMismatchException;
 import com.YOGIITSU.jwt.EmailVerificationJwtProvider;
 import com.YOGIITSU.jwt.JwtTokenProvider;
 import com.YOGIITSU.repository.EmailMessageRepository;
@@ -22,6 +23,8 @@ import com.YOGIITSU.exception.user.SameEmailException;
 import com.YOGIITSU.exception.external.EmailSendException;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.Locale;
 import lombok.RequiredArgsConstructor;
@@ -205,10 +208,41 @@ public class EmailService {
 		}
 	}
 
+	/**
+	 * 이메일 인증 코드 검증 및 승인
+	 * 토큰에는 인증 코드가 없으므로, 토큰의 인증 요청 ID로 DB 레코드를 찾아 입력 코드와 비교한다.
+	 *
+	 * @return 인증된 이메일
+	 */
 	@Transactional
-	public void approveEmailCode(String email, String code) {
-		EmailMessage message = findEmailMessage(email, code);
+	public String verifyAndApprove(Claims claims, String inputCode) {
+		EmailMessage message = findEmailMessageByToken(claims);
+
+		if (inputCode == null || !MessageDigest.isEqual(
+			message.getCode().getBytes(StandardCharsets.UTF_8),
+			inputCode.getBytes(StandardCharsets.UTF_8))) {
+			throw new VerificationCodeMismatchException();
+		}
+		if (message.getExpiresAt() != null && message.getExpiresAt().isBefore(nowKst())) {
+			throw new VerificationCodeExpiredException();
+		}
+
 		approveAndSave(message);
+		return message.getEmail();
+	}
+
+	// 토큰의 인증 요청 ID로 EmailMessage 조회 (토큰 이메일과 레코드 이메일 일치 확인)
+	private EmailMessage findEmailMessageByToken(Claims claims) {
+		Number messageId = claims.get(EmailVerificationJwtProvider.MESSAGE_ID_CLAIM, Number.class);
+		if (messageId == null) {
+			throw new InvalidTokenException();
+		}
+		EmailMessage message = emailMessageRepository.findById(messageId.longValue())
+			.orElseThrow(VerificationCodeNotFoundException::new);
+		if (!message.getEmail().equals(claims.getSubject())) {
+			throw new InvalidTokenException();
+		}
+		return message;
 	}
 
 	// 이메일 변경 수행 (인증 코드 검증 -> 승인 -> 사용자 이메일 변경)
@@ -231,10 +265,12 @@ public class EmailService {
 			.orElseThrow(InvalidTokenException::new);
 
 		String newEmail = claims.getSubject();
-		String code = claims.get("code", String.class);
 
-		// 4. 인증 코드 검증 및 승인 처리
-		EmailMessage message = verifyEmailCode(newEmail, code);
+		// 4. 인증 요청 조회 및 승인/만료 여부 확인
+		EmailMessage message = findEmailMessageByToken(claims);
+		if (message.getExpiresAt() != null && message.getExpiresAt().isBefore(nowKst())) {
+			throw new VerificationCodeExpiredException();
+		}
 		if (!message.isApproved()) {
 			throw new EmailVerificationNotApprovedException("이메일 인증이 완료되지 않았습니다.");
 		}
@@ -262,23 +298,6 @@ public class EmailService {
 		member.setEmail(newEmail);
 		memberRepository.save(member);
 		log.info("이메일 변경 완료 - memberId: {}, newEmail: {}", memberId, mask(newEmail));
-	}
-
-	// 인증 코드 검증 (존재 + 만료 여부)
-	public EmailMessage verifyEmailCode(String email, String code) {
-		EmailMessage message = findEmailMessage(email, code);
-		if (message.getExpiresAt() != null && message.getExpiresAt().isBefore(nowKst())) {
-			// 레코드를 찾았지만 만료됨
-			throw new VerificationCodeExpiredException();
-		}
-		return message;
-	}
-
-	// 이메일과 코드로 EmailMessage 조회
-	private EmailMessage findEmailMessage(String email, String code) {
-		// 레코드를 못 찾음
-		return emailMessageRepository.findByEmailAndCode(email, code)
-			.orElseThrow(VerificationCodeNotFoundException::new);
 	}
 
 	// 인증 승인 처리 및 저장
