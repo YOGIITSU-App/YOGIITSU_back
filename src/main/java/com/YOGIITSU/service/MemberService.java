@@ -29,6 +29,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.YOGIITSU.exception.auth.TooManyRequestsException;
+import com.YOGIITSU.security.AttemptLimiter;
+import java.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +45,11 @@ public class MemberService {
 	private final MemberRepository memberRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final EmailMessageRepository emailMessageRepository;
+	private final AttemptLimiter attemptLimiter;
+
+	// 로그인 실패 제한: 같은 아이디로 15분 내 5회 실패 시 잠금
+	private static final int LOGIN_MAX_FAILURES = 5;
+	private static final Duration LOGIN_FAILURE_WINDOW = Duration.ofMinutes(15);
 	private final Logger logger = LoggerFactory.getLogger(MemberService.class);
 
 	/**
@@ -53,6 +61,10 @@ public class MemberService {
 	 */
 	@Transactional
 	public ResponseEntity<Map<String, Object>> login(String memberId, String password) {
+		String limitKey = "login:" + (memberId == null ? "" : memberId.trim().toLowerCase());
+		if (attemptLimiter.isLimited(limitKey, LOGIN_MAX_FAILURES, LOGIN_FAILURE_WINDOW)) {
+			throw new TooManyRequestsException("로그인 시도가 너무 많습니다. 15분 후 다시 시도해 주세요.");
+		}
 		try {
 			// 1. 아이디와 비밀번호로 Authentication 객체 생성
 			Authentication authentication = authenticationManagerBuilder.getObject()
@@ -77,11 +89,13 @@ public class MemberService {
 			responseBody.put("userId", userId);
 			responseBody.put("role", role);
 
+			attemptLimiter.reset(limitKey);
 			return ResponseEntity.ok()
 				.headers(headers)
 				.body(responseBody);
 
 		} catch (BadCredentialsException e) {
+			attemptLimiter.record(limitKey);
 			throw new InvalidLoginException();
 		}
 	}

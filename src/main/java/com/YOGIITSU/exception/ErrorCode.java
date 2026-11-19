@@ -25,6 +25,7 @@ public enum ErrorCode {
 		HttpStatus.BAD_REQUEST),
 	VERIFICATION_CODE_NOT_FOUND("AUTH_011", "유효하지 않은 인증 코드입니다. 인증 코드를 재전송해 주세요.",
 		HttpStatus.BAD_REQUEST),
+	TOO_MANY_REQUESTS("AUTH_012", "요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.", HttpStatus.TOO_MANY_REQUESTS),
 
 	// 사용자 관련 (2000번대)
 	MEMBER_NOT_FOUND("USER_001", "존재하지 않는 계정입니다.", HttpStatus.NOT_FOUND),
