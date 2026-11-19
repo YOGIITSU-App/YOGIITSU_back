@@ -51,9 +51,6 @@ public class SecurityConfig {
 					"/auth/reissue"
 				).permitAll()
 
-				// chatbot 경로 인증 요구
-				.requestMatchers("/chatbot/**").authenticated()
-
 				// FCM 토큰 등록 인증 요구
 				.requestMatchers("/fcm/token").authenticated()
 
