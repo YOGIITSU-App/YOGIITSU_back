@@ -87,3 +87,15 @@ apple:
   
 firebase:
   service-account-path: ${FIREBASE_SERVICE_ACCOUNT_PATH:}
+---
+# 운영 환경: API 명세 외부 노출 방지를 위해 Swagger UI 및 OpenAPI 문서 비활성화
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
