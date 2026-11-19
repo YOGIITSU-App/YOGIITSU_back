@@ -30,6 +30,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationServiceException;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -150,6 +153,23 @@ public class GlobalExceptionHandler {
         log.warn("Authentication service exception occurred: {}", e.getMessage(), e);
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(ErrorResponse.of(ErrorCode.UNAUTHORIZED, null));
+    }
+
+    /**
+     * 메서드 보안(@PreAuthorize) 인가 실패 처리
+     * 비로그인 사용자는 401, 로그인 사용자는 403으로 응답한다.
+     */
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleSpringAccessDeniedException(
+            org.springframework.security.access.AccessDeniedException e) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean anonymous = authentication == null
+                || !authentication.isAuthenticated()
+                || authentication instanceof AnonymousAuthenticationToken;
+        log.warn("Access denied: {}", e.getMessage());
+        ErrorCode errorCode = anonymous ? ErrorCode.UNAUTHORIZED : ErrorCode.ACCESS_DENIED;
+        return ResponseEntity.status(errorCode.getHttpStatus())
+                .body(ErrorResponse.of(errorCode, null));
     }
 
     /**
