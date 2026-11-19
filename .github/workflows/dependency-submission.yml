@@ -1,0 +1,27 @@
+name: Dependency Submission
+
+# 실제 resolve된 Gradle 의존성 그래프를 GitHub에 제출하여
+# Dependabot 알림이 실제 빌드 버전 기준으로 판단되도록 한다.
+on:
+  push:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  dependency-submission:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - name: 코드 체크아웃
+      uses: actions/checkout@v4
+
+    - name: Java 21 설정
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+
+    - name: Gradle 의존성 그래프 제출
+      uses: gradle/actions/dependency-submission@v6
