@@ -62,6 +62,8 @@ logging:
 server:
   port: 8080   # API 서버 포트
   address: 0.0.0.0   # 모든 IP에서 접근 가능하도록 설정
+  compression:
+    enabled: true   # JSON 등 텍스트 응답 gzip 압축 (2KB 이상)
 
 springdoc:
   swagger-ui:
