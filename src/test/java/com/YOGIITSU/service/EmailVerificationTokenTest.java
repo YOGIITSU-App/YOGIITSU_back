@@ -24,6 +24,8 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,6 +40,9 @@ class EmailVerificationTokenTest {
 
 	@Mock
 	private EmailMessageRepository emailMessageRepository;
+
+	@Mock
+	private com.YOGIITSU.security.AttemptLimiter attemptLimiter;
 
 	@InjectMocks
 	private EmailService emailService;
@@ -92,6 +97,19 @@ class EmailVerificationTokenTest {
 			() -> emailService.verifyAndApprove(claimsFor(EMAIL, 10L), "000000"));
 		assertFalse(message.isApproved());
 		verify(emailMessageRepository, never()).save(any());
+	}
+
+	@Test
+	@DisplayName("코드_입력_실패횟수_초과시_인증코드_무효화")
+	void verifyAndApprove_tooManyFailures() {
+		EmailMessage message = message(LocalDateTime.now(KST).plusMinutes(5));
+		when(emailMessageRepository.findById(10L)).thenReturn(Optional.of(message));
+		when(attemptLimiter.isLimited(eq("verify:10"), anyInt(), any())).thenReturn(true);
+
+		assertThrows(com.YOGIITSU.exception.auth.TooManyRequestsException.class,
+			() -> emailService.verifyAndApprove(claimsFor(EMAIL, 10L), "000000"));
+		verify(emailMessageRepository).delete(message);
+		assertFalse(message.isApproved());
 	}
 
 	@Test

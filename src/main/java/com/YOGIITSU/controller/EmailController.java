@@ -43,6 +43,9 @@ public class EmailController {
 		// 목적에 따라 유효성 검사 실행 (서비스로 위임했다.)
 		emailService.validateEmailRequest(email, purpose, authentication);
 
+		// 같은 이메일로의 반복 발송 제한
+		emailService.checkSendLimit(email);
+
 		// 1. 인증 코드 생성
 		String code = emailService.generateVerificationCode();
 

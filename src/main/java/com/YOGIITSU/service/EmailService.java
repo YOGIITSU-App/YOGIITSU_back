@@ -26,6 +26,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
+import java.time.Duration;
+import com.YOGIITSU.exception.auth.TooManyRequestsException;
+import com.YOGIITSU.security.AttemptLimiter;
 import java.util.Locale;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,6 +54,14 @@ public class EmailService {
 	private final EmailVerificationJwtProvider emailJwtProvider;
 	private final EmailProperties emailProperties;
 	private final JwtTokenProvider jwtTokenProvider;
+	private final AttemptLimiter attemptLimiter;
+
+	// 인증 코드 발송 제한: 같은 이메일로 1분에 1회, 1시간에 10회
+	private static final Duration SEND_COOLDOWN = Duration.ofMinutes(1);
+	private static final int SEND_MAX_PER_HOUR = 10;
+	// 인증 코드 검증 실패 제한: 인증 요청 1건당 5회 (초과 시 코드 무효화)
+	private static final int VERIFY_MAX_FAILURES = 5;
+	private static final Duration VERIFY_FAILURE_WINDOW = Duration.ofMinutes(10);
 
 	private static final java.time.ZoneId KST = java.time.ZoneId.of("Asia/Seoul");
 
@@ -209,6 +220,18 @@ public class EmailService {
 	}
 
 	/**
+	 * 인증 코드 발송 횟수 제한 확인 및 기록
+	 */
+	public void checkSendLimit(String email) {
+		String key = "send:" + email.trim().toLowerCase();
+		if (attemptLimiter.isLimited(key, 1, SEND_COOLDOWN)
+			|| attemptLimiter.isLimited(key, SEND_MAX_PER_HOUR, Duration.ofHours(1))) {
+			throw new TooManyRequestsException("인증 코드 요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.");
+		}
+		attemptLimiter.record(key);
+	}
+
+	/**
 	 * 이메일 인증 코드 검증 및 승인
 	 * 토큰에는 인증 코드가 없으므로, 토큰의 인증 요청 ID로 DB 레코드를 찾아 입력 코드와 비교한다.
 	 *
@@ -218,11 +241,20 @@ public class EmailService {
 	public String verifyAndApprove(Claims claims, String inputCode) {
 		EmailMessage message = findEmailMessageByToken(claims);
 
+		String limitKey = "verify:" + message.getId();
 		if (inputCode == null || !MessageDigest.isEqual(
 			message.getCode().getBytes(StandardCharsets.UTF_8),
 			inputCode.getBytes(StandardCharsets.UTF_8))) {
+			attemptLimiter.record(limitKey);
+			if (attemptLimiter.isLimited(limitKey, VERIFY_MAX_FAILURES, VERIFY_FAILURE_WINDOW)) {
+				// 실패 횟수 초과 시 해당 인증 코드를 무효화하여 재발송을 요구한다.
+				emailMessageRepository.delete(message);
+				attemptLimiter.reset(limitKey);
+				throw new TooManyRequestsException("인증 코드 입력 횟수를 초과했습니다. 인증 코드를 재전송해 주세요.");
+			}
 			throw new VerificationCodeMismatchException();
 		}
+		attemptLimiter.reset(limitKey);
 		if (message.getExpiresAt() != null && message.getExpiresAt().isBefore(nowKst())) {
 			throw new VerificationCodeExpiredException();
 		}

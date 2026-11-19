@@ -43,6 +43,8 @@ class MemberServiceTest {
 	@Mock
 	private AuthenticationManagerBuilder authenticationManagerBuilder;
 	@Mock
+	private com.YOGIITSU.security.AttemptLimiter attemptLimiter;
+	@Mock
 	private AuthenticationManager authenticationManager;
 	@Mock
 	private JwtTokenProvider jwtTokenProvider;
@@ -457,5 +459,15 @@ class MemberServiceTest {
 			.expiresAt(LocalDateTime.now().plusMinutes(5))
 			.purpose(EmailPurpose.FIND_PASSWORD)
 			.build();
+	}
+
+	@Test
+	@DisplayName("로그인_실패횟수_초과시_잠금")
+	void login_fail_tooManyAttempts() {
+		when(attemptLimiter.isLimited(eq("login:locked"), anyInt(), any())).thenReturn(true);
+
+		assertThrows(com.YOGIITSU.exception.auth.TooManyRequestsException.class,
+			() -> memberService.login("locked", "pw"));
+		verify(authenticationManagerBuilder, never()).getObject();
 	}
 }
