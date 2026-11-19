@@ -14,4 +14,8 @@ public class GoogleAuthException extends ExternalServiceException {
     public GoogleAuthException(String detailMessage) {
         super(ErrorCode.GOOGLE_AUTH_FAIL, detailMessage);
     }
+
+    public GoogleAuthException(String detailMessage, Throwable cause) {
+        super(ErrorCode.GOOGLE_AUTH_FAIL, detailMessage, cause);
+    }
 }
