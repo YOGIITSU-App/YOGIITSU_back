@@ -139,13 +139,14 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Apple 인증 서비스 예외 처리
+     * Spring Security 인증 서비스 예외 처리
+     * 특정 소셜 로그인 제공자를 알 수 없으므로 일반 인증 실패 코드로 응답한다.
      */
     @ExceptionHandler(AuthenticationServiceException.class)
-    public ResponseEntity<ErrorResponse> handleAppleAuthServiceException(AuthenticationServiceException e) {
-        log.warn("Apple authentication service exception occurred: {}", e.getMessage(), e);
+    public ResponseEntity<ErrorResponse> handleAuthenticationServiceException(AuthenticationServiceException e) {
+        log.warn("Authentication service exception occurred: {}", e.getMessage(), e);
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(ErrorResponse.of(ErrorCode.APPLE_AUTH_FAIL, null));
+                .body(ErrorResponse.of(ErrorCode.UNAUTHORIZED, null));
     }
 
     /**

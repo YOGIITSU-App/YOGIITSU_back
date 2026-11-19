@@ -3,6 +3,7 @@ package com.YOGIITSU.service;
 import com.YOGIITSU.entity.Member;
 import com.YOGIITSU.jwt.CustomUserDetails;
 import com.YOGIITSU.jwt.JwtTokenProvider;
+import com.YOGIITSU.exception.external.GoogleAuthException;
 import com.YOGIITSU.exception.validation.InvalidArgumentException;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
@@ -58,9 +59,7 @@ public class GoogleAuthService {
 
 		} catch (Exception e) {
 			log.warn("Google ID Token verification failed: {}", e.getMessage());
-			throw new org.springframework.security.authentication.AuthenticationServiceException(
-				"Google ID Token verification failed.", e
-			);
+			throw new GoogleAuthException("Google ID Token 검증에 실패했습니다.", e);
 		}
 	}
 }
