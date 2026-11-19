@@ -3,7 +3,6 @@ package com.YOGIITSU.controller;
 import com.YOGIITSU.dto.RequestDto.EmailVerificationRequestDto;
 import com.YOGIITSU.dto.ResponseDto.EmailVerificationResponseDto;
 import com.YOGIITSU.exception.auth.InvalidTokenException;
-import com.YOGIITSU.exception.auth.VerificationCodeMismatchException;
 import com.YOGIITSU.jwt.EmailVerificationJwtProvider;
 import com.YOGIITSU.service.EmailService;
 import io.jsonwebtoken.Claims;
@@ -25,7 +24,7 @@ public class EmailVerificationController {
 
 	@Operation(
 		summary = "이메일 인증 코드 검증",
-		description = "사용자가 입력한 인증 코드를 토큰에 포함된 코드와 비교하고, 인증 성공 시 DB의 승인 상태를 true로 변경합니다."
+		description = "사용자가 입력한 인증 코드를 서버에 저장된 코드와 비교하고, 인증 성공 시 DB의 승인 상태를 true로 변경합니다."
 	)
 	@PostMapping("/verify")
 	public ResponseEntity<EmailVerificationResponseDto> verifyCode(
@@ -35,16 +34,9 @@ public class EmailVerificationController {
 		// 1. JWT 토큰 검증
 		Claims claims = emailJwtProvider.parseEmailToken(token)
 			.orElseThrow(InvalidTokenException::new);
-		String tokenEmail = claims.getSubject();
-		String tokenCode = claims.get("code", String.class);
 
-		// 2. 입력 값과 토큰 비교
-		if (!tokenCode.equals(requestDto.getCode())) {
-			throw new VerificationCodeMismatchException();
-		}
-
-		// isApproved = true로 바꾼다.
-		emailService.approveEmailCode(tokenEmail, tokenCode);
+		// 2. 입력한 코드를 서버에 저장된 코드와 비교 후 승인 처리
+		String tokenEmail = emailService.verifyAndApprove(claims, requestDto.getCode());
 
 		// 5. 응답 메시지 생성 및 반환
 		return ResponseEntity.ok(

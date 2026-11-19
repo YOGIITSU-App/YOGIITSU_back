@@ -62,7 +62,7 @@ public class EmailController {
 		emailService.sendMail(emailMessage, "email");
 
 		// 5. 토큰 생성
-		String token = emailJwtProvider.generateEmailToken(email, code);
+		String token = emailJwtProvider.generateEmailToken(email, emailMessage.getId());
 
 		// 6. 응답
 		EmailPostResponseDto response = EmailPostResponseDto.builder()

@@ -11,6 +11,7 @@ import java.util.Optional;
 public class EmailVerificationJwtProvider {
 
 	private static final long EMAIL_TOKEN_EXPIRATION_MS = 300000; // 5분 (300초)
+	public static final String MESSAGE_ID_CLAIM = "mid";
 	private final SecretKey secretKey;
 
 	public EmailVerificationJwtProvider() {
@@ -20,10 +21,12 @@ public class EmailVerificationJwtProvider {
 	/**
 	 * 이메일 인증 토큰 생성 (0.12.3 최신 버전 대응)
 	 */
-	public String generateEmailToken(String email, String code) {
+	// 토큰은 서명만 되고 암호화되지 않으므로 인증 코드를 담지 않는다.
+	// 인증 코드는 서버(DB)에서만 비교한다.
+	public String generateEmailToken(String email, Long emailMessageId) {
 		return Jwts.builder()
 			.subject(email)
-			.claim("code", code)
+			.claim(MESSAGE_ID_CLAIM, emailMessageId)
 			.issuedAt(new Date())
 			.expiration(new Date(System.currentTimeMillis() + EMAIL_TOKEN_EXPIRATION_MS))
 			.signWith(secretKey)
