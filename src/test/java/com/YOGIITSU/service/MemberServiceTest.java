@@ -115,13 +115,64 @@ class MemberServiceTest {
 		Member member = createDummyMember(memberId, email);
 
 		when(memberRepository.findByEmail(email)).thenReturn(Optional.of(member));
+		com.YOGIITSU.entity.EmailMessage verified = com.YOGIITSU.entity.EmailMessage.builder()
+			.email(email).code("123456").isApproved(true)
+			.purpose(com.YOGIITSU.entity.EmailPurpose.FIND_ID)
+			.expiresAt(java.time.LocalDateTime.now(java.time.ZoneId.of("Asia/Seoul")).plusMinutes(5))
+			.build();
+		when(emailMessageRepository.findByEmailAndIsApprovedTrue(email)).thenReturn(Optional.of(verified));
 
 		// when
 		String result = memberService.findIdByEmail(email);
 
-		// then
+		// then: 인증 완료 시 전체 아이디 반환 후 인증 정보 삭제
 		assertEquals(memberId, result);
 		verify(memberRepository).findByEmail(email);
+		verify(emailMessageRepository).delete(verified);
+	}
+
+	@DisplayName("이메일로아이디찾기_미인증시_마스킹")
+	@Test
+	void findIdByEmail_notVerified_masked() {
+		String email = "test@email.com";
+		when(memberRepository.findByEmail(email)).thenReturn(Optional.of(createDummyMember("user1234", email)));
+		when(emailMessageRepository.findByEmailAndIsApprovedTrue(email)).thenReturn(Optional.empty());
+
+		String result = memberService.findIdByEmail(email);
+
+		assertEquals("us******", result);
+		verify(emailMessageRepository, never()).delete(any());
+	}
+
+	@DisplayName("이메일로아이디찾기_다른용도_인증이면_마스킹")
+	@Test
+	void findIdByEmail_otherPurpose_masked() {
+		String email = "test@email.com";
+		when(memberRepository.findByEmail(email)).thenReturn(Optional.of(createDummyMember("user1234", email)));
+		com.YOGIITSU.entity.EmailMessage signup = com.YOGIITSU.entity.EmailMessage.builder()
+			.email(email).code("123456").isApproved(true)
+			.purpose(com.YOGIITSU.entity.EmailPurpose.SIGNUP)
+			.expiresAt(java.time.LocalDateTime.now(java.time.ZoneId.of("Asia/Seoul")).plusMinutes(5))
+			.build();
+		when(emailMessageRepository.findByEmailAndIsApprovedTrue(email)).thenReturn(Optional.of(signup));
+
+		assertEquals("us******", memberService.findIdByEmail(email));
+		verify(emailMessageRepository, never()).delete(any());
+	}
+
+	@DisplayName("이메일로아이디찾기_만료된_인증이면_마스킹")
+	@Test
+	void findIdByEmail_expired_masked() {
+		String email = "test@email.com";
+		when(memberRepository.findByEmail(email)).thenReturn(Optional.of(createDummyMember("user1234", email)));
+		com.YOGIITSU.entity.EmailMessage expired = com.YOGIITSU.entity.EmailMessage.builder()
+			.email(email).code("123456").isApproved(true)
+			.purpose(com.YOGIITSU.entity.EmailPurpose.FIND_ID)
+			.expiresAt(java.time.LocalDateTime.now(java.time.ZoneId.of("Asia/Seoul")).minusMinutes(1))
+			.build();
+		when(emailMessageRepository.findByEmailAndIsApprovedTrue(email)).thenReturn(Optional.of(expired));
+
+		assertEquals("us******", memberService.findIdByEmail(email));
 	}
 
 	@DisplayName("이메일로아이디찾기_실패_이메일없음")

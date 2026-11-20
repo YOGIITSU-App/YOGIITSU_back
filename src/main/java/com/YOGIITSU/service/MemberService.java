@@ -12,6 +12,10 @@ import com.YOGIITSU.exception.ErrorCode;
 import com.YOGIITSU.dto.RequestDto.PasswordResetRequestDto;
 import com.YOGIITSU.dto.ResponseDto.TokenResponseDto;
 import com.YOGIITSU.entity.EmailMessage;
+import com.YOGIITSU.entity.EmailPurpose;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Optional;
 import com.YOGIITSU.entity.Member;
 import com.YOGIITSU.jwt.CustomUserDetails;
 import com.YOGIITSU.jwt.JwtTokenProvider;
@@ -48,6 +52,7 @@ public class MemberService {
 	private final AttemptLimiter attemptLimiter;
 
 	// 로그인 실패 제한: 같은 아이디로 15분 내 5회 실패 시 잠금
+	private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 	private static final int LOGIN_MAX_FAILURES = 5;
 	private static final Duration LOGIN_FAILURE_WINDOW = Duration.ofMinutes(15);
 	private final Logger logger = LoggerFactory.getLogger(MemberService.class);
@@ -102,15 +107,38 @@ public class MemberService {
 
 	/**
 	 * 이메일로 아이디 찾기
+	 * 아이디 찾기(FIND_ID) 이메일 인증이 완료된 경우에만 전체 아이디를 반환하고, 사용한 인증 정보는 삭제한다.
+	 * 인증 전에는 마스킹된 아이디를 반환한다. (앱이 인증 전 가입 여부 확인용으로 호출하므로 호환 유지)
 	 *
 	 * @param email 사용자의 이메일
-	 * @return 사용자 아이디
+	 * @return 사용자 아이디 (미인증 시 마스킹), 가입된 이메일이 없으면 null
 	 */
+	@Transactional
 	public String findIdByEmail(String email) {
-		// 이메일로 사용자 조회
-		return memberRepository.findByEmail(email)
+		String memberId = memberRepository.findByEmail(email)
 			.map(Member::getMemberId)
-			.orElse(null); // 가입된 이메일이 없으면 null 반환
+			.orElse(null);
+		if (memberId == null) {
+			return null; // 가입된 이메일이 없으면 null 반환
+		}
+
+		Optional<EmailMessage> verified = emailMessageRepository.findByEmailAndIsApprovedTrue(email)
+			.filter(message -> message.getPurpose() == EmailPurpose.FIND_ID)
+			.filter(message -> message.getExpiresAt() == null
+				|| !message.getExpiresAt().isBefore(LocalDateTime.now(KST)));
+		if (verified.isEmpty()) {
+			return maskMemberId(memberId);
+		}
+
+		// 인증 정보는 1회만 사용
+		emailMessageRepository.delete(verified.get());
+		return memberId;
+	}
+
+	// 앞 2자리만 노출하고 나머지는 마스킹
+	static String maskMemberId(String memberId) {
+		int visible = Math.min(2, memberId.length());
+		return memberId.substring(0, visible) + "*".repeat(Math.max(memberId.length() - visible, 4));
 	}
 
 	/**
