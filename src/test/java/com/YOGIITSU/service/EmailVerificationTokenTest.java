@@ -113,6 +113,20 @@ class EmailVerificationTokenTest {
 	}
 
 	@Test
+	@DisplayName("실패횟수_초과_후에는_올바른_코드도_거부")
+	void verifyAndApprove_limitedRejectsCorrectCode() {
+		EmailMessage message = message(LocalDateTime.now(KST).plusMinutes(5));
+		when(emailMessageRepository.findById(10L)).thenReturn(Optional.of(message));
+		when(attemptLimiter.isLimited(eq("verify:10"), anyInt(), any())).thenReturn(true);
+
+		assertThrows(com.YOGIITSU.exception.auth.TooManyRequestsException.class,
+			() -> emailService.verifyAndApprove(claimsFor(EMAIL, 10L), CODE));
+		assertFalse(message.isApproved());
+		verify(emailMessageRepository).delete(message);
+		verify(attemptLimiter, never()).reset(any());
+	}
+
+	@Test
 	@DisplayName("만료된_코드_입력시_실패")
 	void verifyAndApprove_expired() {
 		EmailMessage message = message(LocalDateTime.now(KST).minusMinutes(1));
