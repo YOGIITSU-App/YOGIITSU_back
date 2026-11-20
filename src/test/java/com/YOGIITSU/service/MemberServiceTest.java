@@ -507,9 +507,43 @@ class MemberServiceTest {
 			.email(email)
 			.code("123456")
 			.isApproved(isApproved)
-			.expiresAt(LocalDateTime.now().plusMinutes(5))
+			.expiresAt(LocalDateTime.now(java.time.ZoneId.of("Asia/Seoul")).plusMinutes(5))
 			.purpose(EmailPurpose.FIND_PASSWORD)
 			.build();
+	}
+
+	@Test
+	@DisplayName("비밀번호재설정_실패_다른용도_인증")
+	void resetPasswordAfterEmailVerification_fail_otherPurpose() {
+		String email = "test@email.com";
+		EmailMessage signupVerified = EmailMessage.builder()
+			.id(1L).email(email).code("123456").isApproved(true)
+			.expiresAt(LocalDateTime.now(java.time.ZoneId.of("Asia/Seoul")).plusMinutes(5))
+			.purpose(EmailPurpose.SIGNUP)
+			.build();
+		when(emailMessageRepository.findByEmail(email)).thenReturn(Optional.of(signupVerified));
+		PasswordResetRequestDto requestDto = new PasswordResetRequestDto(email, "newPassword1!", "newPassword1!");
+
+		assertThrows(EmailVerificationNotApprovedException.class,
+			() -> memberService.resetPasswordAfterEmailVerification(requestDto));
+		verify(memberRepository, never()).findByEmail(any());
+	}
+
+	@Test
+	@DisplayName("비밀번호재설정_실패_만료된_인증")
+	void resetPasswordAfterEmailVerification_fail_expired() {
+		String email = "test@email.com";
+		EmailMessage expired = EmailMessage.builder()
+			.id(1L).email(email).code("123456").isApproved(true)
+			.expiresAt(LocalDateTime.now(java.time.ZoneId.of("Asia/Seoul")).minusMinutes(1))
+			.purpose(EmailPurpose.FIND_PASSWORD)
+			.build();
+		when(emailMessageRepository.findByEmail(email)).thenReturn(Optional.of(expired));
+		PasswordResetRequestDto requestDto = new PasswordResetRequestDto(email, "newPassword1!", "newPassword1!");
+
+		assertThrows(com.YOGIITSU.exception.auth.VerificationCodeExpiredException.class,
+			() -> memberService.resetPasswordAfterEmailVerification(requestDto));
+		verify(memberRepository, never()).findByEmail(any());
 	}
 
 	@Test

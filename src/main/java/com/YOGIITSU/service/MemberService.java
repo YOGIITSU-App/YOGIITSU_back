@@ -1,6 +1,7 @@
 package com.YOGIITSU.service;
 
 import com.YOGIITSU.exception.auth.EmailVerificationNotApprovedException;
+import com.YOGIITSU.exception.auth.VerificationCodeExpiredException;
 import com.YOGIITSU.exception.auth.InvalidLoginException;
 import com.YOGIITSU.exception.user.MemberNotFoundException;
 import com.YOGIITSU.exception.user.PasswordMismatchException;
@@ -209,9 +210,16 @@ public class MemberService {
 		EmailMessage emailMessage = emailMessageRepository.findByEmail(requestDto.getEmail())
 			.orElseThrow(EmailVerificationNotApprovedException::new);
 
-		// 2. 이메일 인증이 완료되지 않은 경우 예외 발생
+		// 2. 비밀번호 찾기(FIND_PASSWORD) 인증이 완료되고 만료되지 않은 경우에만 허용
+		//    (회원가입 등 다른 용도의 인증으로 재설정되는 것을 방지)
 		if (!emailMessage.isApproved()) {
 			throw new EmailVerificationNotApprovedException();
+		}
+		if (emailMessage.getPurpose() != EmailPurpose.FIND_PASSWORD) {
+			throw new EmailVerificationNotApprovedException("비밀번호 찾기 인증이 완료되지 않았습니다.");
+		}
+		if (emailMessage.getExpiresAt() != null && emailMessage.getExpiresAt().isBefore(LocalDateTime.now(KST))) {
+			throw new VerificationCodeExpiredException();
 		}
 
 		// 3. 새 비밀번호와 비밀번호 확인이 일치하지 않으면 예외 발생
