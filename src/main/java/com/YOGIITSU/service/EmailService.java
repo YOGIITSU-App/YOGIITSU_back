@@ -240,20 +240,22 @@ public class EmailService {
 	 *
 	 * @return 인증된 이메일
 	 */
-	@Transactional
+	// 실패 횟수 초과 시 코드 삭제가 롤백되지 않도록 TooManyRequestsException은 커밋한다.
+	@Transactional(noRollbackFor = TooManyRequestsException.class)
 	public String verifyAndApprove(Claims claims, String inputCode) {
 		EmailMessage message = findEmailMessageByToken(claims);
 
 		String limitKey = "verify:" + message.getId();
+		// 이미 실패 횟수를 초과한 인증 요청은 올바른 코드여도 거부한다.
+		if (attemptLimiter.isLimited(limitKey, VERIFY_MAX_FAILURES, VERIFY_FAILURE_WINDOW)) {
+			invalidateCode(message);
+		}
 		if (inputCode == null || !MessageDigest.isEqual(
 			message.getCode().getBytes(StandardCharsets.UTF_8),
 			inputCode.getBytes(StandardCharsets.UTF_8))) {
 			attemptLimiter.record(limitKey);
 			if (attemptLimiter.isLimited(limitKey, VERIFY_MAX_FAILURES, VERIFY_FAILURE_WINDOW)) {
-				// 실패 횟수 초과 시 해당 인증 코드를 무효화하여 재발송을 요구한다.
-				emailMessageRepository.delete(message);
-				attemptLimiter.reset(limitKey);
-				throw new TooManyRequestsException("인증 코드 입력 횟수를 초과했습니다. 인증 코드를 재전송해 주세요.");
+				invalidateCode(message);
 			}
 			throw new VerificationCodeMismatchException();
 		}
@@ -264,6 +266,12 @@ public class EmailService {
 
 		approveAndSave(message);
 		return message.getEmail();
+	}
+
+	// 실패 횟수 초과: 인증 코드를 삭제해 재발송을 요구한다. (실패 기록은 윈도우 동안 유지)
+	private void invalidateCode(EmailMessage message) {
+		emailMessageRepository.delete(message);
+		throw new TooManyRequestsException("인증 코드 입력 횟수를 초과했습니다. 인증 코드를 재전송해 주세요.");
 	}
 
 	// 토큰의 인증 요청 ID로 EmailMessage 조회 (토큰 이메일과 레코드 이메일 일치 확인)
