@@ -36,8 +36,16 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-gradle-
           
-    - name: 테스트 실행 및 커버리지 리포트 생성
-      run: ./gradlew clean test jacocoTestReport
+    # 테스트가 실패해도 이후 리포트 단계는 진행하고, 마지막 단계에서 job을 실패 처리한다.
+    - name: 테스트 실행
+      id: test
+      run: ./gradlew clean test
+      continue-on-error: true
+
+    # 테스트 실패 시에는 finalizedBy로 리포트가 생성되지 않으므로 별도로 생성
+    - name: 커버리지 리포트 생성
+      if: always()
+      run: ./gradlew jacocoTestReport -x test
       continue-on-error: true
       
     - name: 커버리지 파일 확인
@@ -79,3 +87,17 @@ jobs:
         min-coverage-overall: 50
         min-coverage-changed-files: 50
         update-comment: true
+
+    - name: 테스트 리포트 업로드 (실패 시)
+      if: steps.test.outcome == 'failure'
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-report
+        path: build/reports/tests/test/
+        retention-days: 14
+
+    - name: 테스트 실패 시 워크플로 실패 처리
+      if: steps.test.outcome == 'failure'
+      run: |
+        echo "::error::테스트가 실패했습니다. test-report 아티팩트에서 실패한 테스트를 확인하세요."
+        exit 1
